@@ -2,83 +2,69 @@
 
 **Every visit teaches the business.**
 
-Guestbook is an offline-first Small AI prototype for informal tourism operators. It turns messy visitor comments into structured, inspectable business signals while keeping source evidence and the final decision with the operator.
+Guestbook is an offline-first Small AI prototype for small tourism operators. It turns messy visitor comments, questions and needs into structured, inspectable business memory while keeping the original evidence and final decision with the operator.
 
-## Current status
+## Working product
 
-The repository is intentionally building the risky core before the polished product UI.
+- Guest mode with English and Kiswahili prompts
+- Local multi-label inference with zero network requests
+- Human review and correction before a signal enters memory
+- IndexedDB persistence
+- Evidence grouped across distinct visits
+- Decision prompts that never act automatically
+- PWA/service worker for offline reopening
+- /lab for local inference and on-device regression testing
 
-- ✅ V1 taxonomy adversarially audited
-- ✅ React/Vite PWA lab scaffold
-- ✅ local IndexedDB persistence layer
-- ✅ honest keyword baseline
-- ⏳ real train/dev/test observation dataset
-- ⏳ fastText multi-label model
-- ⏳ calibrated abstention thresholds
-- ⏳ frozen test metrics
-- ⏳ Guest → Review → Memory → Decide product UI
+## Small AI architecture
 
-Open `/lab` to inspect the current baseline. **No trained-model accuracy is claimed yet.**
+Guestbook deliberately does not use a general-purpose LLM in its critical path.
 
-## Architecture
+Guestbook Micro v1 is a tiny multilabel classifier:
+- hashed character n-grams (3 to 5 characters)
+- 2,048 feature dimensions
+- 15 bounded labels including UNKNOWN
+- one-vs-rest logistic classifiers trained locally at startup
+- approximately 120 KB of learned weights in memory
+- synthetic prototype corpus covering English, Kiswahili and informal Nigerian English/Pidgin patterns
+- no model download, API key, server inference, or generated JSON
 
-```
-raw multilingual observation
-        ↓
-tiny local multi-label classifier
-        ↓
-calibrated per-label thresholds
-        ↓
-UNKNOWN / human confirmation when uncertain
-        ↓
-local IndexedDB record
-        ↓
-deterministic aggregation by distinct visit
-        ↓
-evidence-backed memory
-        ↓
-operator decision
-```
+The model is trained deterministically from the bundled corpus, so a cold offline reopen can reconstruct the same classifier without a network.
 
-AI interprets. Evidence accumulates. Humans decide.
+## Responsible AI
 
-## Taxonomy
+Raw source text is always preserved. The model can abstain with UNKNOWN. Accessibility and dietary/safety signals are explicitly marked for human confirmation. Guestbook does not automatically send messages, accept bookings, change prices, or make safety decisions. Demo records are visibly marked as demo data.
 
-See [docs/taxonomy-audit.md](docs/taxonomy-audit.md).
+## Evaluation
 
-The synthetic adversarial audit cases are explicitly excluded from training and evaluation.
+The /lab route runs a frozen synthetic stress set on the actual in-browser model and reports micro precision, recall, F1, exact-match rate, training time, model weight footprint and median local inference latency.
 
-## Evaluation policy
-
-Guestbook will not report metrics until:
-
-1. raw observations are collected;
-2. taxonomy labels are assigned afterward;
-3. train/dev/test splits are frozen;
-4. thresholds are calibrated only on dev;
-5. the frozen test set is run once.
-
-Planned reporting: micro/macro precision, recall and F1; per-label support/confusion; abstention/coverage; model size; local inference latency.
+Those numbers are regression evidence for this prototype. They are not claimed as field accuracy. The next validation step is a separately collected, human-labeled tourism dataset that is never used to tune the model.
 
 ## Offline proof
 
-The target proof is stricter than simply toggling Wi-Fi while the app is open:
-
-1. load/install once;
-2. cache the app/model;
-3. close Guestbook;
-4. enable airplane mode;
-5. reopen cold;
-6. classify a new observation;
-7. verify the critical path makes zero network requests.
+1. Open Guestbook once while connected.
+2. Visit Guest mode and /lab once so the app assets are cached.
+3. Close the app.
+4. Enable airplane mode.
+5. Reopen Guestbook.
+6. Classify a new observation.
+7. The inference path uses zero network requests.
 
 ## Development
 
-```bash
-npm install
-npm run dev
-```
+    npm install
+    npm run dev
+    npm run build
+
+## Routes
+
+- / — product entry
+- /guest — visitor capture
+- /review — operator confirmation
+- /memory — repeated signals + source evidence
+- /decide — human decision layer
+- /lab — model diagnostics and regression test
 
 ## License
 
-MIT license will be added before submission.
+MIT

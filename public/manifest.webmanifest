@@ -1,10 +1,17 @@
 {
   "name": "Guestbook",
   "short_name": "Guestbook",
-  "description": "Offline Small AI for tourism business memory.",
+  "description": "Offline Small AI that turns visitor interactions into operator-owned business memory.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f1e8",
-  "theme_color": "#f4f1e8",
-  "icons": []
+  "background_color": "#f3f0e7",
+  "theme_color": "#f3f0e7",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
