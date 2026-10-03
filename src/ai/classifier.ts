@@ -1,18 +1,18 @@
 import type { Prediction } from "../domain/observation";
-import { keywordBaseline } from "./baseline";
+import { benchmark, classify, getModel } from "./microModel";
 
-export interface Classifier {
-  name: string;
-  classify(text: string): Promise<Prediction[]>;
+export interface ClassificationResult {
+  predictions: Prediction[];
+  inferenceMs: number;
 }
 
-export const baselineClassifier: Classifier = {
-  name: "Keyword baseline",
-  async classify(text) {
-    return keywordBaseline(text);
+export const activeClassifier = {
+  name: "Guestbook Micro v1",
+  async warmup() {
+    return getModel();
   },
+  async classify(text: string): Promise<ClassificationResult> {
+    return classify(text);
+  },
+  benchmark,
 };
-
-// The fastText/WASM implementation replaces this in the critical path only
-// after we have real train/dev/test data and calibrated thresholds.
-export const activeClassifier = baselineClassifier;

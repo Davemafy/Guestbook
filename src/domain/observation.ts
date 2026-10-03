@@ -1,12 +1,13 @@
 import type { SignalLabel } from "./labels";
 
-export type ObservationSource = "guest" | "noor" | "guide";
+export type ObservationSource = "guest" | "operator" | "guide" | "demo";
+export type ObservationStatus = "pending" | "confirmed" | "dismissed";
 
 export interface Prediction {
   label: SignalLabel;
-  score: number | null;
+  score: number;
   accepted: boolean;
-  engine: "keyword-baseline" | "fasttext";
+  engine: "guestbook-micro-v1";
 }
 
 export interface Observation {
@@ -18,4 +19,6 @@ export interface Observation {
   createdAt: number;
   predictions: Prediction[];
   confirmedLabels: SignalLabel[];
+  status: ObservationStatus;
+  isDemo?: boolean;
 }
