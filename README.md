@@ -15,6 +15,10 @@ Guestbook is an offline-first Small AI prototype for small tourism operators. It
 - PWA/service worker for offline reopening
 - /lab for local inference and on-device regression testing
 
+## Device model
+
+Guestbook's offline MVP uses **one shared smartphone** owned by the operator, guide, cooperative, or family member. A visitor can be handed that phone for a short interaction, or the guide/operator can capture the visitor's words afterward. The MVP does not pretend that two disconnected phones can silently sync with each other. Store-and-forward export is a future extension, not part of the critical demo path.
+
 ## Small AI architecture
 
 Guestbook deliberately does not use a general-purpose LLM in its critical path.
