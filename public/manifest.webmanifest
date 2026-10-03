@@ -1,0 +1,10 @@
+{
+  "name": "Guestbook",
+  "short_name": "Guestbook",
+  "description": "Offline Small AI for tourism business memory.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#f4f1e8",
+  "icons": []
+}
