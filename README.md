@@ -2,6 +2,8 @@
 
 **Every visit teaches the business.**
 
+**Hosted demo:** https://guestbook-small-ai.vercel.app
+
 Guestbook is an offline-first Small AI prototype for small tourism operators. It turns messy visitor comments, questions and needs into structured, inspectable business memory while keeping the original evidence and final decision with the operator.
 
 ## Working product
@@ -33,6 +35,12 @@ Guestbook Micro v1 is a tiny multilabel classifier:
 - no model download, API key, server inference, or generated JSON
 
 The learned weights are frozen into the app, so a cold offline reopen performs inference immediately without training or a network.
+
+## Technical documentation
+
+- [Model card](docs/model-card.md)
+- [System design](docs/system-design.md)
+- [Taxonomy audit](docs/taxonomy-audit.md)
 
 ## Responsible AI
 
