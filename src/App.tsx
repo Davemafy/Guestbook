@@ -60,14 +60,14 @@ function Home() {
       <section className="hero">
         <p className="eyebrow">OFFLINE SMALL AI · TOURISM</p>
         <h1>Every visit teaches the business.</h1>
-        <p className="lede">Guestbook turns the comments, questions and needs that normally disappear after a visit into evidence a small tourism operator can actually use.</p>
+        <p className="lede">On one shared phone, Guestbook turns the comments, questions and needs that normally disappear after a visit into evidence a small tourism operator can actually use.</p>
         <div className="hero-actions">
           <button className="primary" onClick={() => go("/guest")}>I’m visiting</button>
           <button className="secondary" onClick={() => go("/memory")}>Open operator memory</button>
         </div>
       </section>
       <section className="principle-strip">
-        <div><span>01</span><strong>Guest speaks naturally</strong><p>No account. English, Kiswahili, or informal phrasing.</p></div>
+        <div><span>01</span><strong>Pass the shared phone</strong><p>A guest speaks naturally, or a guide captures their words later. No account.</p></div>
         <div><span>02</span><strong>Small AI interprets locally</strong><p>No cloud inference. Multiple signals from one message.</p></div>
         <div><span>03</span><strong>Operator keeps control</strong><p>Every signal links back to the original words.</p></div>
       </section>
@@ -81,7 +81,7 @@ const guestCopy = {
     label: "ENGLISH",
     eyebrow: "GUEST MODE · NO ACCOUNT",
     title: "What should the host know?",
-    helper: "Leave a comment, question or need in your own words. Guestbook works locally on this device.",
+    helper: "Use the shared phone to leave a comment, question or need in your own words. Nothing needs to sync first.",
     placeholder: "The roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?",
     submit: "Add to Guestbook",
   },
@@ -89,7 +89,7 @@ const guestCopy = {
     label: "KISWAHILI",
     eyebrow: "HALI YA MGENI · HAKUNA AKAUNTI",
     title: "Mwenyeji anapaswa kujua nini?",
-    helper: "Andika maoni, swali au hitaji kwa maneno yako. Guestbook hufanya kazi kwenye kifaa hiki.",
+    helper: "Tumia simu hii kuandika maoni, swali au hitaji kwa maneno yako. Hakuna haja ya kusawazisha kwanza.",
     placeholder: "Ziara ilikuwa nzuri, mama yangu alipata shida kwenye njia kali, na tunaweza kununua kahawa?",
     submit: "Ongeza kwenye Guestbook",
   },
@@ -202,7 +202,7 @@ function Review() {
                   <small>{LABEL_META[prediction.label].description}</small>
                 </div>
                 <div className="score">
-                  <span>{formatPercent(prediction.score)}</span>
+                  <span>score {formatPercent(prediction.score)}</span>
                   {HUMAN_CONFIRM_REQUIRED.has(prediction.label) && <em>confirm</em>}
                 </div>
               </button>
@@ -230,7 +230,7 @@ function Memory() {
   const [expanded, setExpanded] = useState<SignalLabel | null>(null);
 
   useEffect(() => {
-    db.observations.orderBy("createdAt").reverse().toArray().then(setObservations);
+    seedDemoData().then(() => db.observations.orderBy("createdAt").reverse().toArray()).then(setObservations);
   }, []);
 
   const memory = useMemo(() => buildMemory(observations), [observations]);
