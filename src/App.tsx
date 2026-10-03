@@ -82,7 +82,7 @@ const guestCopy = {
     eyebrow: "GUEST MODE · NO ACCOUNT",
     title: "What should the host know?",
     helper: "Use the shared phone to leave a comment, question or need in your own words. Nothing needs to sync first.",
-    placeholder: "The roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?",
+    placeholder: "We loved the roasting, the road was terrible, and we want to buy beans.",
     submit: "Add to Guestbook",
   },
   sw: {
@@ -90,7 +90,7 @@ const guestCopy = {
     eyebrow: "HALI YA MGENI · HAKUNA AKAUNTI",
     title: "Mwenyeji anapaswa kujua nini?",
     helper: "Tumia simu hii kuandika maoni, swali au hitaji kwa maneno yako. Hakuna haja ya kusawazisha kwanza.",
-    placeholder: "Ziara ilikuwa nzuri, mama yangu alipata shida kwenye njia kali, na tunaweza kununua kahawa?",
+    placeholder: "Bei ni ngapi na mnakubali M-Pesa?",
     submit: "Ongeza kwenye Guestbook",
   },
 };
