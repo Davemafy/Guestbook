@@ -1,6 +1,6 @@
 # Guestbook Taxonomy Audit
 
-Status: **V0 rejected — revise before training**
+Status: **V1 passes semantic audit — candidate taxonomy frozen pending support-count audit**
 
 Purpose: stress-test the label space before collecting or training on data. These cases are **synthetic adversarial audit cases only**. They are not training, dev, or test data and must never be counted in model evaluation.
 
@@ -57,11 +57,11 @@ For each observation, assign one of:
 
 ## Result
 
-- CLEAN: **5**
+- CLEAN: **4**
 - ACCEPTABLE: **3**
-- FORCED: **7**
+- FORCED: **8**
 
-**V0 fails the audit.** Seven forced fits is well above the maximum of three.
+**V0 fails the audit.** Eight forced fits is well above the maximum of three.
 
 The failure pattern is useful: V0 is too focused on generic praise/request/price/access signals and under-represents the operational realities of tourism.
 
@@ -113,8 +113,8 @@ If later evidence shows that topic-level repetition is necessary for the product
 
 Before any model training:
 
-- [ ] Run another 15 fresh adversarial observations against V1.
-- [ ] V1 must have **≤3 forced fits**.
+- [x] Run another 15 fresh adversarial observations against V1.
+- [x] V1 must have **≤3 forced fits**.
 - [ ] Every label intended for training must have a plan for **≥20 training examples**.
 - [ ] Rare safety labels may remain rule-assisted / human-confirmed if support is insufficient.
 - [ ] Freeze the taxonomy before collecting the held-out test set.
@@ -131,3 +131,44 @@ After taxonomy freeze:
 5. Run the frozen test set once.
 6. Report micro/macro precision, recall, F1, per-label support, per-label confusion, and abstention/coverage.
 7. Keep raw source text attached to every prediction and every human correction.
+
+
+## V1 adversarial re-audit
+
+A second set of 15 fresh synthetic adversarial cases was written **after** V1 was defined. These cases remain audit-only and are excluded from train/dev/test.
+
+Results:
+
+- CLEAN: **13**
+- ACCEPTABLE: **1**
+- FORCED: **1**
+
+**V1 passes the semantic audit.**
+
+The one forced case was:
+
+> “Could you arrange a place for us to sleep overnight on the farm?”
+
+V1 does not have a dedicated lodging/service-request class. We are **not** adding one yet. A single adversarial case is not enough reason to expand the label space and create a sparse class. Until real collected data shows repeated support, this should remain `OTHER` / `UNKNOWN` and be surfaced for human review.
+
+The acceptable case was a transport-pickup request. `FRICTION_ACCESS` preserves the useful meaning, but real data may later justify a separate service-request label.
+
+### Decision
+
+Freeze V1 for the next stage **unless support-count analysis on collected raw observations exposes a repeated missing category**.
+
+Do not tune the taxonomy against the eventual held-out test set.
+
+### Next gate: label support
+
+Before training fastText:
+
+- collect raw observations without looking at model predictions;
+- label them using V1;
+- count support per label;
+- target at least **20 training examples per trainable label**;
+- merge or defer labels with inadequate support rather than synthesizing a misleadingly balanced test story;
+- keep `SAFETY_REQUIREMENT` human-confirmed even if trained;
+- report unsupported/low-support labels explicitly.
+
+The V1 re-audit cases are stored in `data/taxonomy-audit-v1.jsonl`.
