@@ -348,7 +348,7 @@ function Lab() {
       <section className="lab-head">
         <p className="eyebrow">MODEL LAB · NO CLOUD</p>
         <h1 className="screen-title">Prove the hard part.</h1>
-        <p className="lede">Guestbook Micro v1 is a 2,048-dimensional hashed character n-gram logistic classifier trained locally from a bundled prototype corpus. No model download, API key, or network inference.</p>
+        <p className="lede">Guestbook Micro v1 is a 2,048-dimensional hashed character n-gram logistic classifier pretrained from a bundled prototype corpus and loaded entirely on-device. No model download, API key, or network inference.</p>
       </section>
       <section className="lab-grid">
         <div className="lab-input panel">
@@ -386,7 +386,7 @@ function Lab() {
           <Metric label="Network inference" value="0 requests" />
         </div>
       </section>
-      {report && <p className="dataset-note">{report.note} Training on this device: {report.trainingMs.toFixed(0)} ms.</p>}
+      {report && <p className="dataset-note">{report.note} Model load: {report.loadMs.toFixed(2)} ms.</p>}
     </Shell>
   );
 }
