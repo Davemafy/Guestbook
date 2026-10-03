@@ -23,12 +23,12 @@ Guestbook Micro v1 is a tiny multilabel classifier:
 - hashed character n-grams (3 to 5 characters)
 - 2,048 feature dimensions
 - 15 bounded labels including UNKNOWN
-- one-vs-rest logistic classifiers trained locally at startup
+- one-vs-rest logistic classifiers pretrained and bundled with the app
 - approximately 120 KB of learned weights in memory
 - synthetic prototype corpus covering English, Kiswahili and informal Nigerian English/Pidgin patterns
 - no model download, API key, server inference, or generated JSON
 
-The model is trained deterministically from the bundled corpus, so a cold offline reopen can reconstruct the same classifier without a network.
+The learned weights are frozen into the app, so a cold offline reopen performs inference immediately without training or a network.
 
 ## Responsible AI
 
