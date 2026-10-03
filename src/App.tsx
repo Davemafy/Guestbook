@@ -1,113 +1,413 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { activeClassifier } from "./ai/classifier";
-import type { Prediction } from "./domain/observation";
-import { LABELS, type SignalLabel } from "./domain/labels";
+import { db } from "./storage/db";
+import { seedDemoData } from "./data/demoData";
+import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
+import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./domain/labels";
+import type { Observation, Prediction } from "./domain/observation";
 
-function currentRoute() {
-  return window.location.pathname;
+function useLocationKey() {
+  const [key, setKey] = useState(() => window.location.pathname + window.location.search);
+  useEffect(() => {
+    const update = () => setKey(window.location.pathname + window.location.search);
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
+  }, []);
+  return key;
 }
 
-export default function App() {
-  const route = useMemo(currentRoute, []);
-  if (route === "/lab") return <Lab />;
-  return <Home />;
+function go(path: string) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function formatPercent(value: number) {
+  return Math.round(value * 100) + "%";
+}
+
+function Header({ operator = false }: { operator?: boolean }) {
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
+  return (
+    <header className="topbar">
+      <button className="wordmark" onClick={() => go("/")}>GUESTBOOK</button>
+      <div className="top-actions">
+        {operator && <button className="quiet-link" onClick={() => go("/memory")}>Operator</button>}
+        <span className={online ? "status online" : "status offline"}><span className="status-dot" />{online ? "ONLINE" : "OFFLINE"}</span>
+      </div>
+    </header>
+  );
+}
+
+function Shell({ children, operator = false }: { children: ReactNode; operator?: boolean }) {
+  return <main className="page"><Header operator={operator} />{children}</main>;
 }
 
 function Home() {
   return (
-    <main className="page home">
-      <header className="topbar">
-        <strong>GUESTBOOK</strong>
-        <span className={navigator.onLine ? "status online" : "status"}>{navigator.onLine ? "ONLINE" : "OFFLINE"}</span>
-      </header>
+    <Shell>
       <section className="hero">
-        <p className="eyebrow">SMALL AI · TOURISM</p>
+        <p className="eyebrow">OFFLINE SMALL AI · TOURISM</p>
         <h1>Every visit teaches the business.</h1>
-        <p className="lede">Guestbook turns messy visitor comments into structured, inspectable business memory—locally, without cloud AI.</p>
-        <a className="primary" href="/lab">Open model lab</a>
+        <p className="lede">Guestbook turns the comments, questions and needs that normally disappear after a visit into evidence a small tourism operator can actually use.</p>
+        <div className="hero-actions">
+          <button className="primary" onClick={() => go("/guest")}>I’m visiting</button>
+          <button className="secondary" onClick={() => go("/memory")}>Open operator memory</button>
+        </div>
       </section>
-      <footer>AI interprets. Evidence accumulates. Humans decide.</footer>
-    </main>
+      <section className="principle-strip">
+        <div><span>01</span><strong>Guest speaks naturally</strong><p>No account. English, Kiswahili, or informal phrasing.</p></div>
+        <div><span>02</span><strong>Small AI interprets locally</strong><p>No cloud inference. Multiple signals from one message.</p></div>
+        <div><span>03</span><strong>Operator keeps control</strong><p>Every signal links back to the original words.</p></div>
+      </section>
+      <footer className="footer-line"><span>AI interprets.</span><span>Evidence accumulates.</span><span>Humans decide.</span></footer>
+    </Shell>
+  );
+}
+
+const guestCopy = {
+  en: {
+    label: "ENGLISH",
+    eyebrow: "GUEST MODE · NO ACCOUNT",
+    title: "What should the host know?",
+    helper: "Leave a comment, question or need in your own words. Guestbook works locally on this device.",
+    placeholder: "The roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?",
+    submit: "Add to Guestbook",
+  },
+  sw: {
+    label: "KISWAHILI",
+    eyebrow: "HALI YA MGENI · HAKUNA AKAUNTI",
+    title: "Mwenyeji anapaswa kujua nini?",
+    helper: "Andika maoni, swali au hitaji kwa maneno yako. Guestbook hufanya kazi kwenye kifaa hiki.",
+    placeholder: "Ziara ilikuwa nzuri, mama yangu alipata shida kwenye njia kali, na tunaweza kununua kahawa?",
+    submit: "Ongeza kwenye Guestbook",
+  },
+};
+
+function Guest() {
+  const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const copy = guestCopy[language];
+
+  async function submit() {
+    if (text.trim().length < 3 || busy) return;
+    setBusy(true);
+    const result = await activeClassifier.classify(text.trim());
+    const id = crypto.randomUUID();
+    const observation: Observation = {
+      id,
+      visitId: crypto.randomUUID(),
+      rawText: text.trim(),
+      language,
+      source: "guest",
+      createdAt: Date.now(),
+      predictions: result.predictions,
+      confirmedLabels: [],
+      status: "pending",
+    };
+    await db.observations.add(observation);
+    go("/review?id=" + encodeURIComponent(id));
+  }
+
+  return (
+    <Shell>
+      <section className="narrow">
+        <div className="language-switch" role="group" aria-label="Language">
+          {(Object.keys(guestCopy) as Array<keyof typeof guestCopy>).map((key) => (
+            <button key={key} className={language === key ? "language active" : "language"} onClick={() => setLanguage(key)}>
+              {guestCopy[key].label}
+            </button>
+          ))}
+        </div>
+        <p className="eyebrow">{copy.eyebrow}</p>
+        <h1 className="screen-title">{copy.title}</h1>
+        <p className="lede">{copy.helper}</p>
+        <textarea className="guest-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={copy.placeholder} rows={7} autoFocus />
+        <div className="input-footer">
+          <span>{text.length} characters</span>
+          <button className="primary" disabled={text.trim().length < 3 || busy} onClick={submit}>
+            {busy ? "Understanding locally…" : copy.submit}
+          </button>
+        </div>
+      </section>
+    </Shell>
+  );
+}
+
+function Review() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedId = params.get("id");
+  const [observation, setObservation] = useState<Observation | null>(null);
+  const [selected, setSelected] = useState<Set<SignalLabel>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const item = requestedId
+        ? await db.observations.get(requestedId)
+        : await db.observations.where("status").equals("pending").last();
+      setObservation(item ?? null);
+      setSelected(new Set((item?.predictions ?? []).filter((p) => p.label !== "UNKNOWN").map((p) => p.label)));
+      setLoading(false);
+    })();
+  }, [requestedId]);
+
+  function toggle(label: SignalLabel) {
+    if (label === "UNKNOWN") return;
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }
+
+  async function confirm() {
+    if (!observation) return;
+    await db.observations.update(observation.id, { status: "confirmed", confirmedLabels: [...selected] });
+    go("/memory");
+  }
+
+  if (loading) return <Shell operator><p className="lede">Loading local record…</p></Shell>;
+  if (!observation) return <Shell operator><section className="empty"><h1>No pending observation.</h1><button className="primary" onClick={() => go("/guest")}>Add one</button></section></Shell>;
+
+  return (
+    <Shell operator>
+      <section className="review-layout">
+        <div>
+          <p className="eyebrow">HUMAN REVIEW</p>
+          <h1 className="screen-title">What Guestbook heard.</h1>
+          <blockquote className="source-quote">“{observation.rawText}”</blockquote>
+          <p className="microcopy">Nothing below replaces the original words. Tap any signal to correct the model before it enters memory.</p>
+        </div>
+        <div className="review-panel">
+          <div className="panel-head"><span>LOCAL MODEL</span><span>{observation.predictions[0]?.engine ?? "guestbook-micro-v1"}</span></div>
+          <div className="prediction-list">
+            {observation.predictions.map((prediction) => (
+              <button key={prediction.label} className={selected.has(prediction.label) ? "prediction selected" : "prediction"} onClick={() => toggle(prediction.label)}>
+                <div>
+                  <strong>{LABEL_META[prediction.label].title}</strong>
+                  <small>{LABEL_META[prediction.label].description}</small>
+                </div>
+                <div className="score">
+                  <span>{formatPercent(prediction.score)}</span>
+                  {HUMAN_CONFIRM_REQUIRED.has(prediction.label) && <em>confirm</em>}
+                </div>
+              </button>
+            ))}
+          </div>
+          <details className="add-signal">
+            <summary>Add or correct a signal</summary>
+            <div className="label-grid">
+              {LABELS.filter((label) => label !== "UNKNOWN").map((label) => (
+                <button key={label} className={selected.has(label) ? "label active" : "label"} onClick={() => toggle(label)}>
+                  {LABEL_META[label].title}
+                </button>
+              ))}
+            </div>
+          </details>
+          <button className="primary full" onClick={confirm}>Confirm into memory</button>
+        </div>
+      </section>
+    </Shell>
+  );
+}
+
+function Memory() {
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [expanded, setExpanded] = useState<SignalLabel | null>(null);
+
+  useEffect(() => {
+    db.observations.orderBy("createdAt").reverse().toArray().then(setObservations);
+  }, []);
+
+  const memory = useMemo(() => buildMemory(observations), [observations]);
+
+  return (
+    <Shell operator>
+      <section className="memory-head">
+        <div>
+          <p className="eyebrow">OPERATOR MEMORY · LOCAL ONLY</p>
+          <h1 className="screen-title">What keeps repeating?</h1>
+        </div>
+        <div className="memory-actions">
+          <button className="secondary" onClick={() => go("/guest")}>Add visit</button>
+          <button className="primary" onClick={() => go("/decide")}>What should I act on?</button>
+        </div>
+      </section>
+      <section className="memory-grid">
+        {memory.map((signal, index) => (
+          <article key={signal.label} className="memory-card">
+            <div className="memory-rank">{String(index + 1).padStart(2, "0")}</div>
+            <div className="memory-main">
+              <div className="memory-title-row">
+                <h2>{signal.title}</h2>
+                <strong>{signal.visitCount} <span>visits</span></strong>
+              </div>
+              <p>{signal.description}</p>
+              <button className="evidence-toggle" onClick={() => setExpanded(expanded === signal.label ? null : signal.label)}>
+                {expanded === signal.label ? "Hide source evidence" : "View source evidence"}
+              </button>
+              {expanded === signal.label && (
+                <div className="evidence-list">
+                  {signal.observations.map((obs) => (
+                    <div key={obs.id} className="evidence-item">
+                      <span>{obs.language.toUpperCase()} · {obs.isDemo ? "DEMO VISIT" : "VISIT"}</span>
+                      <p>“{obs.rawText}”</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+      <p className="dataset-note">Demo visits are visibly marked. New confirmed visits are stored only in this browser via IndexedDB.</p>
+    </Shell>
+  );
+}
+
+function Decide() {
+  const [signals, setSignals] = useState<MemorySignal[]>([]);
+  const [decisions, setDecisions] = useState<Record<string, string>>(() => JSON.parse(localStorage.getItem("guestbook-decisions") ?? "{}"));
+
+  useEffect(() => {
+    db.observations.toArray().then((rows) => setSignals(buildMemory(rows).filter((signal) => signal.visitCount >= 3)));
+  }, []);
+
+  function decide(label: string, decision: string) {
+    const next = { ...decisions, [label]: decision };
+    setDecisions(next);
+    localStorage.setItem("guestbook-decisions", JSON.stringify(next));
+  }
+
+  return (
+    <Shell operator>
+      <section className="narrow decision-page">
+        <p className="eyebrow">DECISION LAYER · HUMAN CONTROL</p>
+        <h1 className="screen-title">Evidence, not autopilot.</h1>
+        <p className="lede">Guestbook never changes the business for you. It surfaces repeated evidence and leaves the decision here.</p>
+        <div className="decision-list">
+          {signals.map((signal) => {
+            const copy = decisionCopy(signal);
+            return (
+              <article className="decision-card" key={signal.label}>
+                <span className="decision-count">{signal.visitCount} independent visits</span>
+                <h2>{copy.headline}</h2>
+                <p>{copy.body}</p>
+                <div className="decision-buttons">
+                  {["Explore","Not now","Wrong signal"].map((option) => (
+                    <button key={option} className={decisions[signal.label] === option ? "decision active" : "decision"} onClick={() => decide(signal.label, option)}>{option}</button>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        <button className="quiet-link back-link" onClick={() => go("/memory")}>← Back to evidence</button>
+      </section>
+    </Shell>
   );
 }
 
 function Lab() {
-  const [text, setText] = useState("The coffee roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?");
+  const [text, setText] = useState("The roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [groundTruth, setGroundTruth] = useState<SignalLabel[]>([]);
-  const [elapsed, setElapsed] = useState<number | null>(null);
+  const [inferenceMs, setInferenceMs] = useState<number | null>(null);
+  const [report, setReport] = useState<Awaited<ReturnType<typeof activeClassifier.benchmark>> | null>(null);
+  const [running, setRunning] = useState(false);
 
   async function run() {
-    const started = performance.now();
+    setRunning(true);
     const result = await activeClassifier.classify(text);
-    setElapsed(performance.now() - started);
-    setPredictions(result);
+    setPredictions(result.predictions);
+    setInferenceMs(result.inferenceMs);
+    setRunning(false);
   }
 
-  function toggleTruth(label: SignalLabel) {
-    setGroundTruth((current) =>
-      current.includes(label) ? current.filter((x) => x !== label) : [...current, label],
-    );
+  async function runBenchmark() {
+    setRunning(true);
+    setReport(await activeClassifier.benchmark());
+    setRunning(false);
   }
 
   return (
-    <main className="page lab">
-      <header className="topbar">
-        <a href="/">GUESTBOOK</a>
-        <span className={navigator.onLine ? "status online" : "status"}>{navigator.onLine ? "ONLINE" : "OFFLINE"}</span>
-      </header>
-
-      <section>
-        <p className="eyebrow">MODEL LAB · BASELINE ONLY</p>
-        <h1>Prove the hard part first.</h1>
-        <p className="lede">This route is intentionally ugly and honest. The current engine is a deterministic keyword baseline. No trained fastText model or benchmark metrics are claimed yet.</p>
+    <Shell operator>
+      <section className="lab-head">
+        <p className="eyebrow">MODEL LAB · NO CLOUD</p>
+        <h1 className="screen-title">Prove the hard part.</h1>
+        <p className="lede">Guestbook Micro v1 is a 2,048-dimensional hashed character n-gram logistic classifier trained locally from a bundled prototype corpus. No model download, API key, or network inference.</p>
       </section>
-
-      <section className="panel">
-        <label htmlFor="observation">Observation</label>
-        <textarea id="observation" value={text} onChange={(e) => setText(e.target.value)} rows={5} />
-        <button className="primary" onClick={run}>Run baseline</button>
-      </section>
-
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>Predictions</h2>
-          <span>{elapsed === null ? "not run" : elapsed.toFixed(2) + " ms"}</span>
+      <section className="lab-grid">
+        <div className="lab-input panel">
+          <label>Observation</label>
+          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7} />
+          <button className="primary" onClick={run} disabled={running}>{running ? "Running locally…" : "Run local inference"}</button>
         </div>
-        {predictions.length === 0 ? <p className="muted">Run an observation.</p> : (
-          <div className="signals">
-            {predictions.map((p) => (
-              <div className="signal" key={p.label}>
-                <span>{p.label}</span>
-                <small>{p.engine}{p.score === null ? "" : " · " + p.score.toFixed(3)}</small>
+        <div className="panel">
+          <div className="panel-head"><span>PREDICTIONS</span><span>{inferenceMs === null ? "—" : inferenceMs.toFixed(2) + " ms"}</span></div>
+          <div className="prediction-list compact">
+            {predictions.length === 0 ? <p className="muted">Run an observation.</p> : predictions.map((prediction) => (
+              <div className="prediction selected static" key={prediction.label}>
+                <div><strong>{LABEL_META[prediction.label].title}</strong><small>{prediction.label}</small></div>
+                <div className="score"><span>{formatPercent(prediction.score)}</span></div>
               </div>
             ))}
           </div>
-        )}
-      </section>
-
-      <section className="panel">
-        <h2>Ground truth</h2>
-        <p className="muted">Manual labels for case-by-case checking. These are not persisted as benchmark results yet.</p>
-        <div className="label-grid">
-          {LABELS.map((label) => (
-            <button
-              key={label}
-              className={groundTruth.includes(label) ? "label active" : "label"}
-              onClick={() => toggleTruth(label)}
-            >
-              {label}
-            </button>
-          ))}
         </div>
       </section>
-
-      <section className="proof">
-        <div><span>engine</span><strong>{activeClassifier.name}</strong></div>
-        <div><span>trained model</span><strong>not yet</strong></div>
-        <div><span>benchmark</span><strong>not yet</strong></div>
-        <div><span>network state</span><strong>{navigator.onLine ? "online" : "offline"}</strong></div>
+      <section className="benchmark">
+        <div className="benchmark-copy">
+          <p className="eyebrow">REGRESSION CHECK</p>
+          <h2>Frozen stress set.</h2>
+          <p>This benchmark is deliberately labeled as synthetic. It protects the demo from regressions; it is not presented as field accuracy.</p>
+          <button className="secondary" onClick={runBenchmark} disabled={running}>Run benchmark on this device</button>
+        </div>
+        <div className="metric-grid">
+          <Metric label="Micro F1" value={report ? formatPercent(report.f1) : "—"} />
+          <Metric label="Precision" value={report ? formatPercent(report.precision) : "—"} />
+          <Metric label="Recall" value={report ? formatPercent(report.recall) : "—"} />
+          <Metric label="Exact match" value={report ? formatPercent(report.exactMatch) : "—"} />
+          <Metric label="Cases" value={report ? String(report.cases) : "35"} />
+          <Metric label="Weights" value={report ? Math.round(report.weightBytes / 1024) + " KB" : "~120 KB"} />
+          <Metric label="Median inference" value={report ? report.medianInferenceMs.toFixed(2) + " ms" : "—"} />
+          <Metric label="Network inference" value="0 requests" />
+        </div>
       </section>
-    </main>
+      {report && <p className="dataset-note">{report.note} Training on this device: {report.trainingMs.toFixed(0)} ms.</p>}
+    </Shell>
   );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return <div className="metric"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+export default function App() {
+  const location = useLocationKey();
+
+  useEffect(() => {
+    seedDemoData();
+    void activeClassifier.warmup();
+  }, []);
+
+  const path = location.split("?")[0];
+  if (path === "/guest") return <Guest />;
+  if (path === "/review") return <Review />;
+  if (path === "/memory") return <Memory />;
+  if (path === "/decide") return <Decide />;
+  if (path === "/lab") return <Lab />;
+  return <Home />;
 }

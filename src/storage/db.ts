@@ -9,6 +9,9 @@ export class GuestbookDB extends Dexie {
     this.version(1).stores({
       observations: "id, visitId, createdAt, source, language",
     });
+    this.version(2).stores({
+      observations: "id, visitId, createdAt, source, language, status, isDemo",
+    });
   }
 }
 
