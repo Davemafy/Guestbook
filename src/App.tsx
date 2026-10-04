@@ -561,8 +561,23 @@ function TechnicalLab({ benchmark = false }: { benchmark?: boolean }) {
         <div className="proof-statement">
           <span>SYNTHETIC RESULT</span>
           <strong>Rules are competitive here.</strong>
-          <p>That is exactly why Guestbook does not use its synthetic score as the reason to choose machine learning. The next screen tests transfer outside the examples we wrote.</p>
+          <p>That is exactly why Guestbook does not use its synthetic score as the reason to choose machine learning. Untouched external language is the harder test.</p>
         </div>
+
+        <Card>
+          <div className="card-header">
+            <div>
+              <Badge variant="outline">UNTOUCHED MASSIVE TEST</Badge>
+              <h2>Outside the phrases we wrote.</h2>
+              <p>Same bounded signals, evaluated on external English and Kiswahili utterances that were not used to fit the promoted model.</p>
+            </div>
+          </div>
+          <DataTable rows={[
+            ["English · 305 cases","Rules 16.7%","Guestbook Micro 91.1% mapped-label hit"],
+            ["Kiswahili · 305 cases","Rules 2.3%","Guestbook Micro 92.8% mapped-label hit"],
+          ]} />
+          <Alert title="Interpretation">MASSIVE is a semantic-transfer probe, not tourism field accuracy. The lexical baseline is deliberately transparent and readable, not an exhaustive rules engine.</Alert>
+        </Card>
 
         {report && (
           <Card>
