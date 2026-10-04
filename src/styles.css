@@ -44,6 +44,7 @@ h1 { font-size: clamp(58px, 9.2vw, 128px); line-height: .88; letter-spacing: -.0
 .principle-strip p { color: var(--muted); line-height: 1.5; font-size: 14px; margin-bottom: 0; }
 .footer-line { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; font-size: 12px; color: var(--muted); }
 .narrow { width: min(100%, 780px); margin: 0 auto; padding: 9vh 0 60px; }
+.capture-controls { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 8px; }
 .language-switch { display: inline-flex; border-bottom: 1px solid var(--line); margin-bottom: 38px; }
 .language { border: 0; background: transparent; padding: 9px 18px 9px 0; margin-right: 18px; font-size: 10px; letter-spacing: .12em; opacity: .45; cursor: pointer; }
 .language.active { opacity: 1; border-bottom: 2px solid var(--ink); }
