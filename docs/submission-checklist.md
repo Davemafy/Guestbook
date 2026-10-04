@@ -37,11 +37,11 @@ Flow:
 4. Confirm into memory
 5. Memory → expand source evidence
 6. Decide → show human-controlled action prompt
-7. /lab → show ~120 KB model, 0 inference requests, regression metrics
+7. /lab → show ~240 KB model, 0 inference requests, synthetic regression + held-out external probes
 
 ## Technical claims safe to make
 
-- About **120 KB** learned weights
+- About **240 KB** learned weights
 - Entire inference path runs **in-browser**
 - **0 network requests during inference**
 - **15 bounded labels**, including UNKNOWN
@@ -49,15 +49,20 @@ Flow:
 - Original visitor text is preserved
 - Human review before memory
 - Repeated patterns are counted deterministically across distinct visit IDs
+- **2,687** training cases across synthetic prototypes + external training partitions
 - Frozen **synthetic** stress-set result at threshold 0.60:
-  - 95.1% micro precision
-  - 92.9% micro recall
-  - 94.0% micro F1
-  - 88.6% exact multi-label match
+  - 92.5% micro precision
+  - 88.1% micro recall
+  - 90.2% micro F1
+  - 82.9% exact multi-label match
+- Untouched MASSIVE test semantic-transfer probes:
+  - 91.1% mapped-label hit — English
+  - 92.8% mapped-label hit — Kiswahili
+- Held-out Nairobi weak-label probe: 98.0% agreement across 1,055 anchor-matched sentences
 
 ## Claims not to make
 
-- Do not call the synthetic metrics field accuracy.
+- Do not call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics field accuracy.
 - Do not claim every language is supported.
 - Do not claim voice transcription exists in the submission build.
 - Do not claim two disconnected phones synchronize offline.
@@ -74,7 +79,9 @@ Flow:
 - [ ] Review corrections work
 - [ ] Memory source evidence expands
 - [ ] Decide buttons work
-- [ ] /lab benchmark runs
+- [ ] /capture guide/operator path works
+- [ ] Export JSON downloads confirmed non-demo records
+- [ ] /lab benchmark and external-evidence section render
 - [ ] Install/open PWA once, then test cold reopen in airplane mode
 
 ## Final repo checks
