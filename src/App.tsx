@@ -402,7 +402,11 @@ function Guest() {
   }
 
   const canPrepare = language === "en" && (voiceState === "install" || voiceState === "cached" || voiceState === "error");
-  const progressPercent = voiceProgress ? Math.round(voiceProgress.fraction * 100) : null;
+  const progressPercent = voiceProgress && voiceProgress.fraction > 0 ? Math.round(voiceProgress.fraction * 100) : null;
+  const progressSize = voiceProgress?.total
+    ? `${((voiceProgress.loaded ?? 0) / 1024 / 1024).toFixed(1)} / ${(voiceProgress.total / 1024 / 1024).toFixed(1)} MB`
+    : null;
+  const progressFile = voiceProgress?.file?.split("/").pop();
 
   return (
     <Shell active="add">
@@ -431,7 +435,13 @@ function Guest() {
                 {language === "en" && (
                   <>
                     {canPrepare && <button className="field-action labelled" onClick={prepareVoice}><Icon name="mic" size={16} /><span>{voiceState === "cached" ? "Load voice" : "Install voice"}</span></button>}
-                    {voiceState === "loading" && <span className="voice-caption">Preparing voice{progressPercent === null ? "" : " · " + progressPercent + "%"}</span>}
+                    {voiceState === "loading" && (
+                      <span className="voice-caption">
+                        {progressPercent === null
+                          ? "Loading speech engine…"
+                          : "Downloading voice · " + progressPercent + "%" + (progressSize ? " · " + progressSize : "") + (progressFile ? " · " + progressFile : "")}
+                      </span>
+                    )}
                     {voiceState === "ready" && <button className="field-action labelled" onClick={startVoice}><Icon name="mic" size={16} /><span>Speak</span></button>}
                     {voiceState === "listening" && <button className="field-action labelled active-voice" onClick={stopVoice}><Icon name="mic" size={16} /><span>Listening</span></button>}
                   </>
@@ -439,7 +449,11 @@ function Guest() {
                 {language === "sw" && <span className="voice-caption">Typed input · offline</span>}
                 <span className="field-count">{text.length}</span>
               </div>
-              {voiceState === "loading" && <div className="field-progress"><span style={{ width: (progressPercent ?? 8) + "%" }} /></div>}
+              {voiceState === "loading" && (
+                <div className={"field-progress " + (progressPercent === null ? "indeterminate" : "")}>
+                  <span style={progressPercent === null ? undefined : { width: progressPercent + "%" }} />
+                </div>
+              )}
               {voiceError && language === "en" && <p className="field-error">{voiceError}</p>}
             </div>
           </div>
