@@ -311,7 +311,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   const coreNav = NAV.filter((item): item is { key: Exclude<Route, "system">; label: string; path: string } => item.key !== "system");
 
   return (
-    <div className={"base-app " + layout}>
+    <div className={"base-app " + layout + " route-" + route}>
       <aside className="desktop-sidebar" aria-label="Primary">
         <button className="sidebar-brand" onClick={() => go("/")}>Guestbook</button>
         <nav className="sidebar-nav">
