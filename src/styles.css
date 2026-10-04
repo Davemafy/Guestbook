@@ -742,54 +742,43 @@ button:disabled {
   grid-column: 1 / 13;
 }
 
-.memory-count {
-  grid-column: 1 / 5;
+.memory-feature {
+  grid-column: 1 / 9;
   margin-top: 64px;
-  border-top: 1px solid var(--content-primary);
+  border-top: 1px solid var(--border-opaque);
   padding-top: 24px;
 }
 
-.count-line {
+.memory-evidence-line {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.count-line span {
-  color: var(--content-tertiary);
-  font-size: 32px;
-  line-height: 40px;
-  text-decoration: line-through;
-}
-
-.count-line b {
-  color: var(--positive);
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 700;
-}
-
-.count-line strong {
-  font-size: 52px;
-  line-height: 64px;
-  font-weight: 700;
-}
-
-.memory-count .label-medium {
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
   color: var(--content-secondary);
+  font-size: 14px;
+  line-height: 20px;
 }
 
-.memory-feature {
-  grid-column: 5 / 13;
-  margin-top: 64px;
-  border-top: 1px solid var(--content-primary);
-  padding-top: 24px;
+.memory-evidence-line strong {
+  color: var(--content-primary);
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.memory-evidence-line.changed strong,
+.memory-new-evidence {
+  color: var(--positive);
+}
+
+.memory-new-evidence {
+  margin-left: 8px;
+  font-size: 12px;
 }
 
 .memory-feature h2 {
-  margin: 8px 0 0;
+  max-width: 720px;
+  margin: 16px 0 0;
   font-size: 36px;
   line-height: 44px;
 }
@@ -800,6 +789,15 @@ button:disabled {
   color: var(--content-secondary);
   font-size: 16px;
   line-height: 24px;
+}
+
+.memory-proof-note {
+  max-width: 640px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-opaque);
+  color: var(--content-secondary);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .memory-feature .base-button-group {
@@ -843,10 +841,15 @@ button:disabled {
   line-height: 20px;
 }
 
-.base-list-row small {
+.base-list-row small,
+.row-meta {
   color: var(--content-secondary);
   font-size: 12px;
   line-height: 20px;
+}
+
+.row-meta {
+  flex: 0 0 auto;
 }
 
 .empty-state {
@@ -871,38 +874,32 @@ button:disabled {
 }
 
 .evidence-summary {
-  grid-column: 1 / 4;
-  margin-top: 64px;
-  border-top: 1px solid var(--content-primary);
-  padding-top: 24px;
+  grid-column: 1 / 9;
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-opaque);
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
 }
 
-.evidence-stat {
-  display: grid;
-  gap: 4px;
+.evidence-summary strong {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 20px;
 }
 
-.evidence-stat strong {
-  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 52px;
-  line-height: 64px;
-  font-weight: 700;
-}
-
-.evidence-stat span,
 .evidence-summary p {
+  max-width: 720px;
+  margin: 0;
   color: var(--content-secondary);
   font-size: 14px;
   line-height: 20px;
 }
 
-.evidence-summary p {
-  margin-top: 24px;
-}
-
 .evidence-ledger {
-  grid-column: 4 / 13;
-  margin-top: 64px;
+  grid-column: 1 / 13;
+  margin-top: 48px;
 }
 
 .evidence-rows {
@@ -910,21 +907,16 @@ button:disabled {
 }
 
 .evidence-row {
-  padding: 24px 0;
+  padding: 28px 0;
   border-bottom: 1px solid var(--background-tertiary);
   display: grid;
-  grid-template-columns: 48px minmax(0,1fr) 180px;
-  gap: 16px;
+  grid-template-columns: minmax(0,1fr) 180px;
+  gap: 36px;
   align-items: start;
 }
 
-.evidence-index {
-  color: var(--content-tertiary);
-  font-size: 12px;
-  line-height: 20px;
-}
-
 .evidence-quote {
+  max-width: 760px;
   font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 20px;
   line-height: 28px;
@@ -942,7 +934,7 @@ button:disabled {
 }
 
 .evidence-media {
-  grid-column: 2 / 3;
+  grid-column: 1;
   width: min(480px, 100%);
   max-height: 280px;
   object-fit: cover;
@@ -956,25 +948,12 @@ button:disabled {
 .decision-main {
   grid-column: 1 / 8;
   margin-top: 64px;
-  border-top: 1px solid var(--content-primary);
+  border-top: 1px solid var(--border-opaque);
   padding-top: 24px;
 }
 
-.decision-count {
-  margin-bottom: 28px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.decision-count strong {
-  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 52px;
-  line-height: 64px;
-  font-weight: 700;
-}
-
-.decision-count span {
+.decision-source-line {
+  margin-bottom: 16px;
   color: var(--content-secondary);
   font-size: 14px;
   line-height: 20px;
@@ -982,7 +961,7 @@ button:disabled {
 
 .decision-main h2 {
   max-width: 720px;
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 36px;
   line-height: 44px;
 }
@@ -1006,7 +985,7 @@ button:disabled {
 }
 
 .decision-proof {
-  grid-column: 8 / 13;
+  grid-column: 9 / 13;
   margin-top: 64px;
 }
 
@@ -1196,11 +1175,10 @@ button:disabled {
     grid-column: 1 / 9;
   }
 
-  .memory-count { grid-column: 1 / 4; }
-  .memory-feature { grid-column: 4 / 9; }
+  .memory-feature { grid-column: 1 / 7; }
 
-  .evidence-summary { grid-column: 1 / 3; }
-  .evidence-ledger { grid-column: 3 / 9; }
+  .evidence-summary { grid-column: 1 / 7; }
+  .evidence-ledger { grid-column: 1 / 9; }
 
   .decision-main { grid-column: 1 / 6; }
   .decision-proof { grid-column: 6 / 9; }
@@ -1344,7 +1322,6 @@ button:disabled {
 
   .guest-context,
   .review-signals,
-  .memory-count,
   .memory-feature,
   .evidence-summary,
   .evidence-ledger,
@@ -1415,22 +1392,24 @@ button:disabled {
     line-height: 40px;
   }
 
-  .memory-count {
-    border-top: 1px solid var(--content-primary);
+  .evidence-summary {
+    display: grid;
+    gap: 8px;
   }
 
   .evidence-row {
-    grid-template-columns: 32px minmax(0,1fr);
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .evidence-meta {
-    grid-column: 2;
+    grid-column: 1;
     flex-direction: row;
     flex-wrap: wrap;
   }
 
   .evidence-media {
-    grid-column: 2;
+    grid-column: 1;
   }
 
   .decision-proof {
@@ -1476,13 +1455,6 @@ button:disabled {
     flex: 0 0 auto;
   }
 
-  .count-line strong,
-  .evidence-stat strong,
-  .decision-count strong {
-    font-size: 44px;
-    line-height: 52px;
-  }
-
   .memory-feature h2,
   .decision-main h2 {
     font-size: 28px;
@@ -1519,7 +1491,6 @@ button:disabled {
 .system-list,
 .proof-sequence,
 .voice-system-row,
-.memory-count,
 .memory-feature,
 .decision-main,
 .decision-proof,
