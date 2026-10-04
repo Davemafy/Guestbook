@@ -372,29 +372,36 @@ function Guest() {
   const progressFile = voiceProgress?.file?.split("/").pop();
 
   return (
-    <Shell active="add">
-      <AppHeader title="Leave a message" subtitle="Guest mode · no account" back />
-      <RoundedTabs
-        active={language}
-        onChange={(key) => setLanguage(key as keyof typeof guestCopy)}
-        items={[
-          { key: "en", label: "English" },
-          { key: "sw", label: "Kiswahili" },
-        ]}
-      />
+    <AppFrame section="capture">
+      <section className="field-main capture-page">
+        <div className="capture-grid">
+          <div>
+            <PageIntro
+              eyebrow="VISITOR SOURCE"
+              title={copy.title}
+              body="Keep the exact words first. Guestbook interprets them locally, then asks a person what should enter memory."
+            />
 
-      <section className="single-feed">
-        <article className="guest-post composer-post">
-          <div className="user-post-copy">
-            <div className="user-title">
-              <Avatar label="Guest" />
-              <div><strong>Guest visitor</strong><span>Right now · this device</span></div>
+            <div className="language-row" role="group" aria-label="Language">
+              {(Object.keys(guestCopy) as Array<keyof typeof guestCopy>).map((key) => (
+                <button key={key} className={language === key ? "active" : ""} onClick={() => setLanguage(key)}>
+                  {guestCopy[key].label}
+                </button>
+              ))}
             </div>
-            <p className="composer-help">{copy.helper}</p>
 
-            <div className="message-composer writing">
-              <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} rows={6} aria-label={copy.title} />
-              {mediaDataUrl && <GuestMedia src={mediaDataUrl} label="Photo" />}
+            <div className="capture-surface">
+              <textarea
+                className="field-input"
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                placeholder={copy.placeholder}
+                rows={7}
+                aria-label={copy.title}
+              />
+
+              {mediaDataUrl && <GuestMedia src={mediaDataUrl} label="ATTACHED PHOTO" />}
+
               <input
                 ref={mediaInputRef}
                 className="sr-only"
@@ -403,57 +410,65 @@ function Guest() {
                 onChange={(event) => attachMedia(event.target.files?.[0])}
                 aria-label="Attach guest photo"
               />
-              <div className="composer-actions">
-                <button className="field-action labelled" onClick={() => mediaInputRef.current?.click()}><Icon name="attach" size={16} /><span>Photo</span></button>
-                {language === "en" && (
-                  <>
-                    {quickVoiceState === "idle" && navigator.onLine && (
-                      <button className="field-action labelled primary-voice" onClick={startQuickVoice}>
-                        <Icon name="mic" size={16} /><span>Speak now</span>
-                      </button>
-                    )}
-                    {quickVoiceState === "listening" && (
-                      <button className="field-action labelled active-voice" onClick={stopQuickVoice}>
-                        <Icon name="mic" size={16} /><span>Listening</span>
-                      </button>
-                    )}
-                    {canPrepare && (
-                      <button className="field-action labelled secondary-voice" onClick={prepareVoice}>
-                        <Icon name="mic" size={16} /><span>{voiceState === "cached" ? "Load offline voice" : "Install offline voice · ~74 MB"}</span>
-                      </button>
-                    )}
-                    {voiceState === "loading" && (
-                      <span className="voice-caption">
-                        {progressKnown
-                          ? "Offline voice · " + progressPercent + "% · " + progressSize + (progressFile ? " · " + progressFile : "")
-                          : "Offline voice downloading · " + (progressSize ?? "starting…") + (progressFile ? " · " + progressFile : "")}
-                      </span>
-                    )}
-                    {voiceState === "ready" && <button className="field-action labelled secondary-voice" onClick={startVoice}><Icon name="mic" size={16} /><span>Speak offline</span></button>}
-                    {voiceState === "listening" && <button className="field-action labelled active-voice" onClick={stopVoice}><Icon name="mic" size={16} /><span>Listening offline</span></button>}
-                  </>
+
+              <div className="capture-actions">
+                <button className="text-action" onClick={() => mediaInputRef.current?.click()}>Attach photo</button>
+
+                {language === "en" && canPrepare && (
+                  <button className="text-action" onClick={prepareVoice}>
+                    {voiceState === "cached" ? "Load offline voice" : "Install offline voice"}
+                  </button>
                 )}
-                {language === "sw" && <span className="voice-caption">Typed input · offline</span>}
-                <span className="field-count">{text.length}</span>
+                {language === "en" && voiceState === "ready" && (
+                  <button className="text-action voice-ready" onClick={startVoice}>Speak offline</button>
+                )}
+                {language === "en" && voiceState === "listening" && (
+                  <button className="text-action voice-live" onClick={stopVoice}>Stop recording</button>
+                )}
+                {language === "en" && quickVoiceState === "idle" && navigator.onLine && (
+                  <button className="text-action secondary-input" onClick={startQuickVoice}>Connected voice</button>
+                )}
+                {language === "en" && quickVoiceState === "listening" && (
+                  <button className="text-action voice-live" onClick={stopQuickVoice}>Stop connected voice</button>
+                )}
+
+                <span className="char-count">{text.length}</span>
               </div>
+
               {voiceState === "loading" && (
-                <div className={"field-progress " + (progressKnown ? "" : "indeterminate")}>
-                  <span style={progressKnown ? { width: progressPercent + "%" } : undefined} />
+                <div className="voice-load">
+                  <div className={"voice-load-bar " + (progressKnown ? "" : "indeterminate")}>
+                    <span style={progressKnown ? { width: progressPercent + "%" } : undefined} />
+                  </div>
+                  <p>
+                    Preparing offline voice
+                    {progressKnown ? " · " + progressPercent + "%" : ""}
+                    {progressSize ? " · " + progressSize : ""}
+                  </p>
                 </div>
               )}
               {voiceError && language === "en" && <p className="field-error">{voiceError}</p>}
             </div>
+
+            <button className="primary-action" disabled={text.trim().length < 3 || busy} onClick={submit}>
+              {busy ? "Interpreting on this device…" : "Interpret locally"}
+            </button>
           </div>
 
-          <button className="post-submit" disabled={text.trim().length < 3 || busy} onClick={submit}>
-            <span>{busy ? "Understanding locally…" : copy.submit}</span>
-            <Icon name="send" size={16} />
-          </button>
-        </article>
-
-        <p className="screen-footnote">Speak now uses the browser speech service while connected. Offline voice is an optional ~74 MB on-device pack. The 240 KB Guestbook classifier and typed workflow still work offline.</p>
+          <aside className="capture-proof">
+            <div className="proof-heading">WHAT HAPPENS NEXT</div>
+            <p>Guestbook keeps this sentence as the source record.</p>
+            <p>The 240 KB local classifier proposes a small set of business signals.</p>
+            <p>You confirm or correct them before anything enters memory.</p>
+            <dl className="proof-facts">
+              <div><dt>Inference</dt><dd>0 network requests</dd></div>
+              <div><dt>Memory</dt><dd>Stored in this browser</dd></div>
+              <div><dt>Uncertainty</dt><dd>UNKNOWN is allowed</dd></div>
+            </dl>
+          </aside>
+        </div>
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
