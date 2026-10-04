@@ -749,15 +749,184 @@ svg { display: block; }
   }
 }
 
-@media (min-width: 700px) {
-  body { padding: 24px 0; }
-  .app-shell {
-    min-height: max(812px, calc(100dvh - 48px));
-    border-radius: 28px;
-    box-shadow: 0 12px 42px rgba(26, 27, 31, .12);
+@media (min-width: 900px) {
+  html,
+  body {
+    background: var(--white);
   }
-  .tab-bar { bottom: 24px; }
-  .app-shell.dark .tab-bar { border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; }
+
+  body {
+    padding: 0;
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    padding-left: 228px;
+    padding-bottom: 48px;
+    border-radius: 0;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
+
+  .app-shell.dark {
+    background: var(--ink);
+  }
+
+  .home-hero,
+  .ds-header,
+  .stacked-tabs {
+    width: 100%;
+  }
+
+  .home-hero {
+    height: 224px;
+  }
+
+  .ds-header {
+    min-height: 176px;
+    padding: 48px 48px 16px;
+  }
+
+  .ds-title-block,
+  .ds-title-block h1 {
+    width: min(680px, calc(100vw - 340px));
+  }
+
+  .rounded-tabs {
+    width: auto;
+    max-width: 720px;
+    margin-left: 48px;
+    padding-right: 24px;
+  }
+
+  .stacked-tabs {
+    padding-top: 16px;
+  }
+
+  .feed,
+  .single-feed,
+  .utility-stack {
+    width: min(720px, calc(100vw - 324px));
+    margin-left: 48px;
+  }
+
+  .feed,
+  .single-feed {
+    margin-top: 28px;
+  }
+
+  .guest-post,
+  .user-post-copy,
+  .user-title,
+  .post-message,
+  .user-likes-row,
+  .reply-card,
+  .comment-field,
+  .message-composer,
+  .post-submit,
+  .section-label-row,
+  .signal-chips,
+  .correction-panel,
+  .decision-buttons,
+  .metric-list,
+  .metric-row,
+  .screen-footnote,
+  .guest-media,
+  .memory-tools {
+    width: 100%;
+  }
+
+  .user-title > div {
+    width: calc(100% - 40px);
+  }
+
+  .comment-field input {
+    width: calc(100% - 24px);
+  }
+
+  .message-composer textarea,
+  .composer-actions,
+  .field-progress,
+  .field-error {
+    width: 100%;
+  }
+
+  .guest-media {
+    height: auto;
+    aspect-ratio: 295 / 123;
+  }
+
+  .tab-bar {
+    position: fixed;
+    top: 24px;
+    bottom: 24px;
+    left: 24px;
+    transform: none;
+    width: 180px;
+    height: auto;
+    border-radius: 30px;
+    background: var(--light-material);
+  }
+
+  .dark-tab-bar {
+    background: var(--dark-material);
+  }
+
+  .tab-options {
+    position: static;
+    width: 100%;
+    height: 100%;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .nav-segment {
+    width: 148px;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 100px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .nav-segment.active {
+    background: var(--surface);
+  }
+
+  .dark-tab-bar .nav-segment.active {
+    background: var(--dark-surface);
+    color: var(--brand);
+  }
+
+  .add-button {
+    align-self: center;
+    margin: 8px 0;
+  }
+
+  .home-indicator {
+    display: none;
+  }
+}
+
+@media (min-width: 1280px) {
+  .ds-header {
+    padding-left: 64px;
+  }
+
+  .rounded-tabs,
+  .feed,
+  .single-feed,
+  .utility-stack {
+    margin-left: 64px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
