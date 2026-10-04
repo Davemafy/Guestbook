@@ -3992,3 +3992,58 @@ summary:focus-visible {
     padding-right: 20px;
   }
 }
+
+
+/* Mobile QA: host documentation capture */
+.guest-control-stack {
+  margin-top: 20px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.capture-mode-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--background-secondary);
+}
+
+.capture-mode-switch button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--content-secondary);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.capture-mode-switch button.active {
+  background: var(--background-primary);
+  color: var(--content-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+@media (max-width: 760px) {
+  .guest-control-stack {
+    margin-top: 18px;
+    margin-bottom: 24px;
+    gap: 12px;
+  }
+
+  .capture-mode-switch {
+    width: 100%;
+  }
+
+  .capture-mode-switch button {
+    min-height: 40px;
+  }
+}
