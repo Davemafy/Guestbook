@@ -99,6 +99,28 @@ h1 { font-size: clamp(58px, 9.2vw, 128px); line-height: .88; letter-spacing: -.0
   opacity: .3;
   cursor: default;
 }
+.voice-progress {
+  grid-column: 1 / -1;
+  height: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.voice-progress > span {
+  display: block;
+  height: 100%;
+  min-width: 8%;
+  background: var(--green);
+  transition: width .18s ease;
+}
+.voice-language-note {
+  margin: 28px 0 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
 .type-divider {
   display: flex;
   align-items: center;
