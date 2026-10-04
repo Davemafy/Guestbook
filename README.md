@@ -9,7 +9,7 @@ Guestbook is an offline-first Small AI prototype for small tourism operators. It
 ## Working product
 
 - Guest mode with English and Kiswahili prompts
-- Capability-gated browser-local English voice; typing remains the guaranteed fallback
+- Optional on-device English voice via Moonshine Tiny Streaming WASM; typing remains the guaranteed fallback
 - Local multi-label inference with zero network requests
 - Human review and correction before a signal enters memory
 - Guide/operator capture when a guest never uses the phone
@@ -26,9 +26,9 @@ Guestbook's offline MVP uses **one shared smartphone** owned by the operator, gu
 
 ## Voice input
 
-Guestbook treats speech recognition as an **input adapter**, not as the business-intelligence model. On browsers that expose on-device `SpeechRecognition.available()`, Guestbook checks specifically for an English local language pack with `processLocally: true`. If the pack is downloadable, the user may install it once through the browser. Recognition is only started after the browser reports local availability.
+Guestbook treats speech recognition as an **input adapter**, not as the business-intelligence model. English voice uses `@moonshine-ai/moonshine-wasm` with the Tiny Streaming model. The speech pack is installed once while connected, cached by the browser, and then loaded for on-device transcription. Audio is not sent to a Guestbook server or speech API.
 
-Guestbook never silently falls back to cloud speech. If local recognition is unavailable, the microphone control is disabled and typing remains available. Kiswahili remains a typed path unless the browser itself reports a compatible local pack.
+Voice is optional: the core Guestbook classifier and typed workflow do not depend on it. Kiswahili remains a typed path in this prototype.
 
 ## Small AI architecture
 
