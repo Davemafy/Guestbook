@@ -843,19 +843,19 @@ function ReviewScreen() {
           )}
         </section>
 
-        <section className="review-signals">
-          <div className="section-heading">
-            <div><h2>Does this look right?</h2><p>Keep only what the guest actually meant.</p></div>
-          </div>
+        {observation && (
+          <section className="review-signals">
+            <div className="section-heading">
+              <div><h2>Does this look right?</h2><p>Keep only what the guest actually meant.</p></div>
+            </div>
 
-          {observation && (
             <>
               <div className="selection-list">
                 {observation.predictions.map((prediction) => {
                   const active = selected.has(prediction.label);
                   const sensitive = HUMAN_CONFIRM_REQUIRED.has(prediction.label);
                   return (
-                    <button className={"selection-row " + (active ? "selected" : "")} key={prediction.label} onClick={() => toggle(prediction.label)}>
+                    <button className={"selection-row " + (active ? "selected" : "")} key={prediction.label} aria-pressed={active} onClick={() => toggle(prediction.label)}>
                       <span className="base-check">{active && <CheckCircleIcon size={20} weight="fill" aria-hidden="true" />}</span>
                       <span className="selection-copy">
                         <strong>{LABEL_META[prediction.label].title}</strong>
@@ -899,8 +899,8 @@ function ReviewScreen() {
                 </BaseBanner>
               )}
             </>
-          )}
-        </section>
+          </section>
+        )}
       </main>
 
       {observation && (
@@ -1072,9 +1072,9 @@ function DecideScreen() {
               <h2>{copy.headline}</h2>
               <p>{copy.body}</p>
               <div className="decision-choice-grid" role="group" aria-label="Decision">
-                <button className={decision === "Explore" ? "selected" : ""} type="button" onClick={() => choose("Explore")}><CompassIcon size={20} weight={decision === "Explore" ? "fill" : "regular"} aria-hidden="true" /><span>Explore it</span></button>
-                <button className={decision === "Not now" ? "selected" : ""} type="button" onClick={() => choose("Not now")}><ClockIcon size={20} weight={decision === "Not now" ? "fill" : "regular"} aria-hidden="true" /><span>Not now</span></button>
-                <button className={decision === "Wrong signal" ? "selected" : ""} type="button" onClick={() => choose("Wrong signal")}><XCircleIcon size={20} weight={decision === "Wrong signal" ? "fill" : "regular"} aria-hidden="true" /><span>Not relevant</span></button>
+                <button className={decision === "Explore" ? "selected" : ""} type="button" aria-pressed={decision === "Explore"} onClick={() => choose("Explore")}><CompassIcon size={20} weight={decision === "Explore" ? "fill" : "regular"} aria-hidden="true" /><span>Explore it</span></button>
+                <button className={decision === "Not now" ? "selected" : ""} type="button" aria-pressed={decision === "Not now"} onClick={() => choose("Not now")}><ClockIcon size={20} weight={decision === "Not now" ? "fill" : "regular"} aria-hidden="true" /><span>Not now</span></button>
+                <button className={decision === "Wrong signal" ? "selected" : ""} type="button" aria-pressed={decision === "Wrong signal"} onClick={() => choose("Wrong signal")}><XCircleIcon size={20} weight={decision === "Wrong signal" ? "fill" : "regular"} aria-hidden="true" /><span>Not relevant</span></button>
               </div>
               {decision && <div className={"decision-state " + (decision === "Wrong signal" ? "negative" : decision === "Explore" ? "positive" : "neutral")}><CheckCircleIcon size={18} weight="fill" aria-hidden="true" />Saved: {decision === "Wrong signal" ? "Not relevant" : decision}</div>}
             </section>
@@ -1164,10 +1164,10 @@ function SystemScreen() {
         <section className="system-title">
           <PageTitle title="System & data" body="Check offline mode, voice, model tests, and what is saved on this device." />
           <div className="system-tabs" role="tablist" aria-label="System sections">
-            <button type="button" className={tab === "Offline" ? "active" : ""} onClick={() => setTab("Offline")}><WifiHighIcon size={18} weight={tab === "Offline" ? "fill" : "regular"} aria-hidden="true" /><span>Offline</span></button>
-            <button type="button" className={tab === "Voice" ? "active" : ""} onClick={() => setTab("Voice")}><MicrophoneIcon size={18} weight={tab === "Voice" ? "fill" : "regular"} aria-hidden="true" /><span>Voice</span></button>
-            <button type="button" className={tab === "Model" ? "active" : ""} onClick={() => setTab("Model")}><GearSixIcon size={18} weight={tab === "Model" ? "fill" : "regular"} aria-hidden="true" /><span>Model</span></button>
-            <button type="button" className={tab === "Data" ? "active" : ""} onClick={() => setTab("Data")}><HardDriveIcon size={18} weight={tab === "Data" ? "fill" : "regular"} aria-hidden="true" /><span>Data</span></button>
+            <button type="button" role="tab" aria-selected={tab === "Offline"} className={tab === "Offline" ? "active" : ""} onClick={() => setTab("Offline")}><WifiHighIcon size={18} weight={tab === "Offline" ? "fill" : "regular"} aria-hidden="true" /><span>Offline</span></button>
+            <button type="button" role="tab" aria-selected={tab === "Voice"} className={tab === "Voice" ? "active" : ""} onClick={() => setTab("Voice")}><MicrophoneIcon size={18} weight={tab === "Voice" ? "fill" : "regular"} aria-hidden="true" /><span>Voice</span></button>
+            <button type="button" role="tab" aria-selected={tab === "Model"} className={tab === "Model" ? "active" : ""} onClick={() => setTab("Model")}><GearSixIcon size={18} weight={tab === "Model" ? "fill" : "regular"} aria-hidden="true" /><span>Model</span></button>
+            <button type="button" role="tab" aria-selected={tab === "Data"} className={tab === "Data" ? "active" : ""} onClick={() => setTab("Data")}><HardDriveIcon size={18} weight={tab === "Data" ? "fill" : "regular"} aria-hidden="true" /><span>Data</span></button>
           </div>
         </section>
 
