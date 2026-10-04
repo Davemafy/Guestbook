@@ -63,7 +63,7 @@ Do not add:
 - KPI cards or giant statistics as the lead object.
 - Decorative 01/02/03 numbering.
 - Tiny eyebrow labels on every section.
-- Pill chips for ordinary navigation or counts.
+- Pill chips. Guestbook uses rectangular Base controls for selection and navigation.
 - Nested rounded cards.
 - Bento grids.
 - Gradient, glass, orb, glow, or fake-3D decoration.
@@ -74,7 +74,7 @@ Do not add:
 - A dashboard shell just because the product has multiple states.
 - “AI-powered” chrome where the user should be looking at source evidence.
 
-Pills are reserved for genuine compact selection/state controls. Badges are reserved for real states, not for making numbers look designed.
+Pill styling and generic badges are not part of the Guestbook visual language. Provenance is plain text. Banners are reserved for real warnings, errors, or readiness states—not for ordinary explanation or decoration.
 
 ## Evidence behavior
 
@@ -98,7 +98,7 @@ The human decision is primary. The model may surface repetition and source recor
 
 ## System behavior
 
-System screens may be dense because they are technical records. Prefer compact rows, explicit labels, and proof sequences over metric cards.
+System screens may be dense because they are technical records; that density exception does not apply to Guest, Review, Memory, Evidence, or Decide. Prefer compact rows, explicit labels, and proof sequences over metric cards.
 
 Benchmark values must remain clearly described as benchmark evidence, not field accuracy.
 
