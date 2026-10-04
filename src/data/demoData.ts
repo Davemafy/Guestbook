@@ -13,6 +13,8 @@ export const DEMO_OBSERVATIONS: Observation[] = [
   { id: "demo-07", visitId: "visit-07", rawText: "Road to the place bad well well, but the coffee experience make sense.", language: "en-ng", source: "demo", createdAt: ago(160), predictions: [], confirmedLabels: ["FRICTION_ACCESS","PRAISE_EXPERIENCE"], status: "confirmed", isDemo: true },
   { id: "demo-08", visitId: "visit-08", rawText: "My mother cannot manage the steep path. Is there an easier route?", language: "en", source: "demo", createdAt: ago(90), predictions: [], confirmedLabels: ["REQUIREMENT_ACCESSIBILITY"], status: "confirmed", isDemo: true },
   { id: "demo-09", visitId: "visit-09", rawText: "I would definitely bring my friends here next time.", language: "en", source: "demo", createdAt: ago(40), predictions: [], confirmedLabels: ["RETURN_REFERRAL"], status: "confirmed", isDemo: true },
+  { id: "demo-10", visitId: "visit-10", rawText: "Tunaweza kununua kahawa tuliyoonja?", language: "sw", source: "demo", createdAt: ago(34), predictions: [], confirmedLabels: ["WANT_PRODUCT"], status: "confirmed", isDemo: true },
+  { id: "demo-11", visitId: "visit-11", rawText: "Do you have coffee beans we can take home?", language: "en", source: "demo", createdAt: ago(28), predictions: [], confirmedLabels: ["WANT_PRODUCT"], status: "confirmed", isDemo: true },
 ];
 
 export async function seedDemoData() {
