@@ -46,22 +46,52 @@ function getBrowserSpeechRecognition(): BrowserSpeechRecognitionConstructor | nu
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
 }
 
-function mergeTranscript(base: string, addition: string) {
-  const cleanBase = base.trim();
-  const cleanAddition = addition.trim();
-  if (!cleanBase) return cleanAddition.slice(0, 1000);
-  if (!cleanAddition) return cleanBase.slice(0, 1000);
+function joinTranscript(base: string, addition: string) {
+  return [base.trim(), addition.trim()].filter(Boolean).join(" ").slice(0, 1000);
+}
 
-  const baseWords = cleanBase.split(/\s+/);
-  const additionWords = cleanAddition.split(/\s+/);
+function reconcileVoiceTranscript(committed: string, incoming: string) {
+  const cleanCommitted = committed.trim();
+  const cleanIncoming = incoming.trim();
+  if (!cleanCommitted) return cleanIncoming.slice(0, 1000);
+  if (!cleanIncoming) return cleanCommitted.slice(0, 1000);
+  if (cleanCommitted === cleanIncoming) return cleanCommitted.slice(0, 1000);
+
+  const committedWords = cleanCommitted.split(/\s+/);
+  const incomingWords = cleanIncoming.split(/\s+/);
   const normalize = (word: string) => word.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
-  const maxOverlap = Math.min(12, baseWords.length, additionWords.length);
-  let overlap = 0;
+  const committedNorm = committedWords.map(normalize);
+  const incomingNorm = incomingWords.map(normalize);
+  const minLength = Math.min(committedNorm.length, incomingNorm.length);
 
-  for (let size = maxOverlap; size >= 1; size--) {
+  // Android Chrome can replay the current utterance from its beginning after
+  // silence/restart. When the new snapshot substantially shares the existing
+  // prefix, it is a replacement/extension of the same utterance, not new text.
+  let commonPrefix = 0;
+  while (commonPrefix < minLength && committedNorm[commonPrefix] === incomingNorm[commonPrefix]) {
+    commonPrefix++;
+  }
+
+  let positionalMatches = 0;
+  for (let index = 0; index < minLength; index++) {
+    if (committedNorm[index] === incomingNorm[index]) positionalMatches++;
+  }
+
+  const prefixReplay =
+    minLength >= 3 &&
+    commonPrefix >= Math.min(6, minLength) &&
+    positionalMatches / minLength >= 0.72;
+
+  if (prefixReplay) {
+    return (incomingWords.length >= committedWords.length ? cleanIncoming : cleanCommitted).slice(0, 1000);
+  }
+
+  // Normal continuation: remove only an exact suffix→prefix overlap.
+  let overlap = 0;
+  for (let size = minLength; size >= 1; size--) {
     let matches = true;
     for (let index = 0; index < size; index++) {
-      if (normalize(baseWords[baseWords.length - size + index]) !== normalize(additionWords[index])) {
+      if (committedNorm[committedNorm.length - size + index] !== incomingNorm[index]) {
         matches = false;
         break;
       }
@@ -72,8 +102,7 @@ function mergeTranscript(base: string, addition: string) {
     }
   }
 
-  const tail = additionWords.slice(overlap).join(" ");
-  return [cleanBase, tail].filter(Boolean).join(" ").slice(0, 1000);
+  return joinTranscript(cleanCommitted, incomingWords.slice(overlap).join(" "));
 }
 
 type Route = "guest" | "review" | "memory" | "evidence" | "decide" | "system";
@@ -380,8 +409,7 @@ function GuestScreen() {
   const wantsListeningRef = useRef(false);
   const restartTimerRef = useRef<number | null>(null);
   const voiceBaseRef = useRef("");
-  const voiceFinalRef = useRef("");
-  const voiceInterimRef = useRef("");
+  const voiceCommittedRef = useRef("");
   const voiceSegmentRef = useRef("");
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
@@ -429,24 +457,17 @@ function GuestScreen() {
     recognition.onaudioend = () => setSpeechActive(false);
 
     recognition.onresult = (event) => {
-      let finalDelta = "";
-      let interim = "";
-
-      for (let index = event.resultIndex; index < event.results.length; index++) {
-        const result = event.results[index];
-        const transcript = result?.[0]?.transcript?.trim() ?? "";
-        if (!transcript) continue;
-        if (result.isFinal) {
-          finalDelta = [finalDelta, transcript].filter(Boolean).join(" ");
-        } else {
-          interim = [interim, transcript].filter(Boolean).join(" ");
-        }
+      // event.results is the recognizer's current authoritative session
+      // snapshot. Rebuild it from scratch instead of appending changed items.
+      let sessionTranscript = "";
+      for (let index = 0; index < event.results.length; index++) {
+        const transcript = event.results[index]?.[0]?.transcript?.trim() ?? "";
+        if (transcript) sessionTranscript = joinTranscript(sessionTranscript, transcript);
       }
 
-      if (finalDelta) voiceFinalRef.current = mergeTranscript(voiceFinalRef.current, finalDelta);
-      voiceInterimRef.current = interim;
-      voiceSegmentRef.current = mergeTranscript(voiceFinalRef.current, voiceInterimRef.current);
-      setText(mergeTranscript(voiceBaseRef.current, voiceSegmentRef.current));
+      voiceSegmentRef.current = sessionTranscript;
+      const liveVoice = reconcileVoiceTranscript(voiceCommittedRef.current, sessionTranscript);
+      setText(joinTranscript(voiceBaseRef.current, liveVoice));
       setSpeechActive(true);
       setVoicePulse((value) => value + 1);
     };
@@ -481,11 +502,9 @@ function GuestScreen() {
       setSpeechActive(false);
 
       if (voiceSegmentRef.current) {
-        voiceBaseRef.current = mergeTranscript(voiceBaseRef.current, voiceSegmentRef.current);
-        voiceFinalRef.current = "";
-        voiceInterimRef.current = "";
+        voiceCommittedRef.current = reconcileVoiceTranscript(voiceCommittedRef.current, voiceSegmentRef.current);
         voiceSegmentRef.current = "";
-        setText(voiceBaseRef.current);
+        setText(joinTranscript(voiceBaseRef.current, voiceCommittedRef.current));
       }
 
       if (!wantsListeningRef.current) {
@@ -535,8 +554,7 @@ function GuestScreen() {
 
     wantsListeningRef.current = true;
     voiceBaseRef.current = text.trim().slice(0, 1000);
-    voiceFinalRef.current = "";
-    voiceInterimRef.current = "";
+    voiceCommittedRef.current = "";
     voiceSegmentRef.current = "";
     setVoiceError("");
     setSpeechActive(false);
