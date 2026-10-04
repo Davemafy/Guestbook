@@ -59,22 +59,7 @@ function formatPercent(value: number) {
 
 
 type AppMode = "light" | "dark";
-type NavTarget = "home" | "add" | "memory";
-type IconName = "menu" | "back" | "home" | "profile" | "plus" | "heart" | "mic" | "send" | "attach" | "more";
-
-function Icon({ name, size = 24, filled = false }: { name: IconName; size?: number; filled?: boolean }) {
-  const common = { width: size, height: size, viewBox: "0 0 24 24", "aria-hidden": true } as const;
-  if (name === "menu") return <svg {...common}><rect x="6" y="6" width="12" height="2.5" rx="1.25" fill="currentColor"/><rect x="3" y="10.75" width="18" height="2.5" rx="1.25" fill="currentColor"/><rect x="6" y="15.5" width="12" height="2.5" rx="1.25" fill="currentColor"/></svg>;
-  if (name === "back") return <svg {...common} fill="none"><path d="M15 5 8 12l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-  if (name === "home") return <svg {...common} fill={filled ? "currentColor" : "none"}><path d="M4 10.5 12 4l8 6.5V20h-5v-5H9v5H4v-9.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>;
-  if (name === "profile") return <svg {...common} fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 20c.7-4 3.1-6 6.5-6s5.8 2 6.5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
-  if (name === "plus") return <svg {...common} fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>;
-  if (name === "heart") return <svg {...common} fill={filled ? "currentColor" : "none"}><path d="M20.3 5.7a5 5 0 0 0-7.1 0L12 6.9l-1.2-1.2a5 5 0 0 0-7.1 7.1L12 21l8.3-8.2a5 5 0 0 0 0-7.1Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/></svg>;
-  if (name === "mic") return <svg {...common} fill="none"><rect x="8.2" y="3.3" width="7.6" height="11.1" rx="3.8" stroke="currentColor" strokeWidth="1.7"/><path d="M5.5 11.7a6.5 6.5 0 0 0 13 0M12 18.2V21M8.5 21h7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>;
-  if (name === "send") return <svg {...common} fill="none"><path d="m4 5 16 7-16 7 3-7-3-7Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M7 12h13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>;
-  if (name === "attach") return <svg {...common} fill="none"><path d="m8.4 12.8 6.2-6.2a3.2 3.2 0 1 1 4.5 4.5l-8 8a5 5 0 0 1-7.1-7.1l8.1-8.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>;
-  return <svg {...common}><circle cx="6" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="18" cy="12" r="1.7" fill="currentColor"/></svg>;
-}
+type SectionName = "capture" | "memory" | "decide" | "lab";
 
 function formatRelative(timestamp: number) {
   const minutes = Math.max(1, Math.round((Date.now() - timestamp) / 60_000));
@@ -85,30 +70,23 @@ function formatRelative(timestamp: number) {
 }
 
 function sourceName(observation: Observation) {
-  if (observation.source === "guide") return "Guide note";
-  if (observation.source === "operator") return "Operator note";
-  if (observation.source === "demo") return "Guest visitor";
-  return "Guest visitor";
+  if (observation.source === "guide") return "Guide";
+  if (observation.source === "operator") return "Operator";
+  if (observation.source === "demo") return "Demo visit";
+  return "Guest";
 }
 
-function Avatar({ label, size = 32, outline = false, dark = false }: { label: string; size?: 24 | 32; outline?: boolean; dark?: boolean }) {
-  const initial = label.trim().charAt(0).toUpperCase() || "G";
-  return <span className={"ds-avatar " + (outline ? "outline" : "") + (dark ? " dark-avatar" : "")} style={{ width: size, height: size, fontSize: size === 24 ? 9 : 11 }}>{initial}</span>;
-}
-
-function RoundedTabs({ items, active, onChange, dark = false }: { items: Array<{ key: string; label: string }>; active: string; onChange: (key: string) => void; dark?: boolean }) {
-  return (
-    <nav className={"rounded-tabs " + (dark ? "dark-tabs" : "")} aria-label="Content views">
-      {items.map((item) => (
-        <button key={item.key} className={"ds-chip " + (active === item.key ? "active" : "")} onClick={() => onChange(item.key)}>
-          {item.label}
-        </button>
-      ))}
-    </nav>
-  );
-}
-
-function AppHeader({ title, subtitle, dark = false, back = false }: { title: string; subtitle?: string; dark?: boolean; back?: boolean }) {
+function AppFrame({
+  children,
+  section,
+  mode = "light",
+  back = false,
+}: {
+  children: ReactNode;
+  section: SectionName;
+  mode?: AppMode;
+  back?: boolean;
+}) {
   const [online, setOnline] = useState(navigator.onLine);
   const [offlineReady, setOfflineReady] = useState(false);
 
@@ -126,196 +104,73 @@ function AppHeader({ title, subtitle, dark = false, back = false }: { title: str
     };
   }, []);
 
-  const status = online ? (offlineReady ? "Offline ready" : "Preparing offline") : "Offline";
+  const status = online ? (offlineReady ? "OFFLINE READY" : "PREPARING OFFLINE") : "OFFLINE";
 
   return (
-    <header className={"ds-header " + (dark ? "dark-header" : "")}>
-      <button className="menu-button" onClick={() => back ? window.history.back() : go("/memory")} aria-label={back ? "Go back" : "Open business memory"}>
-        <Icon name={back ? "back" : "menu"} />
-      </button>
-      <div className="ds-title-block">
-        <h1>{title}</h1>
-        <p className="sr-only">{subtitle ? subtitle + " · " : ""}{status}</p>
-      </div>
-    </header>
-  );
-}
-
-function BottomBar({ active, dark = false }: { active: NavTarget; dark?: boolean }) {
-  return (
-    <nav className={"tab-bar " + (dark ? "dark-tab-bar" : "")} aria-label="Primary navigation">
-      <div className="tab-options">
-        <button className={"nav-segment " + (active === "home" ? "active" : "")} onClick={() => go("/")}>
-          <Icon name="home" filled={active === "home"} />
-          <span>Home</span>
-        </button>
-        <button className={"add-button " + (active === "add" ? "current" : "")} onClick={() => go("/guest")} aria-label="Leave a message">
-          <Icon name="plus" size={32} />
-        </button>
-        <button className={"nav-segment " + (active === "memory" ? "active" : "")} onClick={() => go("/memory")}>
-          <Icon name="profile" filled={active === "memory"} />
-          <span>Memory</span>
-        </button>
-      </div>
-      <span className="home-indicator" />
-    </nav>
-  );
-}
-
-function Shell({ children, mode = "light", active = "home", hideNav = false }: { children: ReactNode; mode?: AppMode; active?: NavTarget; hideNav?: boolean }) {
-  return (
-    <main className={"app-shell " + mode}>
+    <main className={"field-app " + mode}>
+      <header className="field-nav">
+        <div className="field-nav-inner">
+          <button className="brand" onClick={() => go("/")}>GUESTBOOK</button>
+          <nav className="primary-nav" aria-label="Primary">
+            <button className={section === "capture" ? "active" : ""} onClick={() => go("/")}>Capture</button>
+            <button className={section === "memory" ? "active" : ""} onClick={() => go("/memory")}>Memory</button>
+            <button className={section === "decide" ? "active" : ""} onClick={() => go("/decide")}>Decide</button>
+          </nav>
+          <div className="nav-meta">
+            {back && <button className="back-text" onClick={() => window.history.back()}>Back</button>}
+            <span className={"system-status " + (!online || offlineReady ? "ready" : "")}>{status}</span>
+          </div>
+        </div>
+      </header>
       {children}
-      {!hideNav && <BottomBar active={active} dark={mode === "dark"} />}
     </main>
   );
 }
 
-function AvatarStack({ count = 3, dark = false }: { count?: number; dark?: boolean }) {
+function PageIntro({
+  eyebrow,
+  title,
+  body,
+}: {
+  eyebrow: string;
+  title: string;
+  body?: string;
+}) {
   return (
-    <span className="avatar-stack" aria-hidden="true">
-      {Array.from({ length: Math.min(3, Math.max(1, count)) }).map((_, index) => (
-        <Avatar key={index} label={String.fromCharCode(71 + index)} size={24} outline dark={dark} />
-      ))}
-    </span>
+    <div className="page-intro">
+      <p className="eyebrow">{eyebrow}</p>
+      <h1>{title}</h1>
+      {body && <p className="intro-body">{body}</p>}
+    </div>
   );
 }
 
 function GuestMedia({ src, label = "Guest photo" }: { src: string; label?: string }) {
   return (
-    <div className="guest-media">
+    <figure className="field-media">
       <img src={src} alt="" />
-      <span className="media-tag">{label}</span>
-    </div>
+      <figcaption>{label}</figcaption>
+    </figure>
   );
 }
 
-function EntryCard({
-  observation,
-  reacted,
-  replies,
-  onReact,
-  onReply,
-}: {
-  observation: Observation;
-  reacted: boolean;
-  replies: string[];
-  onReact: () => void;
-  onReply: (text: string) => void;
-}) {
-  const [draft, setDraft] = useState("");
-  const [showReplies, setShowReplies] = useState(false);
-
-  function submitReply() {
-    const next = draft.trim();
-    if (!next) return;
-    onReply(next);
-    setDraft("");
-    setShowReplies(true);
-  }
-
+function EvidenceQuote({ observation }: { observation: Observation }) {
   return (
-    <article className="guest-post">
-      <div className="user-post-copy">
-        <div className="user-title">
-          <Avatar label={sourceName(observation)} />
-          <div>
-            <strong>{sourceName(observation)}</strong>
-            <span>{formatRelative(observation.createdAt)}{observation.isDemo ? " · demo" : ""}</span>
-          </div>
-        </div>
-        <p className="post-message">{observation.rawText}</p>
-        {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
-        <div className="user-likes-row">
-          <button className="reply-summary" onClick={() => setShowReplies((value) => !value)}>
-            <AvatarStack count={Math.max(1, replies.length)} />
-            <span>{replies.length ? "View " + replies.length + (replies.length === 1 ? " reply" : " replies") : "Reply"}</span>
-          </button>
-          <button className={"reaction-button " + (reacted ? "reacted" : "")} onClick={onReact} aria-label="React to this entry">
-            <Icon name="heart" size={16} filled={reacted} />
-            <span>{reacted ? "1 reaction" : "React"}</span>
-          </button>
-        </div>
+    <article className="evidence-quote">
+      <blockquote>“{observation.rawText}”</blockquote>
+      <div>
+        <span>{observation.language.toUpperCase()}</span>
+        <span>{observation.isDemo ? "DEMO VISIT" : sourceName(observation).toUpperCase()}</span>
+        <span>{formatRelative(observation.createdAt)}</span>
       </div>
-
-      {showReplies && replies.map((reply, index) => (
-        <div className="reply-card" key={index}>
-          <Avatar label="Host" size={24} />
-          <p><strong>Host</strong><span> · {reply}</span></p>
-        </div>
-      ))}
-
-      <div className="comment-field">
-        <input value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitReply(); }} placeholder="Write reply" aria-label="Write reply" />
-        <button onClick={submitReply} disabled={!draft.trim()} aria-label="Send reply"><Icon name="send" size={16} /></button>
-      </div>
+      {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
     </article>
   );
 }
 
 function Home() {
-  const [observations, setObservations] = useState<Observation[]>([]);
-  const [filter, setFilter] = useState("all");
-  const [reactions, setReactions] = useState<Record<string, boolean>>(() => JSON.parse(localStorage.getItem("guestbook-reactions") ?? "{}"));
-  const [replies, setReplies] = useState<Record<string, string[]>>(() => JSON.parse(localStorage.getItem("guestbook-replies") ?? "{}"));
-
-  useEffect(() => {
-    seedDemoData().then(() => db.observations.orderBy("createdAt").reverse().toArray()).then((rows) => setObservations(rows.filter((row) => row.status === "confirmed")));
-  }, []);
-
-  const visible = observations.filter((observation) => {
-    if (filter === "all") return true;
-    if (filter === "requests") return observation.confirmedLabels.some((label) => label.startsWith("WANT_"));
-    if (filter === "needs") return observation.confirmedLabels.some((label) => label.startsWith("REQUIREMENT_") || label.startsWith("FRICTION_"));
-    if (filter === "praise") return observation.confirmedLabels.some((label) => label === "PRAISE_EXPERIENCE" || label === "RETURN_REFERRAL");
-    return true;
-  });
-
-  function toggleReaction(id: string) {
-    const next = { ...reactions, [id]: !reactions[id] };
-    setReactions(next);
-    localStorage.setItem("guestbook-reactions", JSON.stringify(next));
-  }
-
-  function addReply(id: string, text: string) {
-    const next = { ...replies, [id]: [...(replies[id] ?? []), text] };
-    setReplies(next);
-    localStorage.setItem("guestbook-replies", JSON.stringify(next));
-  }
-
-  return (
-    <Shell active="home">
-      <section className="home-hero">
-        <AppHeader title="What guests are saying" subtitle="Guestbook · local memory" />
-        <RoundedTabs
-          active={filter}
-          onChange={setFilter}
-          items={[
-            { key: "all", label: "All" },
-            { key: "requests", label: "Requests" },
-            { key: "needs", label: "Needs" },
-            { key: "praise", label: "Praise" },
-          ]}
-        />
-      </section>
-
-      <section className="feed">
-        {visible.slice(0, 7).map((observation) => (
-          <EntryCard
-            key={observation.id}
-            observation={observation}
-            reacted={Boolean(reactions[observation.id])}
-            replies={replies[observation.id] ?? []}
-            onReact={() => toggleReaction(observation.id)}
-            onReply={(text) => addReply(observation.id, text)}
-          />
-        ))}
-        {visible.length === 0 && <div className="empty-state">No entries in this view yet.</div>}
-      </section>
-    </Shell>
-  );
+  return <Guest />;
 }
-
 
 const guestCopy = {
   en: {
