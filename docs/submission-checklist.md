@@ -1,120 +1,71 @@
-# Guestbook — Final Submission Checklist
+# Guestbook — Final Submission Record
 
-## Form
+## Submission status
 
-- Solo: **Yes**
-- Team name: **N/A**
-- Challenge: **4.C — World Bank (Track Tourism)**
-- GitHub: **https://github.com/Davemafy/Guestbook**
-- Hosted demo: **https://guestbook-small-ai.vercel.app**
-- License: **MIT**
-
-## Required uploads
-
-- [ ] Demo video — max 60 sec
-- [ ] Tech video — max 60 sec
-- [ ] Team video — max 60 sec
-- [ ] Team picture
-- [ ] Verify every uploaded video link/file opens without requesting access
-
-## Demo golden path
-
-**Reset demo before each recorded take:** open `/lab` → **Reset demo**. This restores five marked product-request demo visits so the new guest becomes the visible sixth visit.
-
-If connected browser speech works, use **Speak now** for convenience. Do not present voice as offline; the offline proof should use typed input.
-
-Use this exact tested observation:
-
-> My mother cannot walk very far and I want to buy some coffee beans.
-
-Expected accepted signals:
-
-- Accessibility need
-- Wants a product
-
-Flow:
-
-1. Home → I’m visiting
-2. Guest → paste/type tested observation
-3. Review → show original quote + two local-model signals, including the human-confirmation marker on accessibility
-4. Confirm into memory
-5. Memory → expand source evidence
-6. Decide → show human-controlled action prompt
-7. /lab → show ~240 KB model, 0 inference requests, synthetic regression + held-out external probes
-
-## Technical claims safe to make
-
-- About **240 KB** learned weights
-- Entire inference path runs **in-browser**
-- **0 network requests during inference**
-- **15 bounded labels**, including UNKNOWN
-- Multi-label output
-- Original visitor text is preserved
-- Human review before memory
-- Repeated patterns are counted deterministically across distinct visit IDs
-- **2,687** training cases across synthetic prototypes + external training partitions
-- Frozen **synthetic** stress-set result at threshold 0.60:
-  - 92.5% micro precision
-  - 88.1% micro recall
-  - 90.2% micro F1
-  - 82.9% exact multi-label match
-- Untouched MASSIVE test semantic-transfer probes:
-  - 91.1% mapped-label hit — English
-  - 92.8% mapped-label hit — Kiswahili
-- Held-out Nairobi weak-label probe: 98.0% agreement across 1,055 anchor-matched sentences
-
-## Claims not to make
-
-- Do not call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics field accuracy.
-- Do not claim every language is supported.
-- Voice is optional and connected. Do not claim offline speech. The offline guarantee applies to typed capture + Guestbook Micro inference.
-- Do not claim two disconnected phones synchronize offline.
-- Do not call model scores calibrated probabilities.
-- Do not claim real customer adoption or measured revenue impact.
-
-## Final browser checks
-
-- [ ] Home loads
-- [ ] /guest loads
-- [ ] tested English observation returns the three expected signals
-- [ ] Kiswahili test: `Bei ni ngapi na mnakubali M-Pesa?` returns price + payment signals
-- [ ] UNKNOWN test: `My shirt is green.` does not force a business signal
-- [ ] Review corrections work
-- [ ] Memory source evidence expands
-- [ ] Decide buttons work
-- [ ] /capture guide/operator path works
-- [ ] Export JSON downloads confirmed non-demo records
-- [ ] /lab benchmark and external-evidence section render
-- [ ] Install/open PWA once, then test cold reopen in airplane mode
-
-## Final repo checks
-
-- [x] Public repository
-- [x] README
+- [x] HackOS project submitted
+- [x] Google Form submitted
+- [x] Challenge: **4.C — World Bank (Track Tourism)**
+- [x] Solo submission
+- [x] Public GitHub repository
+- [x] Working hosted demo
 - [x] MIT license
-- [x] Model card
-- [x] System design
-- [x] Taxonomy audit
-- [x] Submission video plan
-- [x] CI green
-- [x] Public hosted demo
+- [x] Team photo uploaded
+- [x] 3/3 required videos uploaded
+
+## Final videos
+
+- **Team introduction:** 37.2 seconds
+- **Product demo:** 44.0 seconds
+- **Technical walkthrough:** 58.0 seconds
 
 ## URLs
 
-- Product: https://guestbook-small-ai.vercel.app
-- Model lab: https://guestbook-small-ai.vercel.app/lab
+- Product: https://guestbook-small-ai.vercel.app/
 - Source: https://github.com/Davemafy/Guestbook
-- Video plan: docs/submission-video-plan.md
-- Model card: docs/model-card.md
-- System design: docs/system-design.md
+- Model/system evidence: https://guestbook-small-ai.vercel.app/system
+- Lab alias: https://guestbook-small-ai.vercel.app/lab
 
+## Final product QA path
 
-## Voice check
+- [x] Guest entry works
+- [x] Host note capture preserves operator provenance
+- [x] English + Kiswahili capture
+- [x] Local multilabel inference
+- [x] Human review/correction
+- [x] Memory across distinct visits
+- [x] Source-linked evidence
+- [x] Human-controlled decision layer
+- [x] IndexedDB persistence
+- [x] JSON export for confirmed non-demo records
+- [x] Offline-ready PWA path
+- [x] Typed inference works with zero network inference
+- [x] Optional connected browser speech input
+- [x] Model/evaluation evidence visible in System
 
-- [ ] On phone, while connected, tap **Speak now** and verify the transcript appears.
-- [ ] Confirm there is no Guestbook speech-model download step.
-- [ ] Turn on airplane mode and verify typing + Guestbook Micro inference still work.
-- [ ] Do **not** claim offline free-form speech transcription.
-- [ ] When saying “~240 KB,” explicitly refer to **Guestbook Micro learned weights**.
+## Judge-proof inputs
 
-## Final judge-proof additions\n\n- [ ] Record one **2–5 minute master video**; use short cuts only if the portal separately requires them.\n- [ ] Show a real close → airplane mode → reopen → new inference sequence.\n- [ ] Show one typed **Kiswahili** interaction: `Bei ni ngapi na mnakubali M-Pesa?`.\n- [ ] Show the mixed accessibility + product observation and the human confirmation step.\n- [ ] Show **UNKNOWN** on an irrelevant sentence.\n- [ ] Show rejected first model: 79.8% UNKNOWN on the original 5,000-review Nairobi stress sample and 0.3% Swahili mapped-label hit.\n- [ ] Show promoted model: 245,820 learned bytes; 91.1% English and 92.8% Kiswahili MASSIVE mapped-label hit.\n- [ ] Show the transparent lexical baseline: synthetic rules are competitive, but untouched MASSIVE drops to 16.7% English and 2.3% Kiswahili.\n- [ ] State explicitly: MASSIVE is semantic transfer, Nairobi labels are weak supervision, and neither is field accuracy.\n- [ ] State why AI is bounded: AI interprets messy language; deterministic code counts evidence; Noor decides.\n- [ ] Verify the public demo and video while logged out / in a private window before submitting.\n
+**Positive opportunity**
+
+`The roasting was amazing. Can we buy some beans to take home?`
+
+Expected: PRAISE_EXPERIENCE + WANT_PRODUCT.
+
+**Kiswahili**
+
+`Bei ni ngapi na mnakubali M-Pesa?`
+
+Expected: ASK_PRICE + ASK_PAYMENT.
+
+**Abstention**
+
+`My shirt is green.`
+
+Expected: UNKNOWN.
+
+## Claim boundaries
+
+- Metrics are regression, semantic-transfer, and weak-label evidence — not field accuracy.
+- Voice is optional and connected; offline guarantee applies to typed capture + Guestbook Micro.
+- The MVP assumes a shared operator/guide/family device; disconnected phones do not silently synchronize.
+- 245,820 bytes refers to **learned classifier weights**, not total app size.
+- Guestbook does not autonomously accept bookings, change prices, send messages, or make safety decisions.
