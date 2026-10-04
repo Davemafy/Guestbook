@@ -1591,25 +1591,6 @@ button:disabled {
   background: var(--background-secondary);
 }
 
-.mic-dot {
-  width: 8px;
-  height: 8px;
-  border: 2px solid currentColor;
-  border-radius: 999px;
-  position: relative;
-}
-
-.mic-dot::after {
-  content: "";
-  position: absolute;
-  width: 2px;
-  height: 4px;
-  left: 1px;
-  bottom: -5px;
-  background: currentColor;
-  border-radius: 2px;
-}
-
 .listening-control {
   flex: 1;
   min-width: 0;
@@ -1640,12 +1621,6 @@ button:disabled {
   border-radius: 50%;
   background: var(--negative);
   animation: recordPulse 1.2s ease-in-out infinite;
-}
-
-.audio-visualizer {
-  width: 100%;
-  height: 28px;
-  display: block;
 }
 
 .stop-listening {
@@ -1699,7 +1674,61 @@ button:disabled {
     font-size: 12px;
   }
 
-  .audio-visualizer {
+  .voice-activity {
     height: 24px;
+  }
+}
+
+.ui-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.voice-activity {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.voice-activity span {
+  width: 2px;
+  min-height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .24;
+  transform: scaleY(.35);
+  transform-origin: center;
+}
+
+.voice-activity.active span {
+  animation-name: voiceBarIdle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.voice-activity.speaking span {
+  opacity: .85;
+  animation-name: voiceBarSpeech;
+}
+
+@keyframes voiceBarIdle {
+  0%, 100% { transform: scaleY(.28); opacity: .2; }
+  50% { transform: scaleY(.55); opacity: .4; }
+}
+
+@keyframes voiceBarSpeech {
+  0%, 100% { transform: scaleY(.42); }
+  35% { transform: scaleY(1); }
+  70% { transform: scaleY(.62); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-activity.active span {
+    animation: none;
+    transform: scaleY(.55);
   }
 }
