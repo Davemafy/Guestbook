@@ -731,3 +731,21 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
 }
+
+.primary-voice {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface, #fff);
+}
+.secondary-voice {
+  opacity: .72;
+}
+.field-progress.indeterminate > span {
+  width: 34%;
+  animation: fieldVoiceDownload 1.15s ease-in-out infinite;
+}
+@keyframes fieldVoiceDownload {
+  0% { transform: translateX(-120%); }
+  55% { transform: translateX(150%); }
+  100% { transform: translateX(320%); }
+}
