@@ -167,13 +167,111 @@ function Guest() {
   const copy = guestCopy[language];
 
   useEffect(() => {
-    return (
+    return () => {
+      void voiceRef.current?.stop();
+      voiceRef.current?.close();
+      voiceRef.current = null;
+    };
+  }, []);
+
+  async function prepareVoice() {
+    if (language !== "en" || voiceState === "loading" || voiceState === "listening") return;
+    if (!navigator.onLine && voiceState === "install") {
+      setVoiceError("Connect once to install the offline voice pack.");
+      setVoiceState("error");
+      return;
+    }
+
+    setVoiceError("");
+    setVoiceProgress(null);
+    setVoiceState("loading");
+
+    try {
+      voiceRef.current?.close();
+      const controller = await createOfflineVoice({
+        onText: (live) => {
+          const next = [voiceBaseRef.current, live.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
+          setText(next);
+        },
+        onLine: (finalText) => {
+          const next = [voiceBaseRef.current, finalText.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
+          setText(next);
+        },
+        onProgress: (progress) => setVoiceProgress(progress),
+        onError: (error) => {
+          setVoiceError(error.message || "Voice transcription failed.");
+          setVoiceState("error");
+        },
+      });
+      voiceRef.current = controller;
+      await controller.load();
+      localStorage.setItem("guestbook-moonshine-voice-v1", "cached");
+      setVoiceProgress(null);
+      setVoiceState("ready");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setVoiceError(message || "Could not load offline voice.");
+      setVoiceState(localStorage.getItem("guestbook-moonshine-voice-v1") ? "cached" : "error");
+    }
+  }
+
+  async function startVoice() {
+    if (!voiceRef.current || voiceState !== "ready") return;
+    voiceBaseRef.current = text.trim();
+    setVoiceError("");
+    setVoiceState("listening");
+    try {
+      await voiceRef.current.start();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setVoiceError(message || "Microphone access failed.");
+      setVoiceState("ready");
+    }
+  }
+
+  async function stopVoice() {
+    if (!voiceRef.current) return;
+    try {
+      await voiceRef.current.stop();
+    } finally {
+      setVoiceState("ready");
+    }
+  }
+
+  async function submit() {
+    if (text.trim().length < 3 || busy) return;
+    if (voiceState === "listening") await stopVoice();
+    setBusy(true);
+    const result = await activeClassifier.classify(text.trim());
+    const id = crypto.randomUUID();
+    const observation: Observation = {
+      id,
+      visitId: crypto.randomUUID(),
+      rawText: text.trim(),
+      language,
+      source: "guest",
+      createdAt: Date.now(),
+      predictions: result.predictions,
+      confirmedLabels: [],
+      status: "pending",
+    };
+    await db.observations.add(observation);
+    go("/review?id=" + encodeURIComponent(id));
+  }
+
+  const canInstall = language === "en" && (voiceState === "install" || voiceState === "cached" || voiceState === "error");
+  const progressPercent = voiceProgress ? Math.round(voiceProgress.fraction * 100) : null;
+  const progressSize = voiceProgress?.total
+    ? `${((voiceProgress.loaded ?? 0) / 1024 / 1024).toFixed(1)} / ${(voiceProgress.total / 1024 / 1024).toFixed(1)} MB`
+    : null;
+
+  return (
     <Shell>
       <section className="capture-screen">
         <div className="capture-context">
           <span>VISITOR NOTE</span>
           <span>{language === "en" ? "ENGLISH" : "KISWAHILI"}</span>
-          <span>THIS DEVICE</span>
+          <span>{voiceState === "listening" ? "RECORDING LOCALLY" : "THIS DEVICE"}</span>
         </div>
 
         <div className="capture-heading">
@@ -200,21 +298,39 @@ function Guest() {
             />
             <div className="transcript-meta">
               <span>{text.length} characters</span>
-              <span>stored locally after review</span>
+              <span>source words stay attached</span>
             </div>
           </div>
 
           <aside className={"capture-dock " + (voiceState === "listening" ? "listening" : "")}>
             <div className="capture-dock-top">
-              <span>VOICE</span>
-              <span>{language === "en" ? "EN-US" : "TYPE ONLY"}</span>
+              <span>OFFLINE VOICE</span>
+              <span>{language === "en" ? "MOONSHINE WASM" : "TYPE ONLY"}</span>
             </div>
 
             <button
               className="record-control"
-              onClick={voiceAction}
-              disabled={!voiceAction || voiceState === "installing" || voiceState === "downloading" || voiceState === "checking"}
-              aria-label={voiceLabel}
+              onClick={
+                language !== "en" || voiceState === "loading"
+                  ? undefined
+                  : canInstall
+                    ? prepareVoice
+                    : voiceState === "ready"
+                      ? startVoice
+                      : voiceState === "listening"
+                        ? stopVoice
+                        : undefined
+              }
+              disabled={language !== "en" || voiceState === "loading"}
+              aria-label={
+                language !== "en" ? "Kiswahili typed input" :
+                voiceState === "install" ? "Install offline voice" :
+                voiceState === "cached" ? "Load cached offline voice" :
+                voiceState === "loading" ? "Preparing offline voice" :
+                voiceState === "ready" ? "Start offline voice" :
+                voiceState === "listening" ? "Stop offline voice" :
+                "Retry offline voice"
+              }
             >
               <span className="record-ring">
                 <span className="record-core" />
@@ -226,20 +342,32 @@ function Guest() {
             </div>
 
             <div className="record-copy">
-              <strong>{voiceLabel}</strong>
+              <strong>
+                {language === "sw" && "TYPE IN KISWAHILI"}
+                {language === "en" && voiceState === "install" && "INSTALL VOICE ONCE"}
+                {language === "en" && voiceState === "cached" && "LOAD CACHED VOICE"}
+                {language === "en" && voiceState === "loading" && "PREPARING VOICE…"}
+                {language === "en" && voiceState === "ready" && "TAP TO SPEAK"}
+                {language === "en" && voiceState === "listening" && "LISTENING… TAP TO STOP"}
+                {language === "en" && voiceState === "error" && "VOICE NEEDS ATTENTION"}
+              </strong>
               <p>
-                {voiceState === "available" || voiceState === "listening"
-                  ? "Speech stays on this device. Tap once to start, again to stop."
-                  : voiceState === "downloadable"
-                    ? "Install the browser's offline English speech pack once."
-                    : language === "en"
-                      ? "Local speech is not available here. Type the note instead."
-                      : "Kiswahili stays fully offline through typed input."}
+                {language === "sw" && "Kiswahili stays fully offline through typed input in this build."}
+                {language === "en" && voiceState === "install" && "Download the English speech pack once while connected. After that, transcription runs on this device."}
+                {language === "en" && voiceState === "cached" && "The voice pack is already cached on this browser. Load it without downloading again."}
+                {language === "en" && voiceState === "loading" && `Loading locally${progressPercent === null ? "" : ` · ${progressPercent}%`}${progressSize ? ` · ${progressSize}` : ""}`}
+                {language === "en" && (voiceState === "ready" || voiceState === "listening") && "Audio stays on this device. No speech API and no Guestbook server."}
+                {language === "en" && voiceState === "error" && (voiceError || "Typing remains available while voice is unavailable.")}
               </p>
+              {voiceState === "loading" && (
+                <div className="dock-progress" aria-label="Voice pack loading progress">
+                  <span style={{ width: `${progressPercent ?? 8}%` }} />
+                </div>
+              )}
             </div>
 
             <div className="capture-trust">
-              <span>~240 KB model</span>
+              <span>~240 KB classifier</span>
               <span>0 inference requests</span>
             </div>
           </aside>
