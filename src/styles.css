@@ -119,8 +119,8 @@ button:disabled {
 
 .compact-grid {
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 16px;
-  padding-inline: 24px;
+  column-gap: 36px;
+  padding-inline: 64px;
 }
 
 /* Base navigation */
