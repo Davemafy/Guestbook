@@ -28,23 +28,35 @@ function formatPercent(value: number) {
 
 function Header({ operator = false }: { operator?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine);
+  const [offlineReady, setOfflineReady] = useState(false);
+
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then(() => setOfflineReady(true))
+        .catch(() => setOfflineReady(false));
+    }
+
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
     };
   }, []);
 
+  const statusText = online ? (offlineReady ? "OFFLINE READY" : "PREPARING OFFLINE") : "OFFLINE";
+  const statusClass = !online || offlineReady ? "status offline" : "status online";
+
   return (
     <header className="topbar">
       <button className="wordmark" onClick={() => go("/")}>GUESTBOOK</button>
       <div className="top-actions">
         {operator && <button className="quiet-link" onClick={() => go("/memory")}>Operator</button>}
-        <span className={online ? "status online" : "status offline"}><span className="status-dot" />{online ? "ONLINE" : "OFFLINE"}</span>
+        <span className={statusClass}><span className="status-dot" />{statusText}</span>
       </div>
     </header>
   );
