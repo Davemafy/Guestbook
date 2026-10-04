@@ -298,10 +298,9 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   );
 }
 
-function PageTitle({ kicker, title, body }: { kicker: string; title: string; body?: string }) {
+function PageTitle({ title, body }: { kicker?: string; title: string; body?: string }) {
   return (
     <div className="page-title">
-      <div className="label-small">{kicker}</div>
       <h1>{title}</h1>
       {body && <p>{body}</p>}
     </div>
@@ -807,21 +806,15 @@ function MemoryScreen() {
 
         {featured ? (
           <>
-            <section className="memory-count">
-              <div className="count-line">
-                {changed && <span>{previousCount}</span>}
-                {changed && <b>→</b>}
-                <strong>{featured.visitCount}</strong>
-              </div>
-              <div className="label-medium">independent visits</div>
-              <BaseProgress value={Math.min(100, featured.visitCount * 12)} tone="positive" />
-            </section>
-
             <section className="memory-feature">
-              <div className="label-small">Strongest repeating signal</div>
+              <div className={"memory-evidence-line " + (changed ? "changed" : "")}>
+                <strong>{changed && previousCount !== null ? previousCount + " → " + featured.visitCount : featured.visitCount}</strong>
+                <span>independent visits</span>
+                {changed && <span className="memory-new-evidence">New evidence</span>}
+              </div>
               <h2>{featured.title}</h2>
               <p>{featured.description}</p>
-              <BaseBanner tone="positive">Not a prediction. {featured.visitCount} confirmed source records from distinct visits.</BaseBanner>
+              <div className="memory-proof-note">Confirmed source records from distinct visits. This is observed repetition, not a prediction.</div>
               <div className="base-button-group">
                 <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/evidence?signal=" + featured.label)}>View evidence</BaseButton>
                 <BaseButton hierarchy="secondary" size="medium" shape="rect" onClick={() => go("/decide")}>Review decision</BaseButton>
@@ -829,12 +822,12 @@ function MemoryScreen() {
             </section>
 
             <section className="memory-list-section">
-              <div className="section-heading"><div><span className="label-small">Other signals</span><h2>Everything else in memory</h2></div></div>
+              <div className="section-heading"><div><h2>Everything else in memory</h2></div></div>
               <div className="base-list">
                 {rest.map((signal) => (
                   <button className="base-list-row" key={signal.label} onClick={() => go("/evidence?signal=" + signal.label)}>
                     <span><strong>{signal.title}</strong><small>{signal.description}</small></span>
-                    <BaseBadge tone={signal.visitCount >= 3 ? "positive" : "neutral"}>{signal.visitCount} visits</BaseBadge>
+                    <span className="row-meta">{signal.visitCount} visits</span>
                   </button>
                 ))}
               </div>
@@ -866,7 +859,7 @@ function EvidenceScreen() {
                 items={memory.slice(0, 6).map((item) => ({ value: item.label, label: item.title }))}
                 value={signal?.label ?? ""}
                 onChange={(value) => go("/evidence?signal=" + value)}
-                shape="pill"
+                shape="rect"
                 size="small"
               />
             </div>
@@ -875,17 +868,16 @@ function EvidenceScreen() {
 
         <section className="evidence-summary">
           {signal && <>
-            <div className="evidence-stat"><strong>{signal.visitCount}</strong><span>distinct visits</span></div>
+            <strong>{signal.visitCount} distinct visits</strong>
             <p>{signal.description}</p>
           </>}
         </section>
 
         <section className="evidence-ledger">
-          <div className="section-heading"><div><span className="label-small">Ledger</span><h2>Every source record</h2></div><span className="paragraph-small">{signal?.observations.length ?? 0} observations</span></div>
+          <div className="section-heading"><div><h2>Every source record</h2></div><span className="paragraph-small">{signal?.observations.length ?? 0} observations</span></div>
           <div className="evidence-rows">
-            {(signal?.observations ?? []).map((observation, index) => (
+            {(signal?.observations ?? []).map((observation) => (
               <article className="evidence-row" key={observation.id}>
-                <div className="evidence-index">{String(index + 1).padStart(2, "0")}</div>
                 <div className="evidence-quote">“{observation.rawText}”</div>
                 <div className="evidence-meta">
                   <BaseBadge tone={observation.isDemo ? "neutral" : "positive"}>{observation.isDemo ? "Demo" : "Real"}</BaseBadge>
@@ -931,8 +923,7 @@ function DecideScreen() {
         {signal && copy ? (
           <>
             <section className="decision-main">
-              <div className="decision-count"><strong>{signal.visitCount}</strong><span>distinct visits</span></div>
-              <div className="label-small">Repeated signal</div>
+              <div className="decision-source-line">Based on {signal.visitCount} distinct visits</div>
               <h2>People keep asking to take something home.</h2>
               <h3>{copy.headline}</h3>
               <p>{copy.body}</p>
@@ -951,7 +942,7 @@ function DecideScreen() {
             </section>
 
             <section className="decision-proof">
-              <div className="section-heading"><div><span className="label-small">Why this is here</span><h2>Source-backed repetition</h2></div><BaseBadge tone="positive">{signal.visitCount} visits</BaseBadge></div>
+              <div className="section-heading"><div><h2>Source-backed repetition</h2></div><span className="paragraph-small">{signal.visitCount} source records</span></div>
               <div className="mini-evidence">
                 {signal.observations.slice(0, 3).map((observation) => (
                   <div key={observation.id}><p>“{observation.rawText}”</p><span>{observation.isDemo ? "Demo visit" : sourceLabel(observation)}</span></div>
