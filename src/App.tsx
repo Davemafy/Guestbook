@@ -359,6 +359,7 @@ function PendingInterpretation({ confirm = false }: { confirm?: boolean }) {
   if (!observation) return <EmptyState title="No pending observation" body="Capture a guest message first." action={<Button onClick={() => go("/screens/4-leave-message")}>Open capture</Button>} />;
 
   async function commit() {
+    if (!observation) return;
     const memoryBefore = buildMemory(await db.observations.toArray());
     const previous = Object.fromEntries([...selected].map((label) => [label, memoryBefore.find((item) => item.label === label)?.visitCount ?? 0]));
     sessionStorage.setItem("guestbook-last-accumulation", JSON.stringify(previous));
