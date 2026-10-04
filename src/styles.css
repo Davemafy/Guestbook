@@ -285,10 +285,7 @@ h1 { font-size: clamp(58px, 9.2vw, 128px); line-height: .88; letter-spacing: -.0
 }
 
 body {
-  background:
-    linear-gradient(rgba(18,19,15,.028) 1px, transparent 1px);
-  background-size: 100% 28px;
-  background-color: var(--paper);
+  background: var(--paper);
 }
 
 .page {
@@ -879,10 +876,6 @@ body {
 }
 
 @media (max-width: 760px) {
-  body {
-    background-image: none;
-  }
-
   .page {
     padding-inline: 16px;
   }
