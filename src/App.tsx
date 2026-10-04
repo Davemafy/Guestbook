@@ -809,27 +809,26 @@ function ReviewScreen() {
     <Shell route="review" layout="compact">
       <main className="compact-grid compact-page">
         <section className="review-source">
-          <PageTitle title="Keep the words. Check the interpretation." body="Nothing enters business memory until a person confirms it." />
+          <PageTitle title="Review this visit" body="Check what Guestbook picked up before it joins your memory." />
 
           {observation ? (
             <div className="source-block">
               <div className="source-meta">
-                <strong>{sourceLabel(observation)}</strong>
-                <span>{observation.language.toUpperCase()}</span>
-                <span>{formatAge(observation.createdAt)}</span>
+                <span><UserCheckIcon size={16} weight="regular" aria-hidden="true" />{sourceLabel(observation)}</span>
+                <span><TranslateIcon size={16} weight="regular" aria-hidden="true" />{observation.language.toUpperCase()}</span>
+                <span><ClockIcon size={16} weight="regular" aria-hidden="true" />{formatAge(observation.createdAt)}</span>
               </div>
               <blockquote>“{observation.rawText}”</blockquote>
               {observation.mediaDataUrl && <img className="review-media" src={observation.mediaDataUrl} alt="" />}
             </div>
           ) : (
-            <div className="empty-inline">No pending observation. Capture a guest message first.</div>
+            <div className="empty-inline"><InfoIcon size={18} weight="regular" aria-hidden="true" /> No visit is waiting for review.</div>
           )}
         </section>
 
         <section className="review-signals">
           <div className="section-heading">
-            <div><h2>Proposed signals</h2></div>
-            <div className="proof-inline"><span>~240 KB local classifier</span><span>No inference request</span></div>
+            <div><h2>Does this look right?</h2><p>Keep only what the guest actually meant.</p></div>
           </div>
 
           {observation && (
@@ -840,19 +839,19 @@ function ReviewScreen() {
                   const sensitive = HUMAN_CONFIRM_REQUIRED.has(prediction.label);
                   return (
                     <button className={"selection-row " + (active ? "selected" : "")} key={prediction.label} onClick={() => toggle(prediction.label)}>
-                      <span className="base-check">{active ? "✓" : ""}</span>
+                      <span className="base-check">{active && <CheckCircleIcon size={20} weight="fill" aria-hidden="true" />}</span>
                       <span className="selection-copy">
                         <strong>{LABEL_META[prediction.label].title}</strong>
                         <small>{LABEL_META[prediction.label].description}</small>
                       </span>
-                      <span className="selection-score">{formatPercent(prediction.score)}{sensitive && <em>Human confirm</em>}</span>
+                      {sensitive && <span className="sensitive-mark"><WarningCircleIcon size={18} weight="regular" aria-hidden="true" /> Check</span>}
                     </button>
                   );
                 })}
               </div>
 
               <BaseButton hierarchy="tertiary" size="small" shape="rect" onClick={() => setShowCorrections((value) => !value)}>
-                {showCorrections ? "Close corrections" : "Add or correct a signal"}
+                {showCorrections ? "Hide other options" : "Something missing?"}
               </BaseButton>
 
               {showCorrections && (
@@ -868,7 +867,7 @@ function ReviewScreen() {
                           aria-pressed={active}
                           onClick={() => toggle(label)}
                         >
-                          <span>{LABEL_META[label].title}</span>
+                          <span>{active && <CheckCircleIcon size={18} weight="fill" aria-hidden="true" />}{LABEL_META[label].title}</span>
                           <small>{LABEL_META[label].description}</small>
                         </button>
                       );
@@ -879,7 +878,7 @@ function ReviewScreen() {
 
               {hasSensitive && (
                 <BaseBanner tone="warning">
-                  <label className="sensitive-confirm"><input type="checkbox" checked={sensitiveConfirmed} onChange={(event) => setSensitiveConfirmed(event.target.checked)} />I checked the source words and explicitly confirm the sensitive requirement.</label>
+                  <label className="sensitive-confirm"><input type="checkbox" checked={sensitiveConfirmed} onChange={(event) => setSensitiveConfirmed(event.target.checked)} />The guest clearly mentioned this accessibility, dietary, or safety need.</label>
                 </BaseBanner>
               )}
             </>
@@ -889,8 +888,10 @@ function ReviewScreen() {
 
       <DockedAction>
         <div className="compact-grid dock-grid">
-          <div className="dock-copy"><strong>Human authority</strong><span>Model scores are not calibrated probabilities.</span></div>
-          <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={confirm} disabled={!observation || (hasSensitive && !sensitiveConfirmed)}>Confirm into memory</BaseButton>
+          <div className="dock-copy"><UserCheckIcon size={18} weight="regular" aria-hidden="true" /><span>You decide what gets remembered.</span></div>
+          <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={confirm} disabled={!observation || (hasSensitive && !sensitiveConfirmed)}>
+            <span>Confirm</span><ArrowRightIcon size={18} weight="bold" aria-hidden="true" />
+          </BaseButton>
         </div>
       </DockedAction>
     </Shell>
