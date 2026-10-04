@@ -11,9 +11,9 @@
   --background-tertiary: #e8e8e8;
   --border-opaque: #cbcbcb;
   --accent: #276ef1;
-  --positive: #0e8345;
-  --warning: #f6bc2f;
-  --negative: #de1135;
+  --positive: #3aa76d;
+  --warning: #ffc043;
+  --negative: #d44333;
   --inverse-primary: #ffffff;
   --inverse-background: #000000;
 }
@@ -197,6 +197,10 @@ button:disabled {
 .compact-page .page-title h1 {
   font-size: 40px;
   line-height: 52px;
+}
+
+.page-title > .label-small {
+  color: var(--content-tertiary);
 }
 
 .page-title p {
@@ -412,6 +416,20 @@ button:disabled {
   font-weight: 500;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.field-meta {
+  color: var(--content-tertiary);
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
 .base-textarea {
   width: 100%;
   min-height: 216px;
@@ -590,7 +608,7 @@ button:disabled {
   font-family: "Uber Move", Arial, Helvetica, sans-serif;
   font-size: 28px;
   line-height: 36px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .review-media {
@@ -727,13 +745,13 @@ button:disabled {
   color: var(--positive);
   font-size: 28px;
   line-height: 36px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .count-line strong {
   font-size: 52px;
   line-height: 64px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .memory-count .label-medium {
@@ -846,7 +864,7 @@ button:disabled {
   font-family: "Uber Move", Arial, Helvetica, sans-serif;
   font-size: 52px;
   line-height: 64px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .evidence-stat span,
@@ -931,7 +949,7 @@ button:disabled {
   font-family: "Uber Move", Arial, Helvetica, sans-serif;
   font-size: 52px;
   line-height: 64px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .decision-count span {
