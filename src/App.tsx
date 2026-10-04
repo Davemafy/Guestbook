@@ -1,10 +1,49 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { activeClassifier } from "./ai/classifier";
 import { db } from "./storage/db";
 import { seedDemoData } from "./data/demoData";
 import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
 import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./domain/labels";
 import type { Observation, Prediction } from "./domain/observation";
+
+
+type SpeechAvailability = "available" | "downloadable" | "downloading" | "unavailable";
+
+interface LocalSpeechRecognitionResult {
+  readonly isFinal: boolean;
+  readonly 0: { transcript: string };
+}
+
+interface LocalSpeechRecognitionEvent {
+  readonly resultIndex: number;
+  readonly results: ArrayLike<LocalSpeechRecognitionResult>;
+}
+
+interface LocalSpeechRecognitionInstance {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  processLocally?: boolean;
+  onresult: ((event: LocalSpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+interface LocalSpeechRecognitionConstructor {
+  new (): LocalSpeechRecognitionInstance;
+  available?: (options: { langs: string[]; processLocally: true }) => Promise<SpeechAvailability>;
+  install?: (options: { langs: string[]; processLocally: true }) => Promise<boolean>;
+}
+
+function getLocalSpeechRecognition(): LocalSpeechRecognitionConstructor | null {
+  const candidate = window as typeof window & {
+    SpeechRecognition?: LocalSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: LocalSpeechRecognitionConstructor;
+  };
+  return candidate.SpeechRecognition ?? candidate.webkitSpeechRecognition ?? null;
+}
 
 function useLocationKey() {
   const [key, setKey] = useState(() => window.location.pathname + window.location.search);
@@ -111,7 +150,104 @@ function Guest() {
   const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voiceState, setVoiceState] = useState<"checking" | SpeechAvailability | "installing" | "listening" | "error">("checking");
+  const recognitionRef = useRef<LocalSpeechRecognitionInstance | null>(null);
   const copy = guestCopy[language];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkVoice() {
+      if (language !== "en") {
+        setVoiceState("unavailable");
+        return;
+      }
+
+      const Recognition = getLocalSpeechRecognition();
+      if (!Recognition?.available) {
+        setVoiceState("unavailable");
+        return;
+      }
+
+      setVoiceState("checking");
+      try {
+        const availability = await Recognition.available({
+          langs: ["en-US"],
+          processLocally: true,
+        });
+        if (!cancelled) setVoiceState(availability);
+      } catch {
+        if (!cancelled) setVoiceState("unavailable");
+      }
+    }
+
+    void checkVoice();
+    return () => {
+      cancelled = true;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
+  }, [language]);
+
+  async function installVoice() {
+    const Recognition = getLocalSpeechRecognition();
+    if (!Recognition?.install || language !== "en") return;
+
+    setVoiceState("installing");
+    try {
+      const installed = await Recognition.install({
+        langs: ["en-US"],
+        processLocally: true,
+      });
+      setVoiceState(installed ? "available" : "unavailable");
+    } catch {
+      setVoiceState("error");
+    }
+  }
+
+  function startVoice() {
+    const Recognition = getLocalSpeechRecognition();
+    if (!Recognition || language !== "en" || voiceState !== "available") return;
+
+    const recognition = new Recognition();
+    const base = text.trim();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.processLocally = true;
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let index = 0; index < event.results.length; index++) {
+        transcript += event.results[index][0]?.transcript ?? "";
+      }
+      const next = [base, transcript.trim()].filter(Boolean).join(base ? " " : "");
+      setText(next);
+    };
+
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setVoiceState("available");
+    };
+
+    recognition.onerror = () => {
+      recognitionRef.current = null;
+      setVoiceState("error");
+    };
+
+    recognitionRef.current = recognition;
+    setVoiceState("listening");
+    try {
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setVoiceState("error");
+    }
+  }
+
+  function stopVoice() {
+    recognitionRef.current?.stop();
+  }
 
   async function submit() {
     if (text.trim().length < 3 || busy) return;
@@ -133,6 +269,20 @@ function Guest() {
     go("/review?id=" + encodeURIComponent(id));
   }
 
+  const voiceLabel =
+    voiceState === "listening" ? "LISTENING — TAP TO STOP" :
+    voiceState === "available" ? "START OFFLINE VOICE" :
+    voiceState === "downloadable" ? "INSTALL OFFLINE VOICE" :
+    voiceState === "downloading" || voiceState === "installing" ? "INSTALLING VOICE…" :
+    voiceState === "checking" ? "CHECKING OFFLINE VOICE…" :
+    "OFFLINE VOICE UNAVAILABLE";
+
+  const voiceAction =
+    voiceState === "available" ? startVoice :
+    voiceState === "listening" ? stopVoice :
+    voiceState === "downloadable" ? installVoice :
+    undefined;
+
   return (
     <Shell>
       <section className="narrow">
@@ -146,7 +296,32 @@ function Guest() {
         <p className="eyebrow">{copy.eyebrow}</p>
         <h1 className="screen-title">{copy.title}</h1>
         <p className="lede">{copy.helper}</p>
-        <textarea className="guest-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={copy.placeholder} rows={7} autoFocus />
+
+        {language === "en" && (
+          <section className={"voice-panel " + (voiceState === "listening" ? "listening" : "")}>
+            <div className="voice-copy">
+              <span>VOICE INPUT · BROWSER-LOCAL</span>
+              <strong>{voiceLabel}</strong>
+              <p>
+                {voiceState === "available" || voiceState === "listening"
+                  ? "English speech is processed on this device. Guestbook never falls back silently to cloud speech."
+                  : voiceState === "downloadable"
+                    ? "Your browser can install its English speech pack once. The Guestbook classifier stays ~240 KB."
+                    : "Typing remains the guaranteed offline path on this browser."}
+              </p>
+            </div>
+            <button
+              className="voice-action"
+              onClick={voiceAction}
+              disabled={!voiceAction || voiceState === "installing" || voiceState === "downloading" || voiceState === "checking"}
+            >
+              {voiceState === "listening" ? "STOP" : voiceState === "downloadable" ? "INSTALL" : "VOICE"}
+            </button>
+          </section>
+        )}
+
+        <div className="type-divider"><span>OR TYPE</span></div>
+        <textarea className="guest-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={copy.placeholder} rows={7} />
         <div className="input-footer">
           <span>{text.length} characters</span>
           <button className="primary" disabled={text.trim().length < 3 || busy} onClick={submit}>
@@ -157,7 +332,6 @@ function Guest() {
     </Shell>
   );
 }
-
 
 function Capture() {
   const [source, setSource] = useState<"guide" | "operator">("guide");
@@ -267,10 +441,15 @@ function Review() {
           <p className="microcopy">Nothing below replaces the original words. Tap any signal to correct the model before it enters memory.</p>
         </div>
         <div className="review-panel">
-          <div className="panel-head"><span>LOCAL MODEL</span><span>{observation.predictions[0]?.engine ?? "guestbook-micro-v1"}</span></div>
+          <div className="interpret-proof">
+            <div><strong>~240 KB</strong><span>learned weights</span></div>
+            <div><strong>0</strong><span>network inference</span></div>
+            <div><strong>LOCAL</strong><span>on this device</span></div>
+          </div>
+          <div className="panel-head"><span>INTERPRETED LOCALLY</span><span>{observation.predictions[0]?.engine ?? "guestbook-micro-v1"}</span></div>
           <div className="prediction-list">
             {observation.predictions.map((prediction) => (
-              <button key={prediction.label} className={selected.has(prediction.label) ? "prediction selected" : "prediction"} onClick={() => toggle(prediction.label)}>
+              <button key={prediction.label} className={selected.has(prediction.label) ? "prediction selected signal-reveal" : "prediction signal-reveal"} onClick={() => toggle(prediction.label)}>
                 <div>
                   <strong>{LABEL_META[prediction.label].title}</strong>
                   <small>{LABEL_META[prediction.label].description}</small>
@@ -350,7 +529,7 @@ function Memory() {
       </section>
       <section className="memory-grid">
         {memory.map((signal, index) => (
-          <article key={signal.label} className="memory-card">
+          <article key={signal.label} className={"memory-card " + (signal.label === "WANT_PRODUCT" && signal.visitCount >= 5 ? "memory-card-signature" : "")}>
             <div className="memory-rank">{String(index + 1).padStart(2, "0")}</div>
             <div className="memory-main">
               <div className="memory-title-row">
@@ -407,6 +586,9 @@ function Decide() {
               <article className="decision-card" key={signal.label}>
                 <span className="decision-count">{signal.visitCount} independent visits</span>
                 <h2>{copy.headline}</h2>
+                {signal.label === "WANT_PRODUCT" && (
+                  <p className="decision-proof">Not a prediction. Not a generated recommendation. {signal.visitCount} pieces of confirmed evidence.</p>
+                )}
                 <p>{copy.body}</p>
                 <div className="decision-buttons">
                   {["Explore","Not now","Wrong signal"].map((option) => (
