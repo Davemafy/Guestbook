@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { activeClassifier } from "./ai/classifier";
+import { benchmarkLexicalBaseline } from "./ai/lexicalBaseline";
 import { db } from "./storage/db";
 import { seedDemoData } from "./data/demoData";
 import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
@@ -526,6 +527,8 @@ function TechnicalLab({ benchmark = false }: { benchmark?: boolean }) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [report, setReport] = useState<Awaited<ReturnType<typeof activeClassifier.benchmark>> | null>(null);
   const [ms, setMs] = useState<number | null>(null);
+  const lexical = useMemo(() => benchmarkLexicalBaseline(), []);
+
   async function run() {
     if (benchmark) setReport(await activeClassifier.benchmark());
     else {
@@ -534,7 +537,61 @@ function TechnicalLab({ benchmark = false }: { benchmark?: boolean }) {
       setMs(result.inferenceMs);
     }
   }
-  return <div className="grid-2"><Card>{benchmark ? <Alert title="Frozen regression set">35 synthetic stress cases. This is not field accuracy.</Alert> : <Field label="Observation"><Textarea rows={7} value={text} onChange={(e) => setText(e.target.value)} /></Field>}<div className="actions"><Button onClick={run}>{benchmark ? "Run benchmark" : "Run local inference"}</Button></div></Card><Card>{benchmark ? <div className="metric-grid"><div><span>Micro F1</span><strong>{report ? fmtPercent(report.f1) : "—"}</strong></div><div><span>Precision</span><strong>{report ? fmtPercent(report.precision) : "—"}</strong></div><div><span>Recall</span><strong>{report ? fmtPercent(report.recall) : "—"}</strong></div><div><span>Exact</span><strong>{report ? fmtPercent(report.exactMatch) : "—"}</strong></div><div><span>Weights</span><strong>~240 KB</strong></div><div><span>Network</span><strong>0</strong></div></div> : <><div className="card-header"><div><h3>Predictions</h3><p>{ms === null ? "Run an observation." : ms.toFixed(2) + " ms on this device"}</p></div></div><div className="signal-stack">{predictions.map((p) => <div className="signal-item static" key={p.label}><span className="checkbox">✓</span><span><strong>{LABEL_META[p.label].title}</strong><small>{LABEL_META[p.label].description}</small></span><span className="score">{fmtPercent(p.score)}</span></div>)}</div></>}</Card></div>;
+
+  if (benchmark) {
+    return (
+      <div className="stack-lg">
+        <Card>
+          <div className="card-header">
+            <div>
+              <Badge variant="outline">WHY AI</Badge>
+              <h2>Start with the simpler tool.</h2>
+              <p>A transparent lexical baseline gets the same frozen synthetic cases. If rules are enough, we should use rules.</p>
+            </div>
+          </div>
+          <DataTable rows={[
+            ["Transparent lexical rules", fmtPercent(lexical.f1) + " micro-F1", fmtPercent(lexical.exactMatch) + " exact · 0 learned bytes"],
+            ["Guestbook Micro", report ? fmtPercent(report.f1) + " micro-F1" : "Run benchmark", report ? fmtPercent(report.exactMatch) + " exact · 245,820 learned bytes" : "Same 35 cases"],
+          ]} />
+          <div className="actions">
+            <Button onClick={run}>Run both on this device</Button>
+          </div>
+        </Card>
+
+        <div className="proof-statement">
+          <span>SYNTHETIC RESULT</span>
+          <strong>Rules are competitive here.</strong>
+          <p>That is exactly why Guestbook does not use its synthetic score as the reason to choose machine learning. The next screen tests transfer outside the examples we wrote.</p>
+        </div>
+
+        {report && (
+          <Card>
+            <div className="metric-grid">
+              <div><span>Micro F1</span><strong>{fmtPercent(report.f1)}</strong></div>
+              <div><span>Precision</span><strong>{fmtPercent(report.precision)}</strong></div>
+              <div><span>Recall</span><strong>{fmtPercent(report.recall)}</strong></div>
+              <div><span>Exact match</span><strong>{fmtPercent(report.exactMatch)}</strong></div>
+              <div><span>Learned weights</span><strong>245,820 B</strong></div>
+              <div><span>Network inference</span><strong>0</strong></div>
+            </div>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid-2">
+      <Card>
+        <Field label="Observation"><Textarea rows={7} value={text} onChange={(e) => setText(e.target.value)} /></Field>
+        <div className="actions"><Button onClick={run}>Run local inference</Button></div>
+      </Card>
+      <Card>
+        <div className="card-header"><div><h3>Predictions</h3><p>{ms === null ? "Run an observation." : ms.toFixed(2) + " ms on this device"}</p></div></div>
+        <div className="signal-stack">{predictions.map((p) => <div className="signal-item static" key={p.label}><span className="checkbox">✓</span><span><strong>{LABEL_META[p.label].title}</strong><small>{LABEL_META[p.label].description}</small></span><span className="score">{fmtPercent(p.score)}</span></div>)}</div>
+      </Card>
+    </div>
+  );
 }
 
 function ScreenBody({ screen }: { screen: ScreenSpec }) {
