@@ -764,13 +764,23 @@ function ReviewScreen() {
 
               {showCorrections && (
                 <div className="correction-area">
-                  <BaseButtonGroup
-                    items={LABELS.filter((label) => label !== "UNKNOWN").map((label) => ({ value: label, label: LABEL_META[label].title }))}
-                    value=""
-                    onChange={(value) => toggle(value as SignalLabel)}
-                    shape="rect"
-                    size="small"
-                  />
+                  <div className="correction-list">
+                    {LABELS.filter((label) => label !== "UNKNOWN").map((label) => {
+                      const active = selected.has(label);
+                      return (
+                        <button
+                          type="button"
+                          className={"correction-choice " + (active ? "selected" : "")}
+                          key={label}
+                          aria-pressed={active}
+                          onClick={() => toggle(label)}
+                        >
+                          <span>{LABEL_META[label].title}</span>
+                          <small>{LABEL_META[label].description}</small>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
