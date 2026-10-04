@@ -434,6 +434,24 @@ button:disabled {
   gap: 8px;
 }
 
+.field-label-row {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.field-meta {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--content-tertiary);
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .base-textarea {
   width: 100%;
   min-height: 216px;
@@ -1534,6 +1552,10 @@ button:disabled {
   padding-bottom: 76px;
 }
 
+.message-composer .base-textarea:focus-visible {
+  outline: none;
+}
+
 .message-composer.is-listening .base-textarea {
   border-color: var(--content-primary);
   background: var(--background-primary);
@@ -1543,7 +1565,7 @@ button:disabled {
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 12px;
+  bottom: 36px;
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -1651,7 +1673,7 @@ button:disabled {
   .composer-controls {
     left: 8px;
     right: 8px;
-    bottom: 8px;
+    bottom: 32px;
   }
 
   .composer-icon-button {
