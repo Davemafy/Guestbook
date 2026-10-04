@@ -7,8 +7,13 @@ import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./
 import type { Observation, Prediction } from "./domain/observation";
 
 
+interface BrowserSpeechResult extends ArrayLike<{ transcript: string }> {
+  isFinal: boolean;
+}
+
 interface BrowserSpeechResultEvent {
-  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+  resultIndex: number;
+  results: ArrayLike<BrowserSpeechResult>;
 }
 
 interface BrowserSpeechRecognition {
@@ -39,6 +44,36 @@ function getBrowserSpeechRecognition(): BrowserSpeechRecognitionConstructor | nu
     webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
   };
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
+}
+
+function mergeTranscript(base: string, addition: string) {
+  const cleanBase = base.trim();
+  const cleanAddition = addition.trim();
+  if (!cleanBase) return cleanAddition.slice(0, 1000);
+  if (!cleanAddition) return cleanBase.slice(0, 1000);
+
+  const baseWords = cleanBase.split(/\s+/);
+  const additionWords = cleanAddition.split(/\s+/);
+  const normalize = (word: string) => word.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+  const maxOverlap = Math.min(12, baseWords.length, additionWords.length);
+  let overlap = 0;
+
+  for (let size = maxOverlap; size >= 1; size--) {
+    let matches = true;
+    for (let index = 0; index < size; index++) {
+      if (normalize(baseWords[baseWords.length - size + index]) !== normalize(additionWords[index])) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      overlap = size;
+      break;
+    }
+  }
+
+  const tail = additionWords.slice(overlap).join(" ");
+  return [cleanBase, tail].filter(Boolean).join(" ").slice(0, 1000);
 }
 
 type Route = "guest" | "review" | "memory" | "evidence" | "decide" | "system";
@@ -350,6 +385,8 @@ function GuestScreen() {
   const wantsListeningRef = useRef(false);
   const restartTimerRef = useRef<number | null>(null);
   const voiceBaseRef = useRef("");
+  const voiceFinalRef = useRef("");
+  const voiceInterimRef = useRef("");
   const voiceSegmentRef = useRef("");
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
@@ -397,13 +434,24 @@ function GuestScreen() {
     recognition.onaudioend = () => setSpeechActive(false);
 
     recognition.onresult = (event) => {
-      let transcript = "";
-      for (let index = 0; index < event.results.length; index++) {
-        transcript += event.results[index]?.[0]?.transcript ?? "";
+      let finalDelta = "";
+      let interim = "";
+
+      for (let index = event.resultIndex; index < event.results.length; index++) {
+        const result = event.results[index];
+        const transcript = result?.[0]?.transcript?.trim() ?? "";
+        if (!transcript) continue;
+        if (result.isFinal) {
+          finalDelta = [finalDelta, transcript].filter(Boolean).join(" ");
+        } else {
+          interim = [interim, transcript].filter(Boolean).join(" ");
+        }
       }
-      voiceSegmentRef.current = transcript.trim();
-      const next = [voiceBaseRef.current, voiceSegmentRef.current].filter(Boolean).join(" ").slice(0, 1000);
-      setText(next);
+
+      if (finalDelta) voiceFinalRef.current = mergeTranscript(voiceFinalRef.current, finalDelta);
+      voiceInterimRef.current = interim;
+      voiceSegmentRef.current = mergeTranscript(voiceFinalRef.current, voiceInterimRef.current);
+      setText(mergeTranscript(voiceBaseRef.current, voiceSegmentRef.current));
       setSpeechActive(true);
       setVoicePulse((value) => value + 1);
     };
@@ -438,10 +486,9 @@ function GuestScreen() {
       setSpeechActive(false);
 
       if (voiceSegmentRef.current) {
-        voiceBaseRef.current = [voiceBaseRef.current, voiceSegmentRef.current]
-          .filter(Boolean)
-          .join(" ")
-          .slice(0, 1000);
+        voiceBaseRef.current = mergeTranscript(voiceBaseRef.current, voiceSegmentRef.current);
+        voiceFinalRef.current = "";
+        voiceInterimRef.current = "";
         voiceSegmentRef.current = "";
         setText(voiceBaseRef.current);
       }
@@ -493,6 +540,8 @@ function GuestScreen() {
 
     wantsListeningRef.current = true;
     voiceBaseRef.current = text.trim().slice(0, 1000);
+    voiceFinalRef.current = "";
+    voiceInterimRef.current = "";
     voiceSegmentRef.current = "";
     setVoiceError("");
     setSpeechActive(false);
