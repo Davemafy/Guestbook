@@ -347,7 +347,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
         <header className="base-navigation">
           <div className={"nav-grid " + layout + "-grid"}>
             <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
-            <div className="mobile-status" aria-label={status} title={status} style={{ gap: 6 }}>
+            <div className="mobile-status" aria-label={status} title={status} aria-live="polite" style={{ gap: 6 }}>
               <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
               <span
                 style={{
