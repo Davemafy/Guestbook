@@ -58,11 +58,11 @@ The MASSIVE numbers are semantic-transfer probes and the Nairobi labels are weak
 ## Offline proof
 
 1. Open Guestbook once while connected.
-2. Visit Guest mode and /lab once so the app assets are cached.
+2. Wait until the header changes from **PREPARING OFFLINE** to **OFFLINE READY**. The service worker install does not complete until the current hashed JS/CSS assets have been precached.
 3. Close the app.
 4. Enable airplane mode.
 5. Reopen Guestbook.
-6. Classify a new observation.
+6. Classify a brand-new observation.
 7. The inference path uses zero network requests.
 
 ## Development
