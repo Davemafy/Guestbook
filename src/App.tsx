@@ -721,7 +721,36 @@ function ScreenBody({ screen }: { screen: ScreenSpec }) {
     case 68: return <TechnicalLab />;
     case 69: return <TechnicalLab benchmark />;
     case 70:
-      return <Card><DataTable rows={[["MASSIVE English","91.1%","Mapped-label hit"],["MASSIVE Swahili","92.8%","Mapped-label hit"],["Nairobi holdout","98.0%","Weak-label agreement"],["Field accuracy","Not claimed","Needs consented human labels"]]} /><Alert title="Interpretation">These are transfer and weak-supervision probes. They are not tourism field accuracy.</Alert></Card>;
+      return (
+        <div className="stack-lg">
+          <div className="proof-statement">
+            <span>MODEL SELECTION</span>
+            <strong>Small enough to survive outside our own data.</strong>
+            <p>The first model looked good on examples we controlled. External evidence was the stop signal, not something added after the demo was finished.</p>
+          </div>
+          <div className="grid-2">
+            <Card>
+              <div className="card-header"><div><Badge variant="destructive">REJECTED</Badge><h2>Synthetic-only first pass</h2><p>External data exposed the failure.</p></div></div>
+              <DataTable rows={[
+                ["Nairobi stress sample","79.8% UNKNOWN","5,000 external human-written reviews"],
+                ["MASSIVE Swahili","0.3% mapped hit","Untouched semantic-transfer probe"],
+                ["Decision","Do not ship","Retrain using external training partitions only"],
+              ]} />
+            </Card>
+            <Card>
+              <div className="card-header"><div><Badge variant="success">PROMOTED</Badge><h2>Guestbook Micro v1</h2><p>Frozen after the new training mix.</p></div></div>
+              <DataTable rows={[
+                ["Learned weights","245,820 bytes","4,096 hashed dimensions"],
+                ["Training cases","2,687","Synthetic + licensed external train partitions"],
+                ["MASSIVE English","91.1%","305 untouched test cases"],
+                ["MASSIVE Swahili","92.8%","305 untouched test cases"],
+                ["Nairobi holdout","98.0%","1,055 weak-label sentences"],
+              ]} />
+            </Card>
+          </div>
+          <Alert title="What these numbers mean">MASSIVE is a semantic-transfer probe. Nairobi uses transparent lexical weak labels. Neither is tourism field accuracy; real deployment still needs consented, human-labeled field evaluation.</Alert>
+        </div>
+      );
     case 71:
       return <div className="grid-2"><Card><h3>Proof sequence</h3><ol className="steps"><li>Open while connected.</li><li>Wait for Offline ready.</li><li>Close the tab.</li><li>Disconnect / airplane mode.</li><li>Reopen Guestbook.</li><li>Enter an unseen sentence.</li><li>Classify and confirm it.</li><li>Reopen memory and verify persistence.</li></ol></Card><Card><Alert title="What this proves" variant="success">Offline shell + local inference + local persistence. Not merely a cached landing page.</Alert></Card></div>;
     case 72:
