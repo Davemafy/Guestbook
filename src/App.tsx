@@ -914,40 +914,40 @@ function MemoryScreen() {
     <Shell route="memory" layout="compact">
       <main className="compact-grid compact-page">
         <section className="memory-title">
-          <PageTitle title="What keeps repeating?" body="A pattern exists only when confirmed observations from distinct visits keep pointing to the same thing." />
+          <PageTitle title="What guests keep bringing up" body="Only feedback you confirmed across different visits shows up here." />
         </section>
 
         {featured ? (
           <>
             <section className="memory-feature">
               <div className={"memory-evidence-line " + (changed ? "changed" : "")}>
-                <strong>{changed && previousCount !== null ? previousCount + " → " + featured.visitCount : featured.visitCount}</strong>
-                <span>independent visits</span>
-                {changed && <span className="memory-new-evidence">New evidence</span>}
+                <UsersThreeIcon size={20} weight="regular" aria-hidden="true" />
+                <strong>{featured.visitCount} visits</strong>
+                {changed && <span className="memory-new-evidence"><TrendUpIcon size={16} weight="bold" aria-hidden="true" />+{featured.visitCount - (previousCount ?? featured.visitCount)} new</span>}
               </div>
               <h2>{featured.title}</h2>
               <p>{featured.description}</p>
-              <div className="memory-proof-note">Confirmed source records from distinct visits. This is observed repetition, not a prediction.</div>
+              <div className="memory-proof-note"><CheckCircleIcon size={18} weight="fill" aria-hidden="true" /> Confirmed by you across different visits.</div>
               <div className="base-button-group">
-                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/evidence?signal=" + featured.label)}>View evidence</BaseButton>
-                <BaseButton hierarchy="secondary" size="medium" shape="rect" onClick={() => go("/decide")}>Review decision</BaseButton>
+                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/evidence?signal=" + featured.label)}><QuotesIcon size={18} weight="regular" aria-hidden="true" /><span>See comments</span></BaseButton>
+                <BaseButton hierarchy="secondary" size="medium" shape="rect" onClick={() => go("/decide")}><CompassIcon size={18} weight="regular" aria-hidden="true" /><span>Decide</span></BaseButton>
               </div>
             </section>
 
             <section className="memory-list-section">
-              <div className="section-heading"><div><h2>Everything else in memory</h2></div></div>
+              <div className="section-heading"><div><h2>Other patterns</h2><p>Confirmed themes from your recent visits.</p></div></div>
               <div className="base-list">
                 {rest.map((signal) => (
                   <button className="base-list-row" key={signal.label} onClick={() => go("/evidence?signal=" + signal.label)}>
                     <span><strong>{signal.title}</strong><small>{signal.description}</small></span>
-                    <span className="row-meta">{signal.visitCount} visits</span>
+                    <span className="row-meta"><UsersThreeIcon size={16} weight="regular" aria-hidden="true" />{signal.visitCount}</span>
                   </button>
                 ))}
               </div>
             </section>
           </>
         ) : (
-          <section className="memory-empty"><div className="empty-state"><h2>No confirmed memory yet</h2><p>Capture and review an observation to begin.</p><BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/")}>Open Guest</BaseButton></div></section>
+          <section className="memory-empty"><div className="empty-state"><DatabaseIcon size={28} weight="regular" aria-hidden="true" /><h2>Nothing in memory yet</h2><p>Review a guest note first. Repeated themes will collect here.</p><BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/")}>Open Guest</BaseButton></div></section>
         )}
       </main>
     </Shell>
