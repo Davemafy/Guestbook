@@ -67,6 +67,12 @@ These values are **regression evidence, not field-performance claims**. The `/la
 
 See [`external-evidence.md`](external-evidence.md) for the exact split, mappings, caveats, and source attribution.
 
+## Deterministic contradiction guard
+
+Guestbook Micro v1 now applies a tiny deterministic post-inference guard for explicit contradictions and negations. The learned model is still responsible for language interpretation, but obvious phrases such as **“I don't want to buy,” “not expensive,” “no food allergies,” “exactly as advertised,”** or **“I understood everything clearly”** suppress the corresponding positive/friction signal rather than allowing lexical fragments to create an obviously contradictory tag.
+
+This policy layer does not increase the learned model size and is tested separately from the 35-case model benchmark. It is a safety/consistency guard, not a replacement for semantic classification.
+
 ## Responsible-use boundaries
 
 Guestbook preserves the raw source text behind every model output.
