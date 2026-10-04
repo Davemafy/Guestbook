@@ -15,6 +15,13 @@ interface BrowserSpeechRecognition {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
+  onstart: (() => void) | null;
+  onaudiostart: (() => void) | null;
+  onaudioend: (() => void) | null;
+  onsoundstart: (() => void) | null;
+  onsoundend: (() => void) | null;
+  onspeechstart: (() => void) | null;
+  onspeechend: (() => void) | null;
   onresult: ((event: BrowserSpeechResultEvent) => void) | null;
   onend: (() => void) | null;
   onerror: ((event: { error?: string }) => void) | null;
@@ -293,82 +300,39 @@ function useObservations() {
   return { rows, refresh };
 }
 
-function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+function VoiceActivityVisualizer({ active, speaking, pulse }: { active: boolean; speaking: boolean; pulse: number }) {
+  const bars = [0.58, 0.82, 0.46, 1, 0.7, 0.5, 0.9, 0.62, 0.78, 0.42, 0.88, 0.56];
+  return (
+    <div className={"voice-activity " + (active ? "active " : "") + (speaking ? "speaking" : "")} aria-hidden="true" data-pulse={pulse}>
+      {bars.map((height, index) => (
+        <span
+          key={index}
+          style={{
+            height: Math.round(height * 100) + "%",
+            animationDelay: -(index * 73) + "ms",
+            animationDuration: 640 + (index % 4) * 90 + "ms",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (!stream || !canvasRef.current) return;
+function PaperclipIcon() {
+  return (
+    <svg className="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.9-9.9a4 4 0 0 1 5.66 5.66l-9.9 9.9a2 2 0 0 1-2.83-2.83l9.19-9.19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
-    const canvas = canvasRef.current;
-    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextCtor) return;
-
-    const audio = new AudioContextCtor();
-    const source = audio.createMediaStreamSource(stream);
-    const analyser = audio.createAnalyser();
-    analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.82;
-    source.connect(analyser);
-
-    const bins = new Uint8Array(analyser.frequencyBinCount);
-    let frame = 0;
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * ratio));
-      canvas.height = Math.max(1, Math.floor(rect.height * ratio));
-    };
-
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    resize();
-
-    const draw = () => {
-      frame = requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(bins);
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const width = canvas.width;
-      const height = canvas.height;
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--content-primary").trim() || "#111";
-
-      const barCount = 28;
-      const gap = Math.max(2, width * 0.006);
-      const barWidth = Math.max(2, (width - gap * (barCount - 1)) / barCount);
-      const usableBins = Math.min(bins.length, 72);
-      const step = usableBins / barCount;
-
-      for (let index = 0; index < barCount; index++) {
-        const start = Math.floor(index * step);
-        const end = Math.max(start + 1, Math.floor((index + 1) * step));
-        let total = 0;
-        for (let bin = start; bin < end; bin++) total += bins[bin] ?? 0;
-        const level = total / Math.max(1, end - start) / 255;
-        const shaped = Math.pow(level, 0.72);
-        const barHeight = Math.max(height * 0.08, shaped * height * 0.92);
-        const x = index * (barWidth + gap);
-        const y = (height - barHeight) / 2;
-        ctx.globalAlpha = 0.28 + shaped * 0.72;
-        ctx.fillRect(x, y, barWidth, barHeight);
-      }
-      ctx.globalAlpha = 1;
-    };
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      source.disconnect();
-      void audio.close();
-    };
-  }, [stream]);
-
-  return <canvas ref={canvasRef} className="audio-visualizer" aria-hidden="true" />;
+function MicIcon() {
+  return (
+    <svg className="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
 }
 
 function GuestScreen() {
@@ -380,24 +344,16 @@ function GuestScreen() {
     () => getBrowserSpeechRecognition() ? "idle" : "unavailable",
   );
   const [voiceError, setVoiceError] = useState("");
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [speechActive, setSpeechActive] = useState(false);
+  const [voicePulse, setVoicePulse] = useState(0);
   const voiceRef = useRef<BrowserSpeechRecognition | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
 
   useEffect(() => () => {
     voiceRef.current?.stop();
     voiceRef.current = null;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
   }, []);
-
-  function releaseAudioStream() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setAudioStream(null);
-  }
 
   function attachPhoto(file?: File) {
     if (!file || !file.type.startsWith("image/")) return;
@@ -406,7 +362,7 @@ function GuestScreen() {
     reader.readAsDataURL(file);
   }
 
-  async function startVoice() {
+  function startVoice() {
     if (!navigator.onLine) {
       setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
       setVoiceState("error");
@@ -420,25 +376,30 @@ function GuestScreen() {
       return;
     }
 
-    releaseAudioStream();
-    let stream: MediaStream | null = null;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-      });
-      streamRef.current = stream;
-      setAudioStream(stream);
-    } catch {
-      setVoiceError("Allow microphone access to use voice. Typing remains available.");
-      setVoiceState("error");
-      return;
-    }
-
     const recognition = new Recognition();
     const base = text.trim();
     recognition.lang = language === "sw" ? "sw-KE" : "en-US";
     recognition.continuous = false;
     recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      setVoiceState("listening");
+      setVoiceError("");
+      setVoicePulse((value) => value + 1);
+    };
+    recognition.onaudiostart = () => setVoicePulse((value) => value + 1);
+    recognition.onsoundstart = () => {
+      setSpeechActive(true);
+      setVoicePulse((value) => value + 1);
+    };
+    recognition.onspeechstart = () => {
+      setSpeechActive(true);
+      setVoicePulse((value) => value + 1);
+    };
+    recognition.onspeechend = () => setSpeechActive(false);
+    recognition.onsoundend = () => setSpeechActive(false);
+    recognition.onaudioend = () => setSpeechActive(false);
+
     recognition.onresult = (event) => {
       let transcript = "";
       for (let index = 0; index < event.results.length; index++) {
@@ -446,44 +407,42 @@ function GuestScreen() {
       }
       const clean = transcript.trim();
       setText([base, clean].filter(Boolean).join(base && clean ? " " : ""));
+      setSpeechActive(true);
+      setVoicePulse((value) => value + 1);
     };
     recognition.onend = () => {
       voiceRef.current = null;
-      releaseAudioStream();
+      setSpeechActive(false);
       setVoiceState("idle");
     };
     recognition.onerror = (event) => {
       voiceRef.current = null;
-      releaseAudioStream();
+      setSpeechActive(false);
       setVoiceState("idle");
       setVoiceError(
         event.error === "not-allowed"
           ? "Allow microphone access and try again."
-          : "Voice transcription failed. Typing remains available.",
+          : event.error === "no-speech"
+            ? "I didn't catch speech. Tap Speak now and try again."
+            : "Voice transcription failed. Typing remains available.",
       );
     };
 
     setVoiceError("");
+    setSpeechActive(false);
     voiceRef.current = recognition;
-    setVoiceState("listening");
     try {
       recognition.start();
     } catch {
       voiceRef.current = null;
-      releaseAudioStream();
       setVoiceState("error");
       setVoiceError("Voice could not start on this browser.");
     }
   }
 
   function stopVoice() {
-    try {
-      voiceRef.current?.stop();
-    } finally {
-      window.setTimeout(() => {
-        if (streamRef.current) releaseAudioStream();
-      }, 250);
-    }
+    voiceRef.current?.stop();
+    setSpeechActive(false);
   }
 
   async function submit() {
@@ -536,18 +495,18 @@ function GuestScreen() {
             </Field>
             <div className="composer-controls">
               <button className="composer-icon-button" type="button" onClick={() => mediaRef.current?.click()} aria-label="Attach photo" title="Attach photo">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 10.5 10 6a3 3 0 0 1 4.24 4.24l-5.66 5.67a4 4 0 1 1-5.66-5.66l6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <PaperclipIcon />
               </button>
               {voiceState !== "listening" && voiceState !== "unavailable" && (
                 <button className="composer-voice-button" type="button" onClick={() => void startVoice()} aria-label="Speak now">
-                  <span className="mic-dot" aria-hidden="true" />
+                  <MicIcon />
                   <span>Speak now</span>
                 </button>
               )}
               {voiceState === "listening" && (
                 <div className="listening-control">
                   <span className="listening-label"><span className="record-dot" />Listening</span>
-                  <AudioVisualizer stream={audioStream} />
+                  <VoiceActivityVisualizer active={voiceState === "listening"} speaking={speechActive} pulse={voicePulse} />
                   <button className="stop-listening" type="button" onClick={stopVoice}>Stop</button>
                 </div>
               )}
