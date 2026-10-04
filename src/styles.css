@@ -3326,3 +3326,297 @@ summary:focus-visible {
     box-shadow: none;
   }
 }
+
+/* Production refinement after visual QA */
+@media (min-width: 761px) {
+  .base-app {
+    grid-template-columns: 196px minmax(0,1fr);
+  }
+
+  .desktop-sidebar {
+    padding: 18px 12px 16px;
+  }
+
+  .sidebar-brand {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .sidebar-brand::after {
+    content: none;
+  }
+
+  .sidebar-brand img {
+    width: 36px;
+    height: 36px;
+    display: block;
+    border-radius: 8px;
+  }
+
+  .sidebar-nav button,
+  .sidebar-system {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .sidebar-status {
+    padding-inline: 10px;
+  }
+
+  .docked-action {
+    left: 196px;
+  }
+
+  .app-stage .normal-grid,
+  .app-stage .compact-grid {
+    max-width: 1100px;
+    padding-inline: 26px;
+  }
+
+  .guest-layout,
+  .compact-page {
+    padding-top: 26px;
+  }
+
+  .page-title h1,
+  .compact-page .page-title h1 {
+    font-size: 34px;
+    line-height: 40px;
+    letter-spacing: -.04em;
+  }
+
+  .page-title p {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .section-heading h2 {
+    font-size: 21px;
+    line-height: 28px;
+  }
+
+  .review-title,
+  .memory-title,
+  .evidence-title,
+  .decide-title,
+  .system-title {
+    padding-bottom: 14px;
+  }
+
+  .source-block {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .source-block blockquote {
+    margin: 32px 0 12px;
+    font-size: 26px;
+    line-height: 1.14;
+  }
+
+  .review-signals {
+    margin-left: 0;
+    padding: 14px;
+    background: #faf6ef;
+  }
+
+  .selection-row {
+    min-height: 58px;
+    padding: 10px 12px;
+  }
+
+  .selection-copy strong {
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .selection-copy small {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 17px;
+  }
+
+  .correction-choice {
+    min-height: 56px;
+    padding: 10px 12px;
+  }
+
+  .memory-feature {
+    min-height: 0;
+    padding: 24px;
+    justify-content: flex-start;
+  }
+
+  .memory-feature h2 {
+    margin-top: 18px;
+    font-size: 34px;
+    line-height: 1.02;
+  }
+
+  .memory-list-section {
+    padding: 14px;
+  }
+
+  .base-list-row {
+    min-height: 66px;
+    padding: 10px 12px;
+  }
+
+  .evidence-summary {
+    padding: 16px;
+  }
+
+  .evidence-summary strong {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .evidence-row {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .evidence-quote {
+    font-size: 15px;
+    line-height: 21px;
+  }
+
+  .evidence-meta {
+    margin-top: 12px;
+  }
+
+  /* Decision should read as working UI, not a presentation mockup */
+  .decision-main {
+    min-height: 0;
+    margin-top: 18px;
+    padding: 8px 8px 8px 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .decision-main h2 {
+    max-width: 15ch;
+    margin-top: 22px;
+    font-size: 30px;
+    line-height: 1.04;
+    letter-spacing: -.035em;
+  }
+
+  .decision-main > p {
+    max-width: 52ch;
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .decision-pattern,
+  .decision-source-line {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .decision-source-line {
+    margin-top: 8px;
+  }
+
+  .decision-choice-grid {
+    margin-top: 20px;
+    padding: 4px;
+    gap: 4px;
+    border-radius: var(--radius);
+    background: #f2ece2;
+  }
+
+  .decision-choice-grid button {
+    min-height: 56px;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 13px;
+  }
+
+  .decision-choice-grid button:hover {
+    background: #fffdf8;
+    box-shadow: none;
+  }
+
+  .decision-choice-grid button.selected {
+    background: #111111;
+    color: #ffffff;
+  }
+
+  .decision-proof {
+    margin-top: 18px;
+    padding: 14px;
+    border: 0;
+    background: #f7f1e7;
+  }
+
+  .decision-proof .section-heading {
+    min-height: auto;
+    margin-bottom: 10px;
+  }
+
+  .decision-proof .section-heading h2 {
+    font-size: 21px;
+    line-height: 27px;
+  }
+
+  .mini-evidence {
+    gap: 6px;
+  }
+
+  .mini-evidence > div {
+    padding: 12px 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .mini-evidence > div + div {
+    border-top: 1px solid #ded2c0;
+  }
+
+  .mini-evidence p {
+    margin: 6px 0 4px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .decision-proof > .base-button {
+    margin-top: 8px;
+  }
+
+  .decision-boundary {
+    margin-top: 18px;
+    padding: 14px 16px;
+  }
+
+  .decision-boundary h2 {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .decision-boundary p {
+    font-size: 13px;
+    line-height: 19px;
+  }
+
+  .system-tabs {
+    margin-top: 14px;
+  }
+
+  .system-content {
+    margin-top: 16px;
+    height: calc(100dvh - 190px);
+  }
+}
