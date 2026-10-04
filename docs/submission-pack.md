@@ -1,110 +1,108 @@
 # Guestbook — Submission Pack
 
-Use this file as the final copy source. Do not improvise technical claims during recording.
-
 ## One-line pitch
 
 Guestbook turns messy visitor words into small, inspectable business memory on the device: local bounded interpretation, human confirmation, source evidence, repeated memory, then a human decision.
 
-## Short description
+## Challenge
 
-Small tourism businesses learn from conversations, but those conversations disappear. Guestbook captures a visitor's exact words, interprets only the messy-language step with a 245,820-byte local classifier, asks a person to confirm or correct the signals, preserves the original evidence, and counts repeated confirmed needs across distinct visits. The critical typed workflow runs in-browser with zero network inference. Voice is optional and connected.
+**7th Hack-Nation Global AI Hackathon**  
+**World Bank — Small AI for Development, Track C: Tourism**
+
+## Submitted product
+
+- Live demo: https://guestbook-small-ai.vercel.app/
+- Source: https://github.com/Davemafy/Guestbook
+- Capture modes: **Guest entry** and provenance-preserving **Host note**
+- Languages in the prototype UI: **English + Kiswahili**
+- Typed critical path: **offline**
+- Network inference: **0 requests**
+- Final business decision: **human-controlled**
 
 ## Why Small AI
 
-Guestbook does not use AI for counting, storage, evidence grouping, thresholds, or business decisions. Deterministic code handles those jobs. The learned model exists only where rules failed to generalize: mapping messy English and Kiswahili visitor language into 15 bounded signals including UNKNOWN.
+Guestbook does not use AI for counting, storage, evidence grouping, thresholds, or business decisions. Deterministic code handles those jobs.
 
-A transparent lexical baseline is competitive on the small synthetic set (93.0% micro-F1 versus 90.2% for Guestbook Micro), but on untouched MASSIVE semantic-transfer slices the rules fall to 16.7% in English and 2.3% in Kiswahili, while Guestbook Micro reaches 91.1% and 92.8%.
+The learned model exists only where rules failed to generalize: mapping messy visitor language into 15 bounded signals including UNKNOWN.
 
-## 60-second demo video
+### Guestbook Micro v1
 
-**0:00–0:08**  
-“Small tourism businesses hear useful visitor feedback every day, but the evidence disappears after the conversation.”
+- one-vs-rest logistic classifiers
+- hashed Unicode character n-grams, lengths 3–5
+- 4,096 feature dimensions
+- 15 bounded labels
+- threshold 0.60
+- 2,687 training cases
+- **245,820 bytes of learned weights**
+- **zero network inference**
 
-**0:08–0:20**  
-Type: **My mother cannot walk very far and I want to buy some coffee beans.**  
-“Guestbook interprets the messy language locally and proposes bounded signals. The original words stay attached.”
+## Failure → promotion evidence
 
-**0:20–0:31**  
-Show Review. Confirm accessibility and product intent.  
-“A person confirms or corrects what enters memory. Sensitive requirements never become automatic facts.”
+The first synthetic-only classifier was rejected after external testing:
 
-**0:31–0:43**  
-Show Memory changing from five to six visits, then Evidence.  
-“Repeated memory is deterministic: six distinct confirmed visits, with every source record inspectable.”
+- **79.8% UNKNOWN** on a 5,000-review Nairobi stress sample
+- roughly **0.3% Kiswahili transfer**
 
-**0:43–0:52**  
-Open Decide.  
-“Guestbook stops before the business decision. Noor decides what to do.”
+Promoted model probes:
 
-**0:52–1:00**  
-Show System → Model.  
-“245,820 learned bytes. Zero network inference. AI only where language needs to generalize.”
+- MASSIVE English mapped-label hit: **91.1%**
+- MASSIVE Kiswahili mapped-label hit: **92.8%**
+- held-out Nairobi weak-label agreement: **98.0%**
+- frozen 35-case synthetic regression micro-F1: **90.2%**
 
-## 60-second technical video
+Transparent lexical baseline:
 
-**0:00–0:12**  
-“Guestbook Micro is one-vs-rest logistic classification over hashed Unicode character n-grams, three to five characters, 4,096 dimensions, 15 bounded labels, threshold 0.60.”
+- synthetic regression micro-F1: **93.0%**
+- MASSIVE English: **16.7%**
+- MASSIVE Kiswahili: **2.3%**
 
-**0:12–0:24**  
-Show System → Model → Model evolution.  
-“Our first synthetic-only model failed external contact: 79.8% UNKNOWN on 5,000 Nairobi reviews and roughly 0.3% Swahili transfer. We rejected it.”
+These are semantic-transfer and weak-label probes, **not field-accuracy claims**.
 
-**0:24–0:38**  
-Show promoted metrics.  
-“The promoted model uses 2,687 training cases and exactly 245,820 bytes of learned weights. Untouched MASSIVE mapped-label hit is 91.1% English and 92.8% Kiswahili. Nairobi weak-label agreement is 98.0%.”
+## Submitted demo story
 
-**0:38–0:52**  
-Show Why learned AI.  
-“Rules actually beat the model on our tiny synthetic F1 test, 93.0 to 90.2. But those same rules collapse on untouched MASSIVE: 16.7% English and 2.3% Kiswahili.”
+The final product demo uses the positive tourism observation:
 
-**0:52–1:00**  
-“Where deterministic code works, Guestbook uses it. The learned model exists only for the messy-language part rules failed to generalize to.”
+> The roasting was amazing. Can we buy some beans to take home?
 
-## 60-second team/context video
+Expected interpretation:
 
-“I built Guestbook solo for the World Bank Small AI Tourism challenge. I started from a simple question: what is the smallest useful intelligence a small tourism operator actually needs?
+- **Loved the experience**
+- **Wants to buy something**
 
-The answer was not a chatbot or a large model. It was a bounded interpreter that can survive messy visitor language, preserve the evidence, and still leave authority with the human operator.
+The demo then shows human review, repeated memory, source-linked evidence, and the operator decision boundary.
 
-The hardest part was rejecting results that looked good. Our first model scored well on our own synthetic examples but failed badly on external Nairobi and Kiswahili data, so I retrained it and kept the failure visible.
+## Strongest offline proof
 
-Guestbook now runs the critical typed path locally in the browser, keeps UNKNOWN as a valid answer, and uses human confirmation before anything becomes business memory.
+1. Load Guestbook once while connected.
+2. Wait for the local/offline-ready indicator.
+3. Enable airplane mode.
+4. Reopen Guestbook.
+5. Type a brand-new observation.
+6. Guestbook Micro still classifies it locally.
 
-We were not trying to build the smallest model possible. We were trying to find the smallest model that survived contact with data we did not write.”
-
-## Golden proof inputs
-
-**Kiswahili:**  
-`Bei ni ngapi na mnakubali M-Pesa?`  
-Expected: ASK_PRICE + ASK_PAYMENT.
-
-**Mixed requirement/product:**  
-`My mother cannot walk very far and I want to buy some coffee beans.`  
-Expected: REQUIREMENT_ACCESSIBILITY + WANT_PRODUCT, then human confirmation.
-
-**Abstention:**  
-`My shirt is green.`  
-Expected: UNKNOWN.
+Voice is optional and connected; the project does **not** claim offline free-form speech recognition.
 
 ## Claims language
 
-Say:
+Safe claims:
+
 - **245,820 bytes of learned classifier weights**
 - **zero network inference**
+- **typed critical path works offline**
 - **MASSIVE semantic-transfer probe**
 - **Nairobi weak-label agreement**
-- **typed critical path works offline**
 - **voice is optional and connected**
+- **final business decisions stay human-controlled**
 
-Do not say:
+Do not claim:
+
 - field accuracy
 - offline speech recognition
 - every language
 - autonomous business decisions
-- real customer adoption
-- the whole app is 240 KB
+- real customer adoption or measured revenue impact
+- that the whole application is 245,820 bytes
 
-## Final technical close
+## Technical close
 
 > We were not trying to build the smallest model possible. We were trying to find the smallest model that survived contact with data we did not write.
