@@ -308,36 +308,71 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   }, []);
 
   const status = online ? (offlineReady ? "Works offline" : "Online") : "Offline";
-  const mobileNav = NAV.filter((item): item is { key: Exclude<Route, "system">; label: string; path: string } => item.key !== "system");
+  const coreNav = NAV.filter((item): item is { key: Exclude<Route, "system">; label: string; path: string } => item.key !== "system");
 
   return (
     <div className={"base-app " + layout}>
-      <header className="base-navigation">
-        <div className={"nav-grid " + layout + "-grid"}>
-          <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
-          <nav className="desktop-nav" aria-label="Primary">
-            {NAV.filter((item) => item.key !== "system").map((item) => (
-              <button key={item.key} className={route === item.key ? "active" : ""} aria-current={route === item.key ? "page" : undefined} onClick={() => go(item.path)}>
-                <RouteIcon route={item.key} active={route === item.key} size={16} />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="nav-status">
+      <aside className="desktop-sidebar" aria-label="Primary">
+        <button className="sidebar-brand" onClick={() => go("/")}>Guestbook</button>
+        <nav className="sidebar-nav">
+          {coreNav.map((item) => (
+            <button
+              key={item.key}
+              className={route === item.key ? "active" : ""}
+              aria-current={route === item.key ? "page" : undefined}
+              onClick={() => go(item.path)}
+            >
+              <RouteIcon route={item.key} active={route === item.key} size={19} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <div className="sidebar-status">
             <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
             <span>{status}</span>
           </div>
-          <button className={"nav-system-link " + (route === "system" ? "active" : "")} aria-current={route === "system" ? "page" : undefined} onClick={() => go("/system")} aria-label="System" title="System">
-            <RouteIcon route="system" active={route === "system"} size={18} />
+          <button
+            className={"sidebar-system " + (route === "system" ? "active" : "")}
+            aria-current={route === "system" ? "page" : undefined}
+            onClick={() => go("/system")}
+          >
+            <RouteIcon route="system" active={route === "system"} size={19} />
+            <span>System</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {children}
+      <div className="app-stage">
+        <header className="base-navigation">
+          <div className={"nav-grid " + layout + "-grid"}>
+            <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
+            <div className="mobile-status">
+              <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
+            </div>
+            <button
+              className={"nav-system-link " + (route === "system" ? "active" : "")}
+              aria-current={route === "system" ? "page" : undefined}
+              onClick={() => go("/system")}
+              aria-label="System"
+              title="System"
+            >
+              <RouteIcon route="system" active={route === "system"} size={18} />
+            </button>
+          </div>
+        </header>
+
+        {children}
+      </div>
 
       <nav className="base-bottom-navigation" aria-label="Primary mobile navigation">
-        {mobileNav.map((item) => (
-          <button key={item.key} className={route === item.key ? "active" : ""} aria-current={route === item.key ? "page" : undefined} onClick={() => go(item.path)}>
+        {coreNav.map((item) => (
+          <button
+            key={item.key}
+            className={route === item.key ? "active" : ""}
+            aria-current={route === item.key ? "page" : undefined}
+            onClick={() => go(item.path)}
+          >
             <RouteIcon route={item.key} active={route === item.key} size={20} />
             <span>{item.label}</span>
           </button>
@@ -346,7 +381,6 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
     </div>
   );
 }
-
 function PageTitle({ title, body }: { title: string; body?: string }) {
   return (
     <div className="page-title">
