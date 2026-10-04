@@ -107,3 +107,15 @@ Flow:
 - Video plan: docs/submission-video-plan.md
 - Model card: docs/model-card.md
 - System design: docs/system-design.md
+
+
+## Offline voice check
+
+- [ ] On phone, connect once and install the English voice pack.
+- [ ] Wait for **VOICE READY**.
+- [ ] Turn on airplane mode.
+- [ ] Reload Guestbook.
+- [ ] Tap **Load cached voice** if shown.
+- [ ] Speak a new English observation and verify the transcript appears without network.
+- [ ] Keep Kiswahili demo typed; no Swahili speech claim.
+- [ ] When saying “~240 KB,” explicitly refer to **Guestbook Micro**, not the optional Moonshine speech pack.
