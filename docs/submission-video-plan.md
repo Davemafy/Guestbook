@@ -1,1 +1,46 @@
-# Guestbook — Submission Video Plan\n\nThe World Bank challenge brief requires a **2–5 minute submission video**. Record one **2:40–2:55 master** first. If the Hack-Nation portal also asks for shorter clips, cut them from this master rather than recording three unrelated stories.\n\n## Master video — target 2:45\n\n### 0:00–0:15 — The business problem\n\nOpen on the shared phone, not a landing-page montage.\n\n> Noor sees only a handful of visitors each month. They tell her what they value, what stopped them buying, and what could make the experience better. Then those conversations disappear.\n\n> Guestbook is localized around Kenya: Kiswahili, human-written Nairobi hospitality language, and an offline-first critical path.\n\n### 0:15–0:30 — Prove the constraint\n\nShow the browser/app while connected and wait for **OFFLINE READY**. Close it. Enable airplane mode. Reopen Guestbook.\n\nKeep **OFFLINE** visible.\n\n> The critical workflow reopens and runs without a network.\n\nThis must be one continuous proof shot. Do not substitute a disconnected-looking mockup.\n\n### 0:30–0:48 — Local-language interaction\n\nType:\n\n> Bei ni ngapi na mnakubali M-Pesa?\n\nExpected signals:\n- Asks about price\n- Asks about payment\n\n> The learned classifier runs on this phone. No inference request leaves the device.\n\n### 0:48–1:15 — Mixed observation + human control\n\nUse:\n\n> My mother cannot walk very far and I want to buy some coffee beans.\n\nExpected:\n- Accessibility need — explicitly requires human confirmation\n- Wants a product\n\nShow the exact source sentence, then confirm/correct the signals.\n\n> One visitor can mean several things at once. Guestbook proposes bounded signals, but the original words stay attached and a person decides what enters memory.\n\nConfirm.\n\n### 1:15–1:30 — Accumulation → decision\n\nShow **5 → 6 independent visits**, open the source evidence, then open the business decision.\n\n> The model does not generate this trend. Deterministic code counts distinct confirmed visits. The operator sees the evidence and decides what to do.\n\n### 1:30–1:44 — Abstention\n\nUse:\n\n> My shirt is green.\n\nShow `UNKNOWN`.\n\n> Guestbook is allowed not to know.\n\n### 1:44–2:10 — The model that failed\n\nShow the External validation / model-evolution proof.\n\n> Our first synthetic-only model looked convincing until we tested outside our own examples. It abstained on 79.8 percent of 5,000 external Nairobi reviews, and its untouched Swahili transfer hit was only 0.3 percent. We rejected it.\n\nThen show the promoted model:\n\n- 2,687 training cases\n- 245,820 bytes of learned weights\n- MASSIVE English: 91.1% mapped-label hit\n- MASSIVE Swahili: 92.8%\n- Nairobi held-out weak-label: 98.0%\n\n> These are transfer and weak-label probes, not field accuracy. Real deployment still needs consented human-labeled field evaluation.\n\n### 2:10–2:30 — Why AI, exactly\n\nOpen **Why AI**.\n\n> A spreadsheet can count six requests, so Guestbook uses deterministic code for counting. We tested transparent lexical rules too. On our small synthetic benchmark those rules are competitive — which is why that benchmark alone does not justify machine learning.\n\nThen show the external lexical-baseline comparison once the evidence workflow is green.\n\n> The learned model earns its place only where messy language has to generalize beyond the phrases we wrote.\n\n### 2:30–2:45 — Close\n\n> Localization is not putting a translation layer on a large model. It is choosing the decisions worth modelling, testing them in the language people use, failing closed when evidence is weak, and fitting the device they already own.\n\nEnd frame:\n\n**GUESTBOOK**  \n**Every visit teaches the business.**\n\n`245,820 learned bytes · 0 network inference · human final decision`\n\n## Optional short cuts\n\nIf the submission portal requests separate short videos, cut from the master:\n- **Demo:** 0:15–1:30\n- **Technical proof:** 1:30–2:30\n- **Team/context:** record a separate 30–45 second introduction only if the portal explicitly requires it.\n\n## Recording rules\n\n- Say **245,820 bytes of learned classifier weights**, not “the whole app is 240 KB.”\n- Voice is optional and connected. Do not claim offline speech. The offline proof should use typed input so the zero-network claim remains exact.\n- Never call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics field accuracy.\n- Never say Guestbook supports every language.\n- Do not claim separate offline phones synchronize. The MVP uses one shared operator/guide/family smartphone.\n- The airplane-mode proof must show a reopen followed by a brand-new inference.\n- Keep demo records visibly marked as demo data.\n- Record the uninterrupted phone proof twice before recording narration.\n
+# Guestbook — Final Submitted Videos
+
+The submission portal required three separate videos, each no longer than 60 seconds. The final submission contains all three.
+
+## Product demo — 44.0 seconds
+
+Judge-facing flow:
+
+1. show that feedback can be captured directly as **Guest entry** or documented by the operator as **Host note**
+2. enter a positive tourism observation:
+   > The roasting was amazing. Can we buy some beans to take home?
+3. show local interpretation
+4. show human review before memory
+5. show repeated business memory
+6. show source-linked evidence
+7. finish on the operator-controlled decision layer
+
+The product demo is intentionally outcome-first rather than benchmark-first.
+
+## Technical walkthrough — 58.0 seconds
+
+Technical story:
+
+1. first model failed external contact
+2. **79.8% UNKNOWN** on a 5,000-review Nairobi stress sample
+3. roughly **0.3% Kiswahili transfer**
+4. rejected rather than hidden
+5. final model: **2,687 training cases**
+6. **245,820 bytes of learned weights**
+7. **0 network inference requests**
+8. rules-only baseline works on synthetic examples but collapses on external English/Kiswahili
+9. learned AI is therefore bounded to messy-language interpretation
+10. evidence, counting and decisions remain deterministic or human-controlled
+
+## Team introduction — 37.2 seconds
+
+Solo-builder context and motivation for choosing a deliberately bounded Small AI system rather than a chatbot or general-purpose LLM.
+
+## Recording/claim rules preserved
+
+- Say **245,820 bytes of learned classifier weights**, not “the whole app is 240 KB.”
+- Do not call transfer/weak-label metrics field accuracy.
+- Do not claim offline speech recognition.
+- Do not claim every language.
+- Do not claim autonomous business decisions.
+- The strongest offline proof is a cold reopen in airplane mode followed by a brand-new **typed** inference.
