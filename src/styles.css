@@ -1145,7 +1145,7 @@ button:disabled {
 }
 
 .decision-state {
-  margin-top: 18px;
+  margin-top: var(--space-4);
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1164,7 +1164,7 @@ button:disabled {
 }
 
 .mini-evidence {
-  margin-top: 18px;
+  margin-top: var(--space-4);
   display: grid;
   gap: 8px;
 }
@@ -1199,14 +1199,14 @@ button:disabled {
 
 .decision-boundary {
   grid-column: 1 / 13;
-  margin-top: 48px;
-  padding: 32px;
+  margin-top: var(--space-12);
+  padding: var(--space-8);
   border-radius: var(--radius);
   background: var(--inverse-background);
   color: var(--inverse-primary);
   display: flex;
   align-items: flex-start;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .decision-boundary > svg {
@@ -1277,19 +1277,19 @@ button:disabled {
 .system-list {
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .system-list > div,
 .metric-row {
   min-height: 76px;
-  padding: 16px;
+  padding: var(--space-4);
   border-radius: var(--radius);
   background: var(--background-secondary);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .system-list span,
@@ -1307,7 +1307,7 @@ button:disabled {
 }
 
 .proof-sequence {
-  padding: 18px 20px;
+  padding: var(--space-4) 20px;
   border-radius: var(--radius);
   background: var(--background-secondary);
 }
@@ -1540,7 +1540,7 @@ button:disabled {
 
   .guest-layout,
   .compact-page {
-    padding-top: 40px;
+    padding-top: var(--space-8);
     padding-bottom: 104px;
   }
 
@@ -1577,7 +1577,7 @@ button:disabled {
   .evidence-ledger,
   .decision-main,
   .decision-proof {
-    margin-top: 36px;
+    margin-top: var(--space-8);
   }
 
   .guest-context {
@@ -1590,7 +1590,7 @@ button:disabled {
   }
 
   .source-block {
-    margin-top: 28px;
+    margin-top: 0;
   }
 
   .source-block blockquote {
@@ -1655,7 +1655,7 @@ button:disabled {
 
   .evidence-row {
     grid-template-columns: 24px minmax(0,1fr);
-    padding: 20px;
+    padding: var(--space-4);
   }
 
   .decision-main {
@@ -1667,7 +1667,7 @@ button:disabled {
   }
 
   .decision-boundary {
-    padding: 26px 24px;
+    padding: var(--space-6);
   }
 
   .system-tabs {
