@@ -228,10 +228,6 @@ function BaseBadge({ children, tone = "neutral" }: { children: ReactNode; tone?:
   return <span className={"base-badge " + tone}>{children}</span>;
 }
 
-function BaseProgress({ value, tone = "accent" }: { value: number; tone?: BannerTone }) {
-  return <div className={"base-progress " + tone}><span style={{ width: Math.max(0, Math.min(100, value)) + "%" }} /></div>;
-}
-
 function DockedAction({ children }: { children: ReactNode }) {
   return <div className="docked-action">{children}</div>;
 }
@@ -298,7 +294,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   );
 }
 
-function PageTitle({ title, body }: { kicker?: string; title: string; body?: string }) {
+function PageTitle({ title, body }: { title: string; body?: string }) {
   return (
     <div className="page-title">
       <h1>{title}</h1>
@@ -707,7 +703,7 @@ function ReviewScreen() {
     <Shell route="review" layout="compact">
       <main className="compact-grid compact-page">
         <section className="review-source">
-          <PageTitle kicker="Human review" title="Keep the words. Check the interpretation." body="Nothing enters business memory until a person confirms it." />
+          <PageTitle title="Keep the words. Check the interpretation." body="Nothing enters business memory until a person confirms it." />
 
           {observation ? (
             <div className="source-block">
@@ -801,7 +797,7 @@ function MemoryScreen() {
     <Shell route="memory" layout="compact">
       <main className="compact-grid compact-page">
         <section className="memory-title">
-          <PageTitle kicker="Business memory" title="What keeps repeating?" body="A pattern exists only when confirmed observations from distinct visits keep pointing to the same thing." />
+          <PageTitle title="What keeps repeating?" body="A pattern exists only when confirmed observations from distinct visits keep pointing to the same thing." />
         </section>
 
         {featured ? (
@@ -852,7 +848,7 @@ function EvidenceScreen() {
     <Shell route="evidence" layout="compact">
       <main className="compact-grid compact-page">
         <section className="evidence-title">
-          <PageTitle kicker="Source evidence" title={signal ? signal.title : "Evidence"} body="Original words stay visible. Guestbook never needs to replace evidence with a generated summary." />
+          <PageTitle title={signal ? signal.title : "Evidence"} body="Original words stay visible. Guestbook never needs to replace evidence with a generated summary." />
           {memory.length > 0 && (
             <div className="section-gap">
               <BaseButtonGroup
@@ -917,7 +913,7 @@ function DecideScreen() {
     <Shell route="decide" layout="compact">
       <main className="compact-grid compact-page">
         <section className="decide-title">
-          <PageTitle kicker="Operator decision" title="Evidence stops here." body="Guestbook can show what repeats. It cannot decide what the business should become." />
+          <PageTitle title="Evidence stops here." body="Guestbook can show what repeats. It cannot decide what the business should become." />
         </section>
 
         {signal && copy ? (
@@ -1021,7 +1017,7 @@ function SystemScreen() {
     <Shell route="system" layout="compact">
       <main className="compact-grid compact-page">
         <section className="system-title">
-          <PageTitle kicker="System" title="What is actually running here?" body="Offline readiness, optional voice, model evidence, and local data controls in one place." />
+          <PageTitle title="What is actually running here?" body="Offline readiness, optional voice, model evidence, and local data controls in one place." />
           <div className="section-gap">
             <BaseButtonGroup
               items={["Offline", "Voice", "Model", "Data"].map((value) => ({ value, label: value }))}
