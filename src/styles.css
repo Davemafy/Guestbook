@@ -328,7 +328,7 @@ button:disabled {
   align-items: flex-start;
 }
 
-/* Base banners, status, progress */
+/* Base banners and status */
 .base-banner {
   min-height: 48px;
   padding: 16px 64px;
@@ -372,25 +372,6 @@ button:disabled {
 .base-badge.warning { color: #8a6300; }
 .base-badge.negative { color: var(--negative); }
 .base-badge.neutral { color: var(--content-secondary); }
-
-.base-progress {
-  width: 100%;
-  height: 8px;
-  overflow: hidden;
-  background: var(--background-tertiary);
-}
-
-.base-progress span {
-  display: block;
-  height: 100%;
-  background: var(--content-primary);
-  transition: width .18s ease;
-}
-
-.base-progress.accent span { background: var(--accent); }
-.base-progress.positive span { background: var(--positive); }
-.base-progress.warning span { background: var(--warning); }
-.base-progress.negative span { background: var(--negative); }
 
 /* Shared page structure */
 .guest-layout,
@@ -1304,7 +1285,6 @@ button:disabled {
   .review-source,
   .review-signals,
   .memory-title,
-  .memory-count,
   .memory-feature,
   .memory-list-section,
   .memory-empty,
