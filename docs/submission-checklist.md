@@ -21,7 +21,7 @@
 
 **Reset demo before each recorded take:** open `/lab` → **Reset demo**. This restores five marked product-request demo visits so the new guest becomes the visible sixth visit.
 
-If the Moonshine voice pack is already installed and the Guest screen reports **VOICE READY**, speak the observation locally. Otherwise type it; do not troubleshoot voice during the recorded take.
+If connected browser speech works, use **Speak now** for convenience. Do not present voice as offline; the offline proof should use typed input.
 
 Use this exact tested observation:
 
@@ -67,7 +67,7 @@ Flow:
 
 - Do not call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics field accuracy.
 - Do not claim every language is supported.
-- Voice is optional and real in the submission build through Moonshine WASM. Do not imply Kiswahili voice support or any cloud speech fallback.
+- Voice is optional and connected. Do not claim offline speech. The offline guarantee applies to typed capture + Guestbook Micro inference.
 - Do not claim two disconnected phones synchronize offline.
 - Do not call model scores calibrated probabilities.
 - Do not claim real customer adoption or measured revenue impact.
@@ -109,14 +109,12 @@ Flow:
 - System design: docs/system-design.md
 
 
-## Offline voice check
+## Voice check
 
-- [ ] On phone, connect once and install the English voice pack.
-- [ ] Wait for **VOICE READY**.
-- [ ] Turn on airplane mode.
-- [ ] Reload Guestbook.
-- [ ] Tap **Load cached voice** if shown.
-- [ ] Speak a new English observation and verify the transcript appears without network.
-- [ ] Keep Kiswahili demo typed; no Swahili speech claim.
-- [ ] When saying “~240 KB,” explicitly refer to **Guestbook Micro**, not the optional Moonshine speech pack.
-\n## Final judge-proof additions\n\n- [ ] Record one **2–5 minute master video**; use short cuts only if the portal separately requires them.\n- [ ] Show a real close → airplane mode → reopen → new inference sequence.\n- [ ] Show one typed **Kiswahili** interaction: `Bei ni ngapi na mnakubali M-Pesa?`.\n- [ ] Show the mixed accessibility + product observation and the human confirmation step.\n- [ ] Show **UNKNOWN** on an irrelevant sentence.\n- [ ] Show rejected first model: 79.8% UNKNOWN on the original 5,000-review Nairobi stress sample and 0.3% Swahili mapped-label hit.\n- [ ] Show promoted model: 245,820 learned bytes; 91.1% English and 92.8% Kiswahili MASSIVE mapped-label hit.\n- [ ] Show the transparent lexical baseline: synthetic rules are competitive, but untouched MASSIVE drops to 16.7% English and 2.3% Kiswahili.\n- [ ] State explicitly: MASSIVE is semantic transfer, Nairobi labels are weak supervision, and neither is field accuracy.\n- [ ] State why AI is bounded: AI interprets messy language; deterministic code counts evidence; Noor decides.\n- [ ] Verify the public demo and video while logged out / in a private window before submitting.\n
+- [ ] On phone, while connected, tap **Speak now** and verify the transcript appears.
+- [ ] Confirm there is no Guestbook speech-model download step.
+- [ ] Turn on airplane mode and verify typing + Guestbook Micro inference still work.
+- [ ] Do **not** claim offline free-form speech transcription.
+- [ ] When saying “~240 KB,” explicitly refer to **Guestbook Micro learned weights**.
+
+## Final judge-proof additions\n\n- [ ] Record one **2–5 minute master video**; use short cuts only if the portal separately requires them.\n- [ ] Show a real close → airplane mode → reopen → new inference sequence.\n- [ ] Show one typed **Kiswahili** interaction: `Bei ni ngapi na mnakubali M-Pesa?`.\n- [ ] Show the mixed accessibility + product observation and the human confirmation step.\n- [ ] Show **UNKNOWN** on an irrelevant sentence.\n- [ ] Show rejected first model: 79.8% UNKNOWN on the original 5,000-review Nairobi stress sample and 0.3% Swahili mapped-label hit.\n- [ ] Show promoted model: 245,820 learned bytes; 91.1% English and 92.8% Kiswahili MASSIVE mapped-label hit.\n- [ ] Show the transparent lexical baseline: synthetic rules are competitive, but untouched MASSIVE drops to 16.7% English and 2.3% Kiswahili.\n- [ ] State explicitly: MASSIVE is semantic transfer, Nairobi labels are weak supervision, and neither is field accuracy.\n- [ ] State why AI is bounded: AI interprets messy language; deterministic code counts evidence; Noor decides.\n- [ ] Verify the public demo and video while logged out / in a private window before submitting.\n
