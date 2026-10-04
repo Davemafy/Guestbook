@@ -424,6 +424,11 @@ function Review() {
 
   async function confirm() {
     if (!observation) return;
+    const before = buildMemory(await db.observations.toArray());
+    const previousCounts = Object.fromEntries(
+      [...selected].map((label) => [label, before.find((signal) => signal.label === label)?.visitCount ?? 0]),
+    );
+    sessionStorage.setItem("guestbook-last-accumulation", JSON.stringify(previousCounts));
     await db.observations.update(observation.id, { status: "confirmed", confirmedLabels: [...selected] });
     go("/memory");
   }
@@ -506,6 +511,13 @@ function exportMemory(observations: Observation[]) {
 function Memory() {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [expanded, setExpanded] = useState<SignalLabel | null>(null);
+  const [previousCounts] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("guestbook-last-accumulation") ?? "{}");
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     seedDemoData().then(() => db.observations.orderBy("createdAt").reverse().toArray()).then(setObservations);
@@ -534,7 +546,16 @@ function Memory() {
             <div className="memory-main">
               <div className="memory-title-row">
                 <h2>{signal.title}</h2>
-                <strong>{signal.visitCount} <span>visits</span></strong>
+                {previousCounts[signal.label] !== undefined && signal.visitCount > previousCounts[signal.label] ? (
+                  <strong className="count-change">
+                    <i>{previousCounts[signal.label]}</i>
+                    <b>→</b>
+                    {signal.visitCount}
+                    <span>visits · just now</span>
+                  </strong>
+                ) : (
+                  <strong>{signal.visitCount} <span>visits</span></strong>
+                )}
               </div>
               <p>{signal.description}</p>
               <button className="evidence-toggle" onClick={() => setExpanded(expanded === signal.label ? null : signal.label)}>
@@ -611,6 +632,18 @@ function Lab() {
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [report, setReport] = useState<Awaited<ReturnType<typeof activeClassifier.benchmark>> | null>(null);
   const [running, setRunning] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
+
+  async function resetDemo() {
+    await db.observations.clear();
+    localStorage.removeItem("guestbook-decisions");
+    sessionStorage.removeItem("guestbook-last-accumulation");
+    await seedDemoData();
+    setPredictions([]);
+    setInferenceMs(null);
+    setReport(null);
+    setResetMessage("Demo reset to five product-request visits.");
+  }
 
   async function run() {
     setRunning(true);
@@ -684,6 +717,15 @@ function Lab() {
           <Metric label="Dimensions" value="4,096" />
           <Metric label="Weights" value="240 KB" />
         </div>
+      </section>
+      <section className="lab-reset">
+        <div>
+          <p className="eyebrow">RECORDING UTILITY</p>
+          <strong>Reset local demo state</strong>
+          <p>Deletes local test entries, restores the marked demo visits, and resets the product-request baseline to five.</p>
+          {resetMessage && <span>{resetMessage}</span>}
+        </div>
+        <button className="secondary" onClick={resetDemo}>Reset demo</button>
       </section>
     </Shell>
   );
