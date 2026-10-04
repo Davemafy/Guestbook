@@ -1,0 +1,35 @@
+name: train-real-data-candidate
+
+on:
+  push:
+    paths:
+      - ".github/workflows/train-real-data-candidate.yml"
+      - "scripts/train_candidate.py"
+      - "scripts/export_training_data.mjs"
+      - "src/ai/trainingData.ts"
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Export bundled synthetic cases
+        run: node scripts/export_training_data.mjs > /tmp/guestbook-training.json
+      - name: Install training dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow requests
+      - name: Train candidate with external train partitions
+        run: python scripts/train_candidate.py
+      - name: Upload candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: guestbook-real-data-candidate
+          path: candidate-model/
+          retention-days: 7
