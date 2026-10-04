@@ -979,6 +979,9 @@ function MemoryScreen() {
                 <strong>{featured.visitCount} visits</strong>
                 {changed && <span className="memory-new-evidence"><TrendUpIcon size={16} weight="bold" aria-hidden="true" />+{featured.visitCount - (previousCount ?? featured.visitCount)} new</span>}
               </div>
+              <div className={"memory-signal-chain " + (changed ? "changed" : "")} aria-hidden="true">
+                {Array.from({ length: Math.min(featured.visitCount, 6) }).map((_, index) => <span key={index} />)}
+              </div>
               <h2>{featured.title}</h2>
               <p>{featured.description}</p>
               <div className="memory-proof-note"><CheckCircleIcon size={18} weight="fill" aria-hidden="true" /> Confirmed by you across different visits.</div>
