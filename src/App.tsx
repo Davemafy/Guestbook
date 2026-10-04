@@ -730,65 +730,90 @@ function Memory() {
 
   const memory = useMemo(() => buildMemory(observations), [observations]);
   const featured = memory.find((signal) => signal.label === "WANT_PRODUCT" && signal.visitCount >= 5) ?? memory[0] ?? null;
-  const ordered = featured ? [featured, ...memory.filter((signal) => signal.label !== featured.label)] : memory;
+  const rest = featured ? memory.filter((signal) => signal.label !== featured.label) : memory;
+  const changed = featured ? previousCounts[featured.label] !== undefined && featured.visitCount > previousCounts[featured.label] : false;
 
   return (
-    <Shell mode="dark" active="memory">
-      <section className="home-hero dark-hero">
-        <AppHeader title="Business memory" subtitle="Confirmed patterns · local only" dark />
-        <RoundedTabs
-          active="signals"
-          dark
-          onChange={(key) => {
-            if (key === "entries") go("/");
-            if (key === "actions") go("/decide");
-          }}
-          items={[{ key: "signals", label: "Signals" }, { key: "entries", label: "Entries" }, { key: "actions", label: "Actions" }]}
+    <AppFrame section="memory" mode="dark">
+      <section className="field-main memory-page">
+        <PageIntro
+          eyebrow="BUSINESS MEMORY"
+          title="What keeps repeating?"
+          body="A pattern only exists when confirmed observations from distinct visits keep pointing to the same thing."
         />
-      </section>
 
-      <section className="feed signal-feed">
-        {ordered.map((signal, index) => {
-          const changed = previousCounts[signal.label] !== undefined && signal.visitCount > previousCounts[signal.label];
-          const open = expanded === signal.label;
-          return (
-            <article className="guest-post dark-post signal-post" key={signal.label}>
-              <div className="user-post-copy">
-                <div className="user-title">
-                  <Avatar label={signal.title} dark />
-                  <div>
-                    <strong>{signal.title}</strong>
-                    <span>{changed ? previousCounts[signal.label] + " → " + signal.visitCount + " visits · just now" : signal.visitCount + " independent visits"}</span>
-                  </div>
+        {featured && (
+          <section className="featured-memory">
+            <div className="featured-count">
+              {changed ? (
+                <div className="count-transition">
+                  <span>{previousCounts[featured.label]}</span>
+                  <b>→</b>
+                  <strong>{featured.visitCount}</strong>
                 </div>
-                <p className="post-message">{signal.description}</p>
-                <div className="user-likes-row">
-                  <button className="reply-summary dark-link" onClick={() => setExpanded(open ? null : signal.label)}>
-                    <AvatarStack count={signal.observations.length} dark />
-                    <span>{open ? "Hide evidence" : "View " + signal.observations.length + " sources"}</span>
-                  </button>
-                  {index === 0 && <span className="kit-badge">Repeating</span>}
-                </div>
+              ) : (
+                <strong>{featured.visitCount}</strong>
+              )}
+              <span>independent visits</span>
+            </div>
+
+            <div className="featured-copy">
+              <p className="eyebrow">STRONGEST REPEATING SIGNAL</p>
+              <h2>{featured.title}</h2>
+              <p>{featured.description}</p>
+              <p className="memory-law">Not a prediction. {featured.visitCount} confirmed source records from distinct visits.</p>
+            </div>
+          </section>
+        )}
+
+        {featured && (
+          <section className="evidence-ledger">
+            <div className="section-heading">
+              <span>SOURCE EVIDENCE</span>
+              <span>ORIGINAL WORDS</span>
+            </div>
+            {featured.observations.slice(0, expanded === featured.label ? featured.observations.length : 4).map((observation) => (
+              <EvidenceQuote key={observation.id} observation={observation} />
+            ))}
+            {featured.observations.length > 4 && (
+              <button className="ledger-toggle" onClick={() => setExpanded(expanded === featured.label ? null : featured.label)}>
+                {expanded === featured.label ? "Show fewer sources" : "Show all " + featured.observations.length + " sources"}
+              </button>
+            )}
+          </section>
+        )}
+
+        <section className="other-signals">
+          <div className="section-heading">
+            <span>OTHER SIGNALS</span>
+            <span>{rest.length} IN MEMORY</span>
+          </div>
+          {rest.map((signal) => (
+            <article className="signal-ledger-row" key={signal.label}>
+              <div>
+                <h3>{signal.title}</h3>
+                <p>{signal.description}</p>
               </div>
-
-              {open && signal.observations.map((observation) => (
-                <div className="reply-card dark-reply" key={observation.id}>
-                  <Avatar label={sourceName(observation)} size={24} dark />
-                  <p><strong>{observation.isDemo ? "Demo visit" : sourceName(observation)}</strong><span> · {observation.rawText}</span></p>
+              <strong>{signal.visitCount}</strong>
+              <button onClick={() => setExpanded(expanded === signal.label ? null : signal.label)}>
+                {expanded === signal.label ? "Close" : "Evidence"}
+              </button>
+              {expanded === signal.label && (
+                <div className="row-evidence">
+                  {signal.observations.map((observation) => <EvidenceQuote key={observation.id} observation={observation} />)}
                 </div>
-              ))}
+              )}
             </article>
-          );
-        })}
+          ))}
+        </section>
 
-        <div className="memory-tools">
-          <button className="ds-chip dark-tool" onClick={() => go("/capture")}>Capture later</button>
-          <button className="ds-chip dark-tool" onClick={() => exportMemory(observations)}>Export JSON</button>
-          <button className="ds-chip active dark-action" onClick={() => go("/decide")}>Review actions</button>
+        <div className="memory-footer">
+          <button className="text-action inverted" onClick={() => go("/capture")}>Capture later</button>
+          <button className="text-action inverted" onClick={() => exportMemory(observations)}>Export local memory</button>
+          <button className="primary-action light-action" onClick={() => go("/decide")}>Review what to act on</button>
         </div>
-        <p className="screen-footnote dark-footnote">Demo visits remain visibly marked inside source evidence. New records stay in this browser via IndexedDB.</p>
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
@@ -807,55 +832,81 @@ function Decide() {
   }
 
   const featured = signals.find((signal) => signal.label === "WANT_PRODUCT") ?? signals[0] ?? null;
-  const ordered = featured ? [featured, ...signals.filter((signal) => signal.label !== featured.label)] : signals;
+  const rest = featured ? signals.filter((signal) => signal.label !== featured.label) : [];
 
   return (
-    <Shell mode="dark" active="memory">
-      <section className="home-hero dark-hero">
-        <AppHeader title="What should I act on?" subtitle="Evidence, not autopilot" dark back />
-        <RoundedTabs
-          active="actions"
-          dark
-          onChange={(key) => {
-            if (key === "signals") go("/memory");
-            if (key === "entries") go("/");
-          }}
-          items={[{ key: "signals", label: "Signals" }, { key: "actions", label: "Actions" }, { key: "entries", label: "Entries" }]}
+    <AppFrame section="decide" mode="dark">
+      <section className="field-main decide-page">
+        <PageIntro
+          eyebrow="OPERATOR DECISION"
+          title="Evidence stops here."
+          body="Guestbook can show what repeats. It cannot decide what your business should become."
         />
-      </section>
 
-      <section className="feed decision-feed">
-        {ordered.map((signal, index) => {
-          const copy = decisionCopy(signal);
+        {featured ? (() => {
+          const copy = decisionCopy(featured);
           return (
-            <article className="guest-post dark-post decision-post" key={signal.label}>
-              <div className="user-post-copy">
-                <div className="user-title">
-                  <Avatar label={signal.title} dark />
-                  <div><strong>{copy.headline}</strong><span>{signal.visitCount} independent visits{index === 0 ? " · strongest signal" : ""}</span></div>
+            <>
+              <section className="decision-focus">
+                <div className="decision-count">
+                  <strong>{featured.visitCount}</strong>
+                  <span>distinct visits</span>
                 </div>
-                <p className="post-message">{copy.body}</p>
-                {index === 0 && <p className="small-copy dark-small-copy">Not a prediction. Not a generated recommendation. {signal.visitCount} source-backed observations.</p>}
-                <div className="decision-buttons">
-                  {["Explore", "Not now", "Wrong signal"].map((option) => (
-                    <button key={option} className={"ds-chip decision-chip " + (decisions[signal.label] === option ? "active" : "")} onClick={() => decide(signal.label, option)}>
-                      {option}
-                    </button>
-                  ))}
+
+                <div className="decision-copy">
+                  <p className="eyebrow">REPEATED REQUEST</p>
+                  <h2>People keep asking to take something home.</h2>
+                  <h3>{copy.headline}</h3>
+                  <p>{copy.body}</p>
+
+                  <div className="decision-choices" role="group" aria-label="Decision">
+                    {["Explore", "Not now", "Wrong signal"].map((option) => (
+                      <button
+                        key={option}
+                        className={decisions[featured.label] === option ? "selected" : ""}
+                        onClick={() => decide(featured.label, option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              {index === 0 && signal.observations.slice(0, 3).map((observation) => (
-                <div className="reply-card dark-reply" key={observation.id}>
-                  <Avatar label={sourceName(observation)} size={24} dark />
-                  <p><strong>{observation.isDemo ? "Demo visit" : sourceName(observation)}</strong><span> · {observation.rawText}</span></p>
+              </section>
+
+              <section className="decision-evidence">
+                <div className="section-heading">
+                  <span>WHY THIS IS HERE</span>
+                  <span>{featured.visitCount} SOURCES</span>
                 </div>
-              ))}
-            </article>
+                {featured.observations.slice(0, 3).map((observation) => (
+                  <EvidenceQuote key={observation.id} observation={observation} />
+                ))}
+              </section>
+            </>
           );
-        })}
-        {ordered.length === 0 && <div className="empty-state dark-empty">No repeated signal has crossed the three-visit threshold yet.</div>}
+        })() : (
+          <p className="loading-line">No signal has repeated across three visits yet.</p>
+        )}
+
+        {rest.length > 0 && (
+          <section className="secondary-decisions">
+            <div className="section-heading">
+              <span>OTHER REPEATED SIGNALS</span>
+              <span>{rest.length}</span>
+            </div>
+            {rest.map((signal) => {
+              const copy = decisionCopy(signal);
+              return (
+                <article key={signal.label}>
+                  <div><strong>{signal.visitCount}</strong><span>visits</span></div>
+                  <div><h3>{copy.headline}</h3><p>{copy.body}</p></div>
+                </article>
+              );
+            })}
+          </section>
+        )}
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
