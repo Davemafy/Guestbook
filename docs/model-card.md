@@ -8,9 +8,9 @@ Guestbook Micro v1 is a deliberately narrow multi-label classifier for small-tou
 
 - **Model family:** one-vs-rest logistic classifiers
 - **Features:** hashed character n-grams, lengths 3–5
-- **Feature dimensions:** 2,048
+- **Feature dimensions:** 4,096
 - **Labels:** 15 including `UNKNOWN`
-- **Learned weights:** 122,940 bytes (~120 KB)
+- **Learned weights:** 245,820 bytes (~240 KB)
 - **Inference:** entirely in-browser
 - **Network calls during inference:** 0
 - **Decision threshold:** 0.60
@@ -40,11 +40,11 @@ One observation may receive multiple labels.
 
 ## Prototype data
 
-The bundled training corpus contains **438 synthetic prototype examples**. It covers English, Kiswahili, and informal Nigerian English/Pidgin-style phrasing. Synthetic generation is disclosed explicitly; the corpus is not presented as a representative field dataset.
+The production training mix contains **2,687 cases**: 438 synthetic prototype examples, selected Amazon MASSIVE train examples in English and Kiswahili, and weakly labeled sentences from a hashed Nairobi public-review training partition. Raw external reviews are not committed to the repository.
 
-The frozen regression set contains **35 synthetic stress cases** and is kept separate from the examples used to fit the weights.
+The bundled frozen regression set contains **35 synthetic stress cases** and remains separate from training. MASSIVE test is untouched during fitting. Nairobi sentences are split deterministically by text hash, with the held-out bucket excluded from fitting.
 
-Public travel communities and tourism research were used to stress-test the *taxonomy* and identify recurring problem types such as access, price/value, payment, expectation mismatch, language/communication, accessibility, booking, and purchase intent. Verbatim community posts are not copied into the model corpus.
+The Nairobi labels use transparent lexical weak supervision and therefore are not equivalent to manual field annotations. MASSIVE intent mappings are nearest-signal transfer probes rather than tourism labels.
 
 ## Frozen regression result
 
@@ -52,12 +52,20 @@ At threshold **0.60** on the 35-case frozen synthetic stress set:
 
 | Metric | Result |
 | --- | ---: |
-| Micro precision | **95.1%** |
-| Micro recall | **92.9%** |
-| Micro F1 | **94.0%** |
-| Exact multi-label match | **88.6%** |
+| Micro precision | **92.5%** |
+| Micro recall | **88.1%** |
+| Micro F1 | **90.2%** |
+| Exact multi-label match | **82.9%** |
 
 These values are **regression evidence, not field-performance claims**. The `/lab` route recomputes the metrics using the actual model running in the browser.
+
+## External held-out evidence
+
+- MASSIVE en-US test transfer probe: **91.1%** mapped-label hit across 305 cases.
+- MASSIVE sw-KE test transfer probe: **92.8%** mapped-label hit across 305 cases.
+- Nairobi held-out weak-label probe: **98.0%** agreement across 1,055 anchor-matched sentences.
+
+See [`external-evidence.md`](external-evidence.md) for the exact split, mappings, caveats, and source attribution.
 
 ## Responsible-use boundaries
 
@@ -69,12 +77,14 @@ The operator can confirm, remove, or add signals before they enter business memo
 
 ## Known limitations
 
-- The training corpus is synthetic and small.
-- Kiswahili coverage is prototype-level, not dialect-complete.
+- The corpus is still small and partly synthetic; external supervision covers only a subset of labels.
+- Kiswahili evidence is limited to mapped MASSIVE intents and prototype tourism phrases; it is not dialect-complete.
 - Informal Nigerian English/Pidgin examples are limited and should not be treated as language certification.
 - Scores are model scores, not calibrated probabilities of truth.
 - The model does not extract detailed entities such as dates, exact prices, allergens, or group counts.
 - Guestbook's MVP assumes one shared operator/guide/family smartphone; it does not claim disconnected phones can silently synchronize.
+- Nairobi evaluation uses weak lexical labels rather than human field annotation.
+- MASSIVE evaluation measures semantic transfer from non-tourism intents.
 - A real deployment requires independently collected, consented, human-labeled field data and evaluation across target communities.
 
 ## Why not an LLM?
