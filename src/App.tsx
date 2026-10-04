@@ -1028,47 +1028,41 @@ function DecideScreen() {
     <Shell route="decide" layout="compact">
       <main className="compact-grid compact-page">
         <section className="decide-title">
-          <PageTitle title="Evidence stops here." body="Guestbook can show what repeats. It cannot decide what the business should become." />
+          <PageTitle title="Worth acting on?" body="Guestbook brings the pattern and the comments. You make the call." />
         </section>
 
         {signal && copy ? (
           <>
             <section className="decision-main">
-              <div className="decision-source-line">Based on {signal.visitCount} distinct visits</div>
-              <h2>People keep asking to take something home.</h2>
-              <h3>{copy.headline}</h3>
+              <div className="decision-pattern"><TrendUpIcon size={18} weight="bold" aria-hidden="true" /><span>{signal.title}</span></div>
+              <div className="decision-source-line"><UsersThreeIcon size={18} weight="regular" aria-hidden="true" />{signal.visitCount} confirmed visits</div>
+              <h2>{copy.headline}</h2>
               <p>{copy.body}</p>
-              <BaseButtonGroup
-                items={[
-                  { value: "Explore", label: "Explore" },
-                  { value: "Not now", label: "Not now" },
-                  { value: "Wrong signal", label: "Wrong signal" },
-                ]}
-                value={decision}
-                onChange={choose}
-                shape="rect"
-                size="medium"
-              />
-              {decision && <div className={"decision-state " + (decision === "Wrong signal" ? "negative" : decision === "Explore" ? "positive" : "neutral")}>Decision saved locally: {decision}.</div>}
+              <div className="decision-choice-grid" role="group" aria-label="Decision">
+                <button className={decision === "Explore" ? "selected" : ""} type="button" onClick={() => choose("Explore")}><CompassIcon size={20} weight={decision === "Explore" ? "fill" : "regular"} aria-hidden="true" /><span>Explore it</span></button>
+                <button className={decision === "Not now" ? "selected" : ""} type="button" onClick={() => choose("Not now")}><ClockIcon size={20} weight={decision === "Not now" ? "fill" : "regular"} aria-hidden="true" /><span>Not now</span></button>
+                <button className={decision === "Wrong signal" ? "selected" : ""} type="button" onClick={() => choose("Wrong signal")}><XCircleIcon size={20} weight={decision === "Wrong signal" ? "fill" : "regular"} aria-hidden="true" /><span>Not relevant</span></button>
+              </div>
+              {decision && <div className={"decision-state " + (decision === "Wrong signal" ? "negative" : decision === "Explore" ? "positive" : "neutral")}><CheckCircleIcon size={18} weight="fill" aria-hidden="true" />Saved: {decision === "Wrong signal" ? "Not relevant" : decision}</div>}
             </section>
 
             <section className="decision-proof">
-              <div className="section-heading"><div><h2>Source-backed repetition</h2></div><span className="paragraph-small">{signal.visitCount} source records</span></div>
+              <div className="section-heading"><div><h2>What guests said</h2><p>A few of the comments behind this pattern.</p></div><span className="paragraph-small">{signal.visitCount}</span></div>
               <div className="mini-evidence">
                 {signal.observations.slice(0, 3).map((observation) => (
-                  <div key={observation.id}><p>“{observation.rawText}”</p><span>{observation.isDemo ? "Demo visit" : sourceLabel(observation)}</span></div>
+                  <div key={observation.id}><QuotesIcon size={18} weight="fill" aria-hidden="true" /><p>“{observation.rawText}”</p><span>{observation.isDemo ? "Demo visit" : sourceLabel(observation)}</span></div>
                 ))}
               </div>
-              <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={() => go("/evidence?signal=" + signal.label)}>Open all evidence</BaseButton>
+              <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={() => go("/evidence?signal=" + signal.label)}><QuotesIcon size={16} weight="regular" aria-hidden="true" /><span>See all comments</span></BaseButton>
             </section>
 
             <section className="decision-boundary">
-              <h2>Guestbook stops before action.</h2>
-              <p>It does not set prices, order stock, send messages, change bookings, or act automatically.</p>
+              <ShieldCheckIcon size={28} weight="regular" aria-hidden="true" />
+              <div><h2>You stay in control.</h2><p>Guestbook never sends messages, changes bookings, orders stock, or takes action for you.</p></div>
             </section>
           </>
         ) : (
-          <section className="memory-empty"><div className="empty-state"><h2>Nothing has repeated enough yet</h2><p>Signals appear here after confirmation across at least three distinct visits.</p><BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/memory")}>Open memory</BaseButton></div></section>
+          <section className="memory-empty"><div className="empty-state"><CompassIcon size={28} weight="regular" aria-hidden="true" /><h2>No decision needed yet</h2><p>A decision appears after the same theme shows up in at least three confirmed visits.</p><BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/memory")}>See memory</BaseButton></div></section>
         )}
       </main>
     </Shell>
