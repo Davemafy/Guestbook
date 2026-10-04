@@ -106,7 +106,7 @@ function reconcileVoiceTranscript(committed: string, incoming: string) {
 }
 
 type Route = "guest" | "review" | "memory" | "evidence" | "decide" | "system";
-type BannerTone = "accent" | "positive" | "warning" | "negative" | "neutral";
+type BannerTone = "positive" | "warning" | "negative";
 type ButtonHierarchy = "primary" | "secondary" | "tertiary" | "negative";
 type ButtonSize = "small" | "medium";
 type ButtonShape = "rect";
@@ -236,21 +236,8 @@ function BaseButtonGroup({
   );
 }
 
-function BaseBanner({
-  tone = "neutral",
-  children,
-  action,
-}: {
-  tone?: BannerTone;
-  children: ReactNode;
-  action?: ReactNode;
-}) {
-  return (
-    <div className={"base-banner " + tone}>
-      <div>{children}</div>
-      {action && <div className="banner-action">{action}</div>}
-    </div>
-  );
+function BaseBanner({ tone, children }: { tone: BannerTone; children: ReactNode }) {
+  return <div className={"base-banner " + tone}>{children}</div>;
 }
 
 function DockedAction({ children }: { children: ReactNode }) {
