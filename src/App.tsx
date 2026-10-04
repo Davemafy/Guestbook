@@ -351,6 +351,7 @@ function Guest() {
   );
   const voiceRef = useRef<OfflineVoiceController | null>(null);
   const quickVoiceRef = useRef<BrowserSpeechRecognition | null>(null);
+  const mediaInputRef = useRef<HTMLInputElement | null>(null);
   const voiceBaseRef = useRef("");
   const copy = guestCopy[language];
 
