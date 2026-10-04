@@ -4,12 +4,12 @@
   background: #ffffff;
   font-synthesis: none;
   --content-primary: #000000;
-  --content-secondary: #545454;
+  --content-secondary: #5e5e5e;
   --content-tertiary: #5e5e5e;
   --background-primary: #ffffff;
   --background-secondary: #f6f6f6;
   --background-tertiary: #e8e8e8;
-  --border-opaque: #cbcbcb;
+  --border-opaque: #e8e8e8;
   --accent: #276ef1;
   --positive: #3aa76d;
   --warning: #ffc043;
@@ -96,8 +96,9 @@ button:disabled {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--inverse-background);
-  color: var(--inverse-primary);
+  border-bottom: 1px solid var(--border-opaque);
+  background: var(--background-primary);
+  color: var(--content-primary);
 }
 
 .nav-grid {
@@ -111,29 +112,30 @@ button:disabled {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--inverse-primary);
+  color: var(--content-primary);
   font-family: "Uber Move", Arial, Helvetica, sans-serif;
   font-size: 20px;
   line-height: 28px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .desktop-nav {
   grid-column: 3 / 11;
+  height: 64px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: 28px;
 }
 
 .desktop-nav button {
+  position: relative;
   height: 64px;
   padding: 0;
   border: 0;
-  border-bottom: 3px solid transparent;
   background: transparent;
-  color: rgba(255,255,255,.64);
+  color: var(--content-tertiary);
   font-size: 14px;
   line-height: 16px;
   font-weight: 500;
@@ -142,11 +144,17 @@ button:disabled {
 
 .desktop-nav button:hover,
 .desktop-nav button.active {
-  color: var(--inverse-primary);
+  color: var(--content-primary);
 }
 
-.desktop-nav button.active {
-  border-bottom-color: var(--inverse-primary);
+.desktop-nav button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--content-primary);
 }
 
 .nav-status {
@@ -155,7 +163,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(255,255,255,.72);
+  color: var(--content-tertiary);
   font-size: 12px;
   line-height: 16px;
 }
@@ -170,8 +178,8 @@ button:disabled {
 .status-pip.positive { background: var(--positive); }
 .status-pip.warning { background: var(--warning); }
 
-.mobile-menu-button,
-.mobile-nav-menu {
+.mobile-system-link,
+.base-bottom-navigation {
   display: none;
 }
 
@@ -407,50 +415,29 @@ button:disabled {
 .base-field {
   display: grid;
   gap: 8px;
-  padding-inline: 16px;
-}
-
-.base-field > .label-medium {
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: 500;
-}
-
-.field-label-row {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.field-meta {
-  color: var(--content-tertiary);
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: 500;
 }
 
 .base-textarea {
   width: 100%;
   min-height: 216px;
   padding: 16px;
-  border: 0;
+  border: 2px solid transparent;
   border-radius: 8px;
   resize: vertical;
   outline: 0;
-  background: var(--background-tertiary);
+  background: var(--background-secondary);
   color: var(--content-primary);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 28px;
 }
 
 .base-textarea:hover {
-  background: #dedede;
+  background: #eeeeee;
 }
 
-.base-textarea:focus-visible {
-  outline: 2px solid var(--content-primary);
-  outline-offset: 0;
+.base-textarea:focus {
+  border-color: var(--content-primary);
+  background: var(--background-primary);
 }
 
 .base-textarea::placeholder {
@@ -459,8 +446,8 @@ button:disabled {
 
 .field-hint {
   color: var(--content-tertiary);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 /* Guest */
@@ -1218,34 +1205,73 @@ button:disabled {
     display: none;
   }
 
-  .mobile-menu-button {
+  .mobile-system-link {
     display: inline-flex;
     grid-column: 4 / 5;
     justify-self: end;
-  }
-
-  .mobile-nav-menu {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-top: 1px solid #333333;
-    background: var(--inverse-background);
-  }
-
-  .mobile-nav-menu button {
-    min-height: 48px;
-    padding: 0 16px;
+    height: 36px;
+    padding: 0 12px;
     border: 0;
-    border-bottom: 1px solid #333333;
-    background: transparent;
-    color: rgba(255,255,255,.72);
-    text-align: left;
+    border-radius: 8px;
+    background: var(--background-tertiary);
+    color: var(--content-primary);
+    align-items: center;
     font-size: 14px;
     line-height: 16px;
+    font-weight: 500;
   }
 
-  .mobile-nav-menu button.active {
-    color: #ffffff;
-    background: #1f1f1f;
+  .mobile-system-link.active {
+    background: var(--content-primary);
+    color: var(--inverse-primary);
+  }
+
+  .base-bottom-navigation {
+    position: fixed;
+    z-index: 40;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 64px;
+    padding-top: 2px;
+    border-top: 1px solid var(--border-opaque);
+    background: var(--background-primary);
+    box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+    display: flex;
+    align-items: stretch;
+  }
+
+  .base-bottom-navigation button {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 62px;
+    padding: 12px 8px;
+    border: 0;
+    background: var(--background-primary);
+    color: var(--content-tertiary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+
+  .base-bottom-navigation button.active {
+    color: var(--content-primary);
+  }
+
+  .bottom-nav-icon {
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+  }
+
+  .bottom-nav-icon svg {
+    display: block;
   }
 
   .guest-layout,
@@ -1433,5 +1459,45 @@ button:disabled {
   * {
     scroll-behavior: auto !important;
     transition: none !important;
+  }
+}
+
+/* Base Gallery fidelity corrections */
+.base-app {
+  min-height: 100dvh;
+  background: var(--background-primary);
+}
+
+.base-button.primary,
+.base-button.secondary,
+.base-button.negative {
+  box-shadow: none;
+}
+
+.base-button.medium.rect {
+  border-radius: 8px;
+}
+
+.source-block,
+.context-rule,
+.section-heading,
+.system-list,
+.proof-sequence,
+.voice-system-row,
+.memory-count,
+.memory-feature,
+.decision-main,
+.decision-proof,
+.evidence-summary {
+  border-color: var(--border-opaque);
+}
+
+@media (max-width: 760px) {
+  .base-app {
+    padding-bottom: 64px;
+  }
+
+  .docked-action {
+    bottom: 64px;
   }
 }
