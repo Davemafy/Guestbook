@@ -499,40 +499,59 @@ function Capture() {
   }
 
   return (
-    <Shell active="add">
-      <AppHeader title="Capture a visit" subtitle="Guide or operator note" back />
-      <div className="stacked-tabs">
-        <RoundedTabs
-          active={source}
-          onChange={(key) => setSource(key as "guide" | "operator")}
-          items={[{ key: "guide", label: "Guide" }, { key: "operator", label: "Operator" }]}
-        />
-        <RoundedTabs
-          active={language}
-          onChange={setLanguage}
-          items={[{ key: "en", label: "English" }, { key: "sw", label: "Kiswahili" }]}
-        />
-      </div>
+    <AppFrame section="capture" back>
+      <section className="field-main">
+        <div className="capture-grid">
+          <div>
+            <PageIntro
+              eyebrow="POST-VISIT CAPTURE"
+              title="Keep what the guest said."
+              body="When the visitor never touches the shared phone, a guide or operator can preserve the observation afterward. The source stays attached."
+            />
 
-      <section className="single-feed capture-later-feed">
-        <article className="guest-post composer-post">
-          <div className="user-post-copy">
-            <div className="user-title">
-              <Avatar label={source} />
-              <div><strong>{source === "guide" ? "Guide note" : "Operator note"}</strong><span>Captured after the visit</span></div>
+            <div className="dual-controls">
+              <div className="language-row" role="group" aria-label="Source">
+                <button className={source === "guide" ? "active" : ""} onClick={() => setSource("guide")}>GUIDE</button>
+                <button className={source === "operator" ? "active" : ""} onClick={() => setSource("operator")}>OPERATOR</button>
+              </div>
+              <div className="language-row" role="group" aria-label="Language">
+                <button className={language === "en" ? "active" : ""} onClick={() => setLanguage("en")}>ENGLISH</button>
+                <button className={language === "sw" ? "active" : ""} onClick={() => setLanguage("sw")}>KISWAHILI</button>
+              </div>
             </div>
-            <p className="composer-help">Keep the visitor's words when they never touch the shared phone. Source and language stay attached.</p>
-            <div className="message-composer writing">
-              <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="They loved the roasting, said the road was difficult, and asked whether we sell beans." rows={6} autoFocus />
-              <div className="composer-actions"><span className="voice-caption">{language === "sw" ? "Kiswahili" : "English"} · local note</span><span className="field-count">{text.length}</span></div>
+
+            <div className="capture-surface">
+              <textarea
+                className="field-input"
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                placeholder="They loved the roasting, said the road was difficult, and asked whether we sell beans."
+                rows={7}
+                autoFocus
+              />
+              <div className="capture-actions">
+                <span className="source-stamp">{source.toUpperCase()} SOURCE · {language.toUpperCase()}</span>
+                <span className="char-count">{text.length}</span>
+              </div>
             </div>
+
+            <button className="primary-action" disabled={text.trim().length < 3 || busy} onClick={submit}>
+              {busy ? "Interpreting on this device…" : "Review before memory"}
+            </button>
           </div>
-          <button className="post-submit" disabled={text.trim().length < 3 || busy} onClick={submit}>
-            <span>{busy ? "Understanding locally…" : "Review observation"}</span><Icon name="send" size={16} />
-          </button>
-        </article>
+
+          <aside className="capture-proof">
+            <div className="proof-heading">SAME LOOP</div>
+            <p>This is not a separate analytics path. It becomes the same reviewable source record as a guest entry.</p>
+            <dl className="proof-facts">
+              <div><dt>Source</dt><dd>{source}</dd></div>
+              <div><dt>Language</dt><dd>{language}</dd></div>
+              <div><dt>Decision</dt><dd>Still human</dd></div>
+            </dl>
+          </aside>
+        </div>
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
@@ -575,61 +594,97 @@ function Review() {
     go("/memory");
   }
 
-  if (loading) return <Shell active="add"><AppHeader title="Review message" subtitle="Loading local record" back /></Shell>;
-  if (!observation) return <Shell active="add"><AppHeader title="Review message" subtitle="No pending note" back /><section className="single-feed"><div className="empty-state">No pending observation.</div></section></Shell>;
+  if (loading) {
+    return (
+      <AppFrame section="capture" back>
+        <section className="field-main"><p className="loading-line">Loading local record…</p></section>
+      </AppFrame>
+    );
+  }
+
+  if (!observation) {
+    return (
+      <AppFrame section="capture" back>
+        <section className="field-main"><p className="loading-line">No pending observation.</p></section>
+      </AppFrame>
+    );
+  }
 
   return (
-    <Shell active="add">
-      <AppHeader title="Review message" subtitle="Human confirmation" back />
-      <section className="single-feed review-feed">
-        <article className="guest-post">
-          <div className="user-post-copy">
-            <div className="user-title">
-              <Avatar label={sourceName(observation)} />
-              <div><strong>{sourceName(observation)}</strong><span>{formatRelative(observation.createdAt)} · {observation.language.toUpperCase()}</span></div>
-            </div>
-            <p className="post-message">{observation.rawText}</p>
-            {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
-          </div>
-        </article>
+    <AppFrame section="capture" back>
+      <section className="field-main review-page">
+        <PageIntro
+          eyebrow="HUMAN REVIEW"
+          title="Keep the words. Check the interpretation."
+          body="Nothing enters business memory until a person confirms it."
+        />
 
-        <article className="guest-post review-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>Guestbook understood</strong><span>~240 KB · 0 network</span></div>
-            <div className="signal-chips">
+        <div className="review-source">
+          <div className="source-meta">
+            <span>{sourceName(observation).toUpperCase()}</span>
+            <span>{observation.language.toUpperCase()}</span>
+            <span>{formatRelative(observation.createdAt)}</span>
+          </div>
+          <blockquote>“{observation.rawText}”</blockquote>
+          {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
+        </div>
+
+        <div className="review-grid">
+          <div className="signal-review">
+            <div className="section-heading">
+              <span>LOCAL INTERPRETATION</span>
+              <span>~240 KB · 0 NETWORK</span>
+            </div>
+
+            <div className="signal-list">
               {observation.predictions.map((prediction) => {
-                const selectedNow = selected.has(prediction.label);
-                const needsConfirm = HUMAN_CONFIRM_REQUIRED.has(prediction.label);
+                const active = selected.has(prediction.label);
+                const needsHuman = HUMAN_CONFIRM_REQUIRED.has(prediction.label);
                 return (
                   <button
                     key={prediction.label}
-                    className={"ds-chip signal-chip " + (selectedNow ? "active" : "") + (selectedNow && needsConfirm ? "human-check" : "")}
+                    className={"signal-row " + (active ? "selected" : "")}
                     onClick={() => toggle(prediction.label)}
+                    aria-pressed={active}
                   >
-                    {LABEL_META[prediction.label].title} · {formatPercent(prediction.score)}
+                    <span className="signal-check">{active ? "✓" : ""}</span>
+                    <span className="signal-copy">
+                      <strong>{LABEL_META[prediction.label].title}</strong>
+                      <small>{LABEL_META[prediction.label].description}</small>
+                    </span>
+                    <span className="signal-score">
+                      {formatPercent(prediction.score)}
+                      {needsHuman && <em>HUMAN CONFIRM</em>}
+                    </span>
                   </button>
                 );
               })}
             </div>
-            <p className="small-copy">Tap a signal to correct it. Accessibility and dietary/safety signals require explicit human confirmation.</p>
 
-            <details className="correction-panel">
+            <details className="signal-correction">
               <summary>Add or correct a signal</summary>
-              <div className="signal-chips correction-chips">
+              <div className="correction-list">
                 {LABELS.filter((label) => label !== "UNKNOWN").map((label) => (
-                  <button key={label} className={"ds-chip signal-chip " + (selected.has(label) ? "active" : "")} onClick={() => toggle(label)}>
+                  <button key={label} className={selected.has(label) ? "selected" : ""} onClick={() => toggle(label)}>
                     {LABEL_META[label].title}
                   </button>
                 ))}
               </div>
             </details>
           </div>
-          <button className="post-submit" onClick={confirm}><span>Confirm into memory</span><Icon name="send" size={16} /></button>
-        </article>
 
-        <p className="screen-footnote">Original words stay attached. Guestbook interprets; a person decides what enters memory.</p>
+          <aside className="review-note">
+            <p>The score is a model score, not a calibrated probability.</p>
+            <p>Accessibility and dietary/safety labels require explicit confirmation.</p>
+            <p>UNKNOWN is a valid outcome when Guestbook does not have enough signal.</p>
+          </aside>
+        </div>
+
+        <div className="review-footer">
+          <button className="primary-action" onClick={confirm}>Confirm into memory</button>
+        </div>
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
