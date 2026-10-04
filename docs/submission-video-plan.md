@@ -45,7 +45,7 @@ Show **Test a take-home offer?**.
 **0:53–0:58 — Technical proof**
 Cut to /lab after running the benchmark.
 
-> The model is about 120 kilobytes, runs entirely in-browser, and makes zero network requests during inference.
+> The model is about 240 kilobytes, runs entirely in-browser, and makes zero network requests during inference.
 
 > Guestbook. Every visit teaches the business.
 
@@ -55,7 +55,7 @@ Open /lab.
 
 > We deliberately did not use a general-purpose LLM. Guestbook's critical task has a small answer space, so we built a task-specific multi-label classifier.
 
-> Guestbook Micro v1 uses hashed three-to-five-character n-grams, 2,048 dimensions, fifteen bounded labels, and about 120 kilobytes of learned weights.
+> Guestbook Micro v1 uses hashed three-to-five-character n-grams, 4,096 dimensions, fifteen bounded labels, and about 240 kilobytes of learned weights.
 
 Run:
 
@@ -73,7 +73,7 @@ Show Memory.
 
 Return to /lab.
 
-> On our frozen synthetic regression set, threshold 0.60 gives 95.1% precision, 92.9% recall, and 94.0% micro-F1. These are regression results, not field-accuracy claims. The next step is independent field data.
+> On the frozen synthetic set it keeps 90.2% micro-F1. More importantly, untouched MASSIVE test probes hit 91.1% in English and 92.8% in Swahili, while a held-out Nairobi weak-label probe reaches 98.0%. Those are transfer and weak-label results, not field accuracy.
 
 ## Team video — 45–55 seconds
 
@@ -89,7 +89,7 @@ Return to /lab.
 
 ## Recording rules
 
-- Never call the synthetic regression metrics real-world accuracy.
+- Never call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics real-world accuracy.
 - Never say the model understands every language.
 - Do not claim full offline voice transcription; the submission build uses text capture.
 - Do not claim separate offline phones synchronize; the MVP uses one shared device.
