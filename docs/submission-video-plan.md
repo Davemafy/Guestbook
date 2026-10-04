@@ -13,7 +13,7 @@ Tap **I’m visiting**.
 
 **0:05–0:17 — Visitor input**
 
-If **VOICE READY** appears on the demo browser, use local voice for the sentence below. If it does not, type it. Do not spend recording time installing or debugging a speech pack.
+If the Moonshine voice pack has already been installed and **VOICE READY** appears, use local voice for the sentence below. Otherwise type it. Do not spend recording time installing or debugging the pack.
 Use the tested message:
 
 > My mother cannot walk very far and I want to buy some coffee beans.
@@ -92,7 +92,7 @@ Return to /lab.
 
 - Never call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics real-world accuracy.
 - Never say the model understands every language.
-- Voice is optional and browser-capability-gated. Claim local voice only if the demo browser reports VOICE READY. Never imply Guestbook silently falls back to cloud speech.
+- Voice is optional. It uses Moonshine Tiny Streaming through WebAssembly after a one-time pack install; once loaded, transcription is on-device. Claim voice only if the demo browser reports VOICE READY. Typing remains the guaranteed offline path.
 - Do not claim separate offline phones synchronize; the MVP uses one shared device.
 - Keep the OFFLINE badge visible if recording the offline proof.
 - For airplane-mode proof: load the PWA/routes first, close it, enable airplane mode, reopen, then classify a new message.
