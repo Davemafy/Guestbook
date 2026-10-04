@@ -1,93 +1,186 @@
-# Guestbook
+<p align="center">
+  <img src="public/icon.svg" width="72" height="72" alt="Guestbook logo" />
+</p>
 
-**Every visit teaches the business.**
+<h1 align="center">Guestbook</h1>
 
-**Hosted demo:** https://guestbook-small-ai.vercel.app
+<p align="center">
+  <strong>Every visit teaches the business.</strong><br />
+  Offline-first Small AI that turns messy visitor conversations into inspectable business memory.
+</p>
 
-Guestbook is an offline-first Small AI prototype for small tourism operators. It turns messy visitor comments, questions and needs into structured, inspectable business memory while keeping the original evidence and final decision with the operator.
+<p align="center">
+  <a href="https://guestbook-small-ai.vercel.app/">Live demo</a> ·
+  <a href="docs/model-card.md">Model card</a> ·
+  <a href="docs/system-design.md">System design</a> ·
+  <a href="docs/external-evidence.md">External evidence</a>
+</p>
 
-## Working product
+> Built for the **7th Hack-Nation Global AI Hackathon** — **World Bank: Small AI for Development, Track C (Tourism)**.
 
-- Guest mode with English and Kiswahili prompts
-- Optional connected browser speech input with **0 MB Guestbook voice-model download**; typing remains the guaranteed offline path
-- Local multi-label inference with zero network requests
-- Human review and correction before a signal enters memory
-- Guide/operator capture when a guest never uses the phone
-- Manual JSON export of confirmed local records
-- IndexedDB persistence
-- Evidence grouped across distinct visits
-- Decision prompts that never act automatically
-- PWA/service worker for offline reopening
-- /lab for local inference and on-device regression testing
+## The problem
 
-## Device model
+Small tourism operators learn valuable things in ordinary conversations: what visitors loved, what was difficult, what they wanted to buy, and what would make them return. Most of that information disappears when the conversation ends.
 
-Guestbook's offline MVP uses **one shared smartphone** owned by the operator, guide, cooperative, or family member. A visitor can be handed that phone for a short interaction, or the guide/operator can capture the visitor's words afterward. The MVP does not pretend that two disconnected phones can silently sync with each other. Store-and-forward export is a future extension, not part of the critical demo path.
+Guestbook turns those comments into a local, reviewable evidence trail without putting a general-purpose LLM, cloud inference, or autonomous business decisions in the critical path.
 
-## Voice input
+## What the product does
 
-Voice is an **optional input adapter**, not the business-intelligence model. On supported mobile browsers, **Speak now** uses the browser's speech-recognition service while connected and writes the transcript into the same editable text box.
+**Capture → Interpret → Review → Remember → Verify → Decide**
 
-Guestbook does **not** download a speech model in the normal flow: **0 MB Guestbook voice-model download**. General free-form offline speech recognition does not fit a credible ~1 MB browser model budget, so the project does not pretend otherwise. The core typed workflow and the 245,820-byte Guestbook classifier remain fully offline.
+1. A visitor submits feedback, or the host records a **Host note** after a conversation.
+2. **Guestbook Micro** performs local multilabel language interpretation.
+3. A human reviews the proposed signals before they become memory.
+4. Confirmed signals accumulate across distinct visits.
+5. Every pattern stays linked to its original source text and provenance.
+6. The operator decides what to do. Guestbook never acts automatically.
 
-## Why Kenya for the prototype\n\nGuestbook's prototype evidence is localized around **Kenya** rather than treating "local" as a generic label.\n\n- The interface includes a typed **Kiswahili** path.\n- The multilingual transfer probe uses Amazon MASSIVE **sw-KE**.\n- The human-written hospitality-language probe uses **Inside Airbnb Nairobi** reviews.\n- World Bank data reports **35% of Kenya's population using the internet in 2024**, which makes an offline-first critical path materially relevant.\n- Kenya's National Bureau of Statistics reports **2,550,641 international visitor arrivals in 2025**, up 6.2% from 2024.\n\nThese facts do not make the prototype field-validated. They explain why Kenya is a coherent next validation setting: the language, tourism context, external text evidence, and connectivity constraint point to the same place.\n\nSources:\n- World Bank, Individuals using the Internet (% of population), Kenya: https://data.worldbank.org/country/kenya?locations=ke&name_desc=false\n- Kenya National Bureau of Statistics, Economic Survey 2026: https://www.knbs.or.ke/wp-content/uploads/2026/04/2026-Economic-Survey.pdf\n- Dataset and licensing details for MASSIVE and Inside Airbnb are documented in [external evidence](docs/external-evidence.md).\n\n## Small AI architecture
+The visible product is intentionally small: **Guest, Review, Memory, Evidence, Decide, System**.
 
-Guestbook deliberately does not use a general-purpose LLM in its critical path.
+## Small AI, bounded on purpose
 
-Guestbook Micro v1 is a tiny multilabel classifier:
-- hashed character n-grams (3 to 5 characters)
-- 4,096 feature dimensions
-- 15 bounded labels including UNKNOWN
-- one-vs-rest logistic classifiers pretrained and bundled with the app
-- 245,820 bytes (~240 KB) of learned weights
-- 2,687 training cases: 438 synthetic prototypes plus licensed MASSIVE train examples and a hashed Nairobi weak-supervision training partition
-- no model download, API key, server inference, or generated JSON
-- deterministic contradiction guard for obvious negation such as “not expensive,” “don’t want to buy,” “no allergies,” and “understood everything”
+| Property | Guestbook Micro v1 |
+| --- | --- |
+| Learned weights | **245,820 bytes** |
+| Training cases | **2,687** |
+| Feature space | **4,096** hashed Unicode character n-gram dimensions |
+| N-grams | **3–5 characters** |
+| Output space | **15 bounded labels**, including UNKNOWN |
+| Classifier | One-vs-rest logistic classifiers |
+| Decision threshold | **0.60** |
+| Network inference | **0 requests** |
+| Offline typed path | **Yes** |
+| Final business decision | **Human-controlled** |
 
-The learned weights are frozen into the app, so a cold offline reopen performs inference immediately without training or a network.
+The learned model is used only where deterministic rules failed to generalize: **messy language interpretation**. Counting, persistence, evidence grouping, thresholds, and final decisions remain deterministic or human-controlled.
+
+## Why a learned model at all?
+
+A tiny system is not automatically a useful system, so Guestbook includes evidence for both **failure** and **promotion**.
+
+The first synthetic-only classifier looked convincing on in-distribution examples, then failed external testing:
+
+- **79.8% UNKNOWN** on a 5,000-review Nairobi stress sample
+- roughly **0.3% Kiswahili transfer**
+- result: **rejected**
+
+The promoted model was then evaluated against external text:
+
+| Probe | Guestbook Micro |
+| --- | ---: |
+| MASSIVE English mapped-label hit | **91.1%** |
+| MASSIVE Kiswahili mapped-label hit | **92.8%** |
+| Held-out Nairobi weak-label agreement | **98.0%** |
+| Frozen 35-case synthetic regression micro-F1 | **90.2%** |
+
+A transparent lexical baseline remained strong on the synthetic regression set (**93.0% micro-F1**) but fell to **16.7%** on untouched MASSIVE English and **2.3%** on Kiswahili.
+
+These are **transfer and weak-label evaluations, not field accuracy claims**. The next validation step is consented, independently collected, human-labelled tourism data.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Guest entry / Host note] --> B[Guestbook Micro]
+    B --> C[Human review]
+    C --> D[(IndexedDB)]
+    D --> E[Repeated memory]
+    E --> F[Evidence ledger]
+    F --> G[Operator decision]
+
+    B -. zero network inference .-> B
+```
+
+### Runtime boundary
+
+- **React + TypeScript + Vite** for the client
+- **Dexie / IndexedDB** for local persistence
+- bundled frozen classifier weights for offline inference
+- service worker/PWA support for offline reopening
+- optional browser speech recognition while connected
+- no API key or server inference in the critical path
+
+Voice is deliberately an input adapter, not the Small AI model. The guaranteed offline path is typed text + Guestbook Micro; the project does **not** claim offline free-form speech recognition.
+
+## Provenance and responsible AI
+
+Guestbook preserves the distinction between a direct **Guest entry** and a **Host note**. Source text is kept alongside the structured interpretation instead of being replaced by it.
+
+Additional safeguards:
+
+- the model can abstain with **UNKNOWN**
+- accessibility and dietary/safety signals require explicit human confirmation
+- deterministic contradiction guards handle obvious negation
+- demo records are visibly marked as demo data
+- Guestbook does not send messages, accept bookings, change prices, or make safety decisions automatically
+
+## Kenya prototype context
+
+The prototype is localized around Kenya rather than treating “local” as a generic label.
+
+- typed **English and Kiswahili** paths
+- multilingual transfer probe using Amazon MASSIVE **sw-KE**
+- hospitality-language probe using public **Inside Airbnb Nairobi** reviews
+- an offline-first product path designed for inconsistent connectivity
+
+This localization motivates the prototype; it is not presented as field validation.
+
+See [external evidence](docs/external-evidence.md) for dataset provenance, licensing, evaluation boundaries, and source links.
+
+## Run locally
+
+```bash
+git clone https://github.com/Davemafy/Guestbook.git
+cd Guestbook
+npm install
+npm run dev
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+The build runs TypeScript type-checking before Vite compilation.
+
+## Product routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Guest entry + Host note capture |
+| `/review` | Human confirmation and correction |
+| `/memory` | Repeated signals across visits |
+| `/evidence` | Source-linked evidence |
+| `/decide` | Human decision layer |
+| `/system` | Model, system and evaluation evidence |
+| `/lab` | Local inference / regression diagnostics |
+
+## Repository map
+
+```text
+src/
+├── ai/          # classifier runtime + bundled model assets
+├── data/        # demo data
+├── domain/      # labels, observations, memory + decision logic
+├── storage/     # IndexedDB persistence
+└── App.tsx      # product flows
+
+docs/
+├── model-card.md
+├── system-design.md
+├── taxonomy-audit.md
+├── external-evidence.md
+└── submission-pack.md
+```
 
 ## Technical documentation
 
-- [Model card](docs/model-card.md)
-- [System design](docs/system-design.md)
-- [Taxonomy audit](docs/taxonomy-audit.md)
-- [External evidence](docs/external-evidence.md)
-
-## Responsible AI
-
-Raw source text is always preserved. The model can abstain with UNKNOWN. Accessibility and dietary/safety signals are explicitly marked for human confirmation. Guestbook does not automatically send messages, accept bookings, change prices, or make safety decisions. Demo records are visibly marked as demo data.
-
-## Evaluation
-
-The /lab route runs the frozen synthetic stress set on the actual in-browser model and also displays held-out external evidence. The promoted model keeps 90.2% micro-F1 on the 35-case synthetic regression set. On untouched MASSIVE test slices mapped to the nearest Guestbook signals, it reaches 91.1% mapped-label hit in English and 92.8% in Swahili. On a held-out Nairobi public-review partition with transparent lexical weak labels, it reaches 98.0% label agreement.
-
-The MASSIVE numbers are semantic-transfer probes and the Nairobi labels are weak supervision, not manually labeled field truth. None of these are claimed as real-world tourism accuracy. A transparent no-ML lexical baseline is competitive on the small synthetic benchmark (93.0% micro-F1) but falls to 16.7% mapped-label hit on untouched MASSIVE English and 2.3% on Kiswahili, versus 91.1% and 92.8% for Guestbook Micro. This is why learned AI is restricted to language interpretation while counts, thresholds, evidence grouping, and business decisions stay deterministic or human-controlled. The next validation step is independently collected, consented, human-labeled field data.
-
-## Offline proof
-
-1. Open Guestbook once while connected.
-2. Wait until the header changes from **PREPARING OFFLINE** to **OFFLINE READY**. The service worker install does not complete until the current hashed JS/CSS assets have been precached.
-3. Close the app.
-4. Enable airplane mode.
-5. Reopen Guestbook.
-6. Classify a brand-new observation.
-7. The inference path uses zero network requests.
-
-## Development
-
-    npm install
-    npm run dev
-    npm run build
-
-## Routes
-
-- / — product entry
-- /guest — visitor capture
-- /review — operator confirmation
-- /capture — guide/operator capture after a visit
-- /memory — repeated signals + source evidence
-- /decide — human decision layer
-- /lab — model diagnostics and regression test
+- [Model card](docs/model-card.md) — model scope, training and limitations
+- [System design](docs/system-design.md) — runtime and data-flow architecture
+- [Taxonomy audit](docs/taxonomy-audit.md) — bounded label design
+- [External evidence](docs/external-evidence.md) — transfer tests, weak supervision and datasets
+- [Submission pack](docs/submission-pack.md) — judge-facing evidence summary
 
 ## License
 
