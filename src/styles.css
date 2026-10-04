@@ -444,7 +444,16 @@ svg { display: block; }
   border-radius: 100px;
   background: rgba(26, 27, 31, .1);
 }
-.field-progress span { display: block; height: 100%; background: var(--ink); }
+.field-progress span { display: block; height: 100%; width: 0; background: var(--ink); transition: width .18s ease; }
+.field-progress.indeterminate span {
+  width: 34%;
+  animation: fieldProgressIndeterminate 1.1s ease-in-out infinite;
+}
+@keyframes fieldProgressIndeterminate {
+  0% { transform: translateX(-120%); }
+  50% { transform: translateX(110%); }
+  100% { transform: translateX(300%); }
+}
 
 .composer-help,
 .small-copy,
