@@ -453,12 +453,14 @@ function GuestScreen() {
     recognition.onaudioend = () => setSpeechActive(false);
 
     recognition.onresult = (event) => {
-      // event.results is the recognizer's current authoritative session
-      // snapshot. Rebuild it from scratch instead of appending changed items.
+      // Android Chrome can expose successive cumulative hypotheses as separate
+      // result entries ("the" → "the whole" → "the whole should"). Folding
+      // those entries by overlap prevents the hypotheses themselves becoming
+      // duplicated user text.
       let sessionTranscript = "";
       for (let index = 0; index < event.results.length; index++) {
         const transcript = event.results[index]?.[0]?.transcript?.trim() ?? "";
-        if (transcript) sessionTranscript = joinTranscript(sessionTranscript, transcript);
+        if (transcript) sessionTranscript = reconcileVoiceTranscript(sessionTranscript, transcript);
       }
 
       voiceSegmentRef.current = sessionTranscript;
