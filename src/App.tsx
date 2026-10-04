@@ -1127,55 +1127,52 @@ function SystemScreen() {
     <Shell route="system" layout="compact">
       <main className="compact-grid compact-page">
         <section className="system-title">
-          <PageTitle title="What is actually running here?" body="Offline readiness, optional voice, model evidence, and local data controls in one place." />
-          <div className="section-gap">
-            <BaseButtonGroup
-              items={["Offline", "Voice", "Model", "Data"].map((value) => ({ value, label: value }))}
-              value={tab}
-              onChange={setTab}
-              shape="rect"
-              size="small"
-            />
+          <PageTitle title="System & data" body="Check offline mode, voice, model tests, and what is saved on this device." />
+          <div className="system-tabs" role="tablist" aria-label="System sections">
+            <button type="button" className={tab === "Offline" ? "active" : ""} onClick={() => setTab("Offline")}><WifiHighIcon size={18} weight={tab === "Offline" ? "fill" : "regular"} aria-hidden="true" /><span>Offline</span></button>
+            <button type="button" className={tab === "Voice" ? "active" : ""} onClick={() => setTab("Voice")}><MicrophoneIcon size={18} weight={tab === "Voice" ? "fill" : "regular"} aria-hidden="true" /><span>Voice</span></button>
+            <button type="button" className={tab === "Model" ? "active" : ""} onClick={() => setTab("Model")}><GearSixIcon size={18} weight={tab === "Model" ? "fill" : "regular"} aria-hidden="true" /><span>Model</span></button>
+            <button type="button" className={tab === "Data" ? "active" : ""} onClick={() => setTab("Data")}><HardDriveIcon size={18} weight={tab === "Data" ? "fill" : "regular"} aria-hidden="true" /><span>Data</span></button>
           </div>
         </section>
 
         <section className="system-content">
           {tab === "Offline" && (
             <div className="system-stack">
-              <BaseBanner tone={offlineReady ? "positive" : "warning"}>{offlineReady ? "Offline ready. App shell, local classifier, and IndexedDB are available." : "Preparing offline cache. Do not claim offline readiness yet."}</BaseBanner>
+              <BaseBanner tone={offlineReady ? "positive" : "warning"}>{offlineReady ? "Ready to work offline." : "Finishing offline setup…"}</BaseBanner>
               <div className="system-list">
                 <div><span>App shell</span><strong>{offlineReady ? "Cached" : "Preparing"}</strong></div>
                 <div><span>Classifier</span><strong>~240 KB · local</strong></div>
                 <div><span>Inference network</span><strong>0 requests</strong></div>
                 <div><span>Business memory</span><strong>IndexedDB</strong></div>
               </div>
-              <div className="proof-sequence">
-                <h2>Cold proof</h2>
-                <ol><li>Wait for Offline ready.</li><li>Close the tab.</li><li>Disconnect.</li><li>Reopen Guestbook.</li><li>Enter an unseen sentence.</li><li>Classify, confirm, and reopen memory.</li></ol>
-              </div>
+              <details className="proof-sequence">
+                <summary>Test offline mode</summary>
+                <ol><li>Wait for “Ready to work offline.”</li><li>Close the tab and disconnect.</li><li>Reopen Guestbook.</li><li>Add a new typed note, review it, and open Memory.</li></ol>
+              </details>
             </div>
           )}
 
           {tab === "Voice" && (
             <div className="system-stack">
-              <div className="system-note"><strong>Voice is optional and connected.</strong><span>The critical Guestbook classifier remains local and offline.</span></div>
+              <div className="system-note"><MicrophoneIcon size={20} weight="regular" aria-hidden="true" /><div><strong>Voice needs a connection.</strong><span>Typing, review, memory, evidence, and decisions still work offline.</span></div></div>
               <div className="system-list">
                 <div><span>Guestbook voice-model download</span><strong>0 MB</strong></div>
                 <div><span>Browser speech API</span><strong>{browserVoiceAvailable ? "Available" : "Unavailable"}</strong></div>
                 <div><span>Offline free-form speech</span><strong>Not claimed</strong></div>
                 <div><span>Offline typed inference</span><strong>~240 KB · local</strong></div>
               </div>
-              <div className="system-caveat">General free-form offline speech recognition does not fit a credible ~1 MB model budget. Guestbook keeps speech connected and optional instead of hiding a tens-of-megabytes download behind the core flow.</div>
+              <div className="system-caveat"><InfoIcon size={18} weight="regular" aria-hidden="true" /><span>Guestbook does not hide a large speech model download behind the voice button.</span></div>
             </div>
           )}
 
           {tab === "Model" && (
             <div className="model-grid">
               <div className="model-lab">
-                <Field label="Observation" hint="Runs through the frozen local classifier.">
+                <Field label="Test phrase" hint="Runs through the same model used in Review.">
                   <Textarea rows={6} value={labText} onChange={(event) => setLabText(event.target.value)} />
                 </Field>
-                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={runInference}>Run local inference</BaseButton>
+                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={runInference}><GearSixIcon size={18} weight="regular" aria-hidden="true" /><span>Test model</span></BaseButton>
                 {inferenceMs !== null && <span className="paragraph-small">{inferenceMs.toFixed(2)} ms on this device</span>}
               </div>
               <div className="model-results">
@@ -1234,10 +1231,10 @@ function SystemScreen() {
                 <div><span>Demo records</span><strong>{rows.filter((row) => row.isDemo).length}</strong></div>
               </div>
               <div className="base-button-group">
-                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={exportMemory}>Export confirmed JSON</BaseButton>
-                <BaseButton hierarchy="negative" size="medium" shape="rect" onClick={resetDemo}>Reset demo</BaseButton>
+                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={exportMemory}><DownloadSimpleIcon size={18} weight="bold" aria-hidden="true" /><span>Export data</span></BaseButton>
+                <BaseButton hierarchy="negative" size="medium" shape="rect" onClick={resetDemo}><TrashIcon size={18} weight="bold" aria-hidden="true" /><span>Reset demo</span></BaseButton>
               </div>
-              <BaseBanner tone="warning">Export excludes demo observations. Reset clears local test data and restores the canonical five product-request demo visits.</BaseBanner>
+              <BaseBanner tone="warning">Export includes confirmed real visits only. Reset restores the demo data.</BaseBanner>
             </div>
           )}
         </section>
