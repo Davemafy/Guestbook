@@ -346,20 +346,21 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
       <div className="app-stage">
         <header className="base-navigation">
           <div className={"nav-grid " + layout + "-grid"}>
-            <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
-            <div className="mobile-status" aria-label={status} title={status} aria-live="polite" style={{ gap: 6 }}>
-              <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
-              <span
-                style={{
-                  fontSize: 11,
-                  lineHeight: "14px",
-                  fontWeight: 500,
-                  color: "var(--content-secondary)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {status === "Works offline" ? "Offline ready" : status}
-              </span>
+            <button className="brand-mark" onClick={() => go("/")} aria-label="Guestbook home">
+              <img src="/icon.svg" alt="" className="brand-logo" aria-hidden="true" />
+            </button>
+            <div
+              className={"mobile-status " + (!online || offlineReady ? "ready" : "pending")}
+              aria-label={status === "Works offline" ? "Ready for offline use" : status}
+              title={status === "Works offline" ? "Ready for offline use" : status}
+              aria-live="polite"
+            >
+              {!online || offlineReady ? (
+                <HardDriveIcon size={18} weight="regular" aria-hidden="true" />
+              ) : (
+                <WifiHighIcon size={18} weight="regular" aria-hidden="true" />
+              )}
+              <span className="status-dot" aria-hidden="true" />
             </div>
             <button
               className={"nav-system-link " + (route === "system" ? "active" : "")}
