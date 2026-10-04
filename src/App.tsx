@@ -347,10 +347,16 @@ function GuestScreen() {
   const [speechActive, setSpeechActive] = useState(false);
   const [voicePulse, setVoicePulse] = useState(0);
   const voiceRef = useRef<BrowserSpeechRecognition | null>(null);
+  const wantsListeningRef = useRef(false);
+  const restartTimerRef = useRef<number | null>(null);
+  const voiceBaseRef = useRef("");
+  const voiceSegmentRef = useRef("");
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
 
   useEffect(() => () => {
+    wantsListeningRef.current = false;
+    if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
     voiceRef.current?.stop();
     voiceRef.current = null;
   }, []);
@@ -362,27 +368,17 @@ function GuestScreen() {
     reader.readAsDataURL(file);
   }
 
-  function startVoice() {
-    if (!navigator.onLine) {
-      setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
-      setVoiceState("error");
-      return;
-    }
-
+  function beginRecognitionSession() {
     const Recognition = getBrowserSpeechRecognition();
-    if (!Recognition) {
-      setVoiceState("unavailable");
-      setVoiceError("This browser does not expose speech recognition. Type instead.");
-      return;
-    }
+    if (!Recognition || !wantsListeningRef.current) return;
 
     const recognition = new Recognition();
-    const base = text.trim();
     recognition.lang = language === "sw" ? "sw-KE" : "en-US";
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onstart = () => {
+      voiceRef.current = recognition;
       setVoiceState("listening");
       setVoiceError("");
       setVoicePulse((value) => value + 1);
@@ -405,44 +401,115 @@ function GuestScreen() {
       for (let index = 0; index < event.results.length; index++) {
         transcript += event.results[index]?.[0]?.transcript ?? "";
       }
-      const clean = transcript.trim();
-      setText([base, clean].filter(Boolean).join(base && clean ? " " : ""));
+      voiceSegmentRef.current = transcript.trim();
+      const next = [voiceBaseRef.current, voiceSegmentRef.current].filter(Boolean).join(" ").slice(0, 1000);
+      setText(next);
       setSpeechActive(true);
       setVoicePulse((value) => value + 1);
     };
+
+    recognition.onerror = (event) => {
+      const error = event.error ?? "";
+      voiceRef.current = null;
+      setSpeechActive(false);
+
+      if (error === "aborted" && !wantsListeningRef.current) return;
+
+      if (error === "not-allowed" || error === "service-not-allowed" || error === "audio-capture") {
+        wantsListeningRef.current = false;
+        setVoiceState("error");
+        setVoiceError(
+          error === "audio-capture"
+            ? "Microphone is unavailable. Close other apps using the mic and try again."
+            : "Allow microphone access and try again.",
+        );
+        return;
+      }
+
+      if (error === "network") {
+        setVoiceError("Voice service lost its connection. Reconnecting…");
+      } else if (error !== "no-speech") {
+        setVoiceError("Voice paused unexpectedly. Reconnecting…");
+      }
+    };
+
     recognition.onend = () => {
       voiceRef.current = null;
       setSpeechActive(false);
-      setVoiceState("idle");
-    };
-    recognition.onerror = (event) => {
-      voiceRef.current = null;
-      setSpeechActive(false);
-      setVoiceState("idle");
-      setVoiceError(
-        event.error === "not-allowed"
-          ? "Allow microphone access and try again."
-          : event.error === "no-speech"
-            ? "I didn't catch speech. Tap Speak now and try again."
-            : "Voice transcription failed. Typing remains available.",
-      );
+
+      if (voiceSegmentRef.current) {
+        voiceBaseRef.current = [voiceBaseRef.current, voiceSegmentRef.current]
+          .filter(Boolean)
+          .join(" ")
+          .slice(0, 1000);
+        voiceSegmentRef.current = "";
+        setText(voiceBaseRef.current);
+      }
+
+      if (!wantsListeningRef.current) {
+        setVoiceState("idle");
+        return;
+      }
+
+      setVoiceState("listening");
+      if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = window.setTimeout(() => {
+        restartTimerRef.current = null;
+        if (wantsListeningRef.current) beginRecognitionSession();
+      }, 220);
     };
 
-    setVoiceError("");
-    setSpeechActive(false);
-    voiceRef.current = recognition;
     try {
       recognition.start();
     } catch {
       voiceRef.current = null;
-      setVoiceState("error");
-      setVoiceError("Voice could not start on this browser.");
+      if (wantsListeningRef.current) {
+        if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = window.setTimeout(() => {
+          restartTimerRef.current = null;
+          if (wantsListeningRef.current) beginRecognitionSession();
+        }, 350);
+      }
     }
   }
 
-  function stopVoice() {
-    voiceRef.current?.stop();
+  function startVoice() {
+    if (!navigator.onLine) {
+      setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
+      setVoiceState("error");
+      return;
+    }
+
+    if (!getBrowserSpeechRecognition()) {
+      setVoiceState("unavailable");
+      setVoiceError("This browser does not expose speech recognition. Type instead.");
+      return;
+    }
+
+    if (restartTimerRef.current !== null) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+
+    wantsListeningRef.current = true;
+    voiceBaseRef.current = text.trim().slice(0, 1000);
+    voiceSegmentRef.current = "";
+    setVoiceError("");
     setSpeechActive(false);
+    setVoiceState("listening");
+    beginRecognitionSession();
+  }
+
+  function stopVoice() {
+    wantsListeningRef.current = false;
+    if (restartTimerRef.current !== null) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+    voiceRef.current?.stop();
+    voiceRef.current = null;
+    setSpeechActive(false);
+    setVoiceState("idle");
   }
 
   async function submit() {
