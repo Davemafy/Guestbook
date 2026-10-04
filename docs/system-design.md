@@ -10,7 +10,7 @@ natural-language interaction
           |
           v
 Guestbook Micro v1
-(~120 KB learned weights)
+(~240 KB learned weights)
           |
           v
 bounded multi-label signals
@@ -59,6 +59,7 @@ The intended proof is a cold reopen in airplane mode followed by a new local cla
 - `/` — entry and product thesis
 - `/guest` — shared-phone visitor capture
 - `/review` — human confirmation/correction
+- `/capture` — guide/operator capture when the guest never uses the phone
 - `/memory` — repeated signals with source evidence
 - `/decide` — operator-controlled action prompts
-- `/lab` — model diagnostics and regression benchmark
+- `/lab` — model diagnostics, synthetic regression, and held-out external evidence
