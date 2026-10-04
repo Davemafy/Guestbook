@@ -694,10 +694,7 @@ function GuestScreen() {
     <Shell route="guest" layout="normal">
       <main className="normal-grid guest-layout">
         <section className="guest-primary">
-          <PageTitle
-            title={copy.title}
-            body="Leave the exact words first. Guestbook interprets them on this device, then a person decides what belongs in business memory."
-          />
+          <PageTitle title={copy.title} body={copy.body} />
 
           <div className="section-gap">
             <BaseButtonGroup
@@ -711,18 +708,16 @@ function GuestScreen() {
           </div>
 
           <div className={"message-composer " + (voiceState === "listening" ? "is-listening" : "")}>
-            <Field label="Your message" meta={text.length + "/1000"} hint="No account required. You can edit this before it is saved.">
+            <Field label={copy.field} meta={text.length + "/1000"} hint={language === "sw" ? "Huhitaji akaunti." : "No account needed."}>
               <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
             </Field>
             <div className="composer-controls">
-              <button className="composer-tool-button" type="button" onClick={() => mediaRef.current?.click()}>
-                <ImageIcon size={18} weight="regular" aria-hidden="true" />
-                <span>Add photo</span>
+              <button className="composer-icon-action" type="button" onClick={() => mediaRef.current?.click()} aria-label="Add photo" title="Add photo">
+                <ImageIcon size={20} weight="regular" aria-hidden="true" />
               </button>
               {voiceState !== "listening" && voiceState !== "unavailable" && (
-                <button className="composer-voice-button" type="button" onClick={() => void startVoice()}>
-                  <MicrophoneIcon size={18} weight="regular" aria-hidden="true" />
-                  <span>Speak now</span>
+                <button className="composer-icon-action" type="button" onClick={() => void startVoice()} aria-label="Speak" title="Speak">
+                  <MicrophoneIcon size={20} weight="regular" aria-hidden="true" />
                 </button>
               )}
               {voiceState === "listening" && (
@@ -738,31 +733,31 @@ function GuestScreen() {
           {mediaDataUrl && (
             <div className="media-preview">
               <img src={mediaDataUrl} alt="" />
-              <div><span>Attached photo</span><BaseButton hierarchy="tertiary" size="small" shape="rect" onClick={() => setMediaDataUrl("")}>Remove</BaseButton></div>
+              <div><span><ImageIcon size={16} weight="regular" aria-hidden="true" /> Photo added</span><BaseButton hierarchy="tertiary" size="small" shape="rect" onClick={() => setMediaDataUrl("")}>Remove</BaseButton></div>
             </div>
           )}
 
           <input ref={mediaRef} className="sr-only" type="file" accept="image/*" onChange={(event) => attachPhoto(event.target.files?.[0])} />
 
-          {voiceState === "unavailable" && <div className="inline-note">Voice is unavailable in this browser. Typing and local Guestbook inference still work offline.</div>}
+          {voiceState === "unavailable" && <div className="inline-note"><InfoIcon size={18} weight="regular" aria-hidden="true" /> Voice isn’t available here. You can still type your note.</div>}
           {voiceError && <BaseBanner tone="negative">{voiceError}</BaseBanner>}
         </section>
 
-        <aside className="guest-context">
-          <div className="context-rule">
-            <h2 className="context-heading">What happens next</h2>
-            <div className="context-step"><strong>Interpret</strong><p>~240 KB classifier. No inference request.</p></div>
-            <div className="context-step"><strong>Review</strong><p>A person confirms or corrects the signals.</p></div>
-            <div className="context-step"><strong>Remember</strong><p>Only confirmed evidence accumulates across distinct visits.</p></div>
+        <aside className="guest-context" aria-label="About your feedback">
+          <div className="guest-facts">
+            <div><ShieldCheckIcon size={22} weight="regular" aria-hidden="true" /><span>No account needed</span></div>
+            <div><UserCheckIcon size={22} weight="regular" aria-hidden="true" /><span>The host reviews it</span></div>
+            <div><TrendUpIcon size={22} weight="regular" aria-hidden="true" /><span>Repeat requests stand out</span></div>
           </div>
         </aside>
       </main>
 
       <DockedAction>
         <div className="normal-grid dock-grid">
-          <div className="dock-copy"><strong>Source stays attached</strong><span>Guest words remain evidence, not a generated summary.</span></div>
+          <div className="dock-copy"><LockSimpleIcon size={18} weight="regular" aria-hidden="true" /><span>No sign-in. Your words stay with this visit.</span></div>
           <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={submit} disabled={text.trim().length < 3 || busy}>
-            {busy ? "Interpreting locally…" : "Interpret locally"}
+            <span>{busy ? "Sending…" : "Send feedback"}</span>
+            {!busy && <ArrowRightIcon size={18} weight="bold" aria-hidden="true" />}
           </BaseButton>
         </div>
       </DockedAction>
