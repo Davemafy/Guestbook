@@ -82,7 +82,7 @@ const guestCopy = {
     eyebrow: "GUEST MODE · NO ACCOUNT",
     title: "What should the host know?",
     helper: "Use the shared phone to leave a comment, question or need in your own words. Nothing needs to sync first.",
-    placeholder: "We loved the roasting, the road was terrible, and we want to buy beans.",
+    placeholder: "My mother cannot walk very far and I want to buy some coffee beans.",
     submit: "Add to Guestbook",
   },
   sw: {
@@ -412,7 +412,7 @@ function Decide() {
 }
 
 function Lab() {
-  const [text, setText] = useState("We loved the roasting, the road was terrible, and we want to buy beans.");
+  const [text, setText] = useState("How much is entry and can I pay by card?");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [report, setReport] = useState<Awaited<ReturnType<typeof activeClassifier.benchmark>> | null>(null);
