@@ -391,6 +391,9 @@ function GuestScreen() {
   const voiceRef = useRef<BrowserSpeechRecognition | null>(null);
   const wantsListeningRef = useRef(false);
   const restartTimerRef = useRef<number | null>(null);
+  const pageHiddenRef = useRef(document.visibilityState === "hidden");
+  const resumeGraceUntilRef = useRef(0);
+  const beginRecognitionRef = useRef<() => void>(() => {});
   const voiceBaseRef = useRef("");
   const voiceCommittedRef = useRef("");
   const voiceSegmentRef = useRef("");
@@ -464,6 +467,16 @@ function GuestScreen() {
 
       if (error === "aborted" && !wantsListeningRef.current) return;
 
+      const lifecycleInterruption =
+        pageHiddenRef.current ||
+        document.visibilityState === "hidden" ||
+        Date.now() < resumeGraceUntilRef.current;
+
+      if (lifecycleInterruption && (error === "network" || error === "aborted" || error === "no-speech")) {
+        setVoiceError("");
+        return;
+      }
+
       if (error === "not-allowed" || error === "service-not-allowed" || error === "audio-capture") {
         wantsListeningRef.current = false;
         setVoiceState("error");
@@ -498,10 +511,15 @@ function GuestScreen() {
       }
 
       setVoiceState("listening");
+      if (pageHiddenRef.current || document.visibilityState === "hidden") {
+        setVoiceError("");
+        return;
+      }
+
       if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
       restartTimerRef.current = window.setTimeout(() => {
         restartTimerRef.current = null;
-        if (wantsListeningRef.current) beginRecognitionSession();
+        if (wantsListeningRef.current && !pageHiddenRef.current) beginRecognitionSession();
       }, 220);
     };
 
@@ -518,6 +536,46 @@ function GuestScreen() {
       }
     }
   }
+
+  beginRecognitionRef.current = beginRecognitionSession;
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const hidden = document.visibilityState === "hidden";
+      pageHiddenRef.current = hidden;
+
+      if (hidden) {
+        if (restartTimerRef.current !== null) {
+          window.clearTimeout(restartTimerRef.current);
+          restartTimerRef.current = null;
+        }
+
+        if (wantsListeningRef.current) {
+          setVoiceError("");
+          setSpeechActive(false);
+          voiceRef.current?.stop();
+        }
+        return;
+      }
+
+      if (!wantsListeningRef.current) return;
+
+      // Mobile browsers intentionally tear down connected speech services while
+      // backgrounded. Resume quietly once the page is foregrounded again.
+      setVoiceError("");
+      setVoiceState("listening");
+      resumeGraceUntilRef.current = Date.now() + 2500;
+
+      if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = window.setTimeout(() => {
+        restartTimerRef.current = null;
+        if (wantsListeningRef.current && !pageHiddenRef.current) beginRecognitionRef.current();
+      }, 350);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   function startVoice() {
     if (!navigator.onLine) {
