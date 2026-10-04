@@ -182,9 +182,13 @@ function routeForPath(pathname: string): Route {
 }
 
 function go(path: string) {
+  if (window.location.pathname + window.location.search === path) {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return;
+  }
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function formatPercent(value: number) {
@@ -313,7 +317,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
           <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
           <nav className="desktop-nav" aria-label="Primary">
             {NAV.filter((item) => item.key !== "system").map((item) => (
-              <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
+              <button key={item.key} className={route === item.key ? "active" : ""} aria-current={route === item.key ? "page" : undefined} onClick={() => go(item.path)}>
                 <RouteIcon route={item.key} active={route === item.key} size={16} />
                 <span>{item.label}</span>
               </button>
@@ -323,7 +327,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
             <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
             <span>{status}</span>
           </div>
-          <button className={"nav-system-link " + (route === "system" ? "active" : "")} onClick={() => go("/system")} aria-label="System" title="System">
+          <button className={"nav-system-link " + (route === "system" ? "active" : "")} aria-current={route === "system" ? "page" : undefined} onClick={() => go("/system")} aria-label="System" title="System">
             <RouteIcon route="system" active={route === "system"} size={18} />
           </button>
         </div>
@@ -754,8 +758,8 @@ function GuestScreen() {
         <div className="normal-grid dock-grid">
           <div className="dock-copy"><LockSimpleIcon size={18} weight="regular" aria-hidden="true" /><span>No sign-in. Your words stay with this visit.</span></div>
           <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={submit} disabled={text.trim().length < 3 || busy}>
-            <span>{busy ? "Sending…" : "Send feedback"}</span>
-            {!busy && <ArrowRightIcon size={18} weight="bold" aria-hidden="true" />}
+            <span>{busy ? "Sending…" : text.trim().length < 3 ? "Write a note to continue" : "Send feedback"}</span>
+            {!busy && text.trim().length >= 3 && <ArrowRightIcon size={18} weight="bold" aria-hidden="true" />}
           </BaseButton>
         </div>
       </DockedAction>
@@ -822,7 +826,14 @@ function ReviewScreen() {
               {observation.mediaDataUrl && <img className="review-media" src={observation.mediaDataUrl} alt="" />}
             </div>
           ) : (
-            <div className="empty-inline"><InfoIcon size={18} weight="regular" aria-hidden="true" /> No visit is waiting for review.</div>
+            <div className="empty-state review-empty">
+              <CheckSquareOffsetIcon size={30} weight="regular" aria-hidden="true" />
+              <h2>Nothing to review</h2>
+              <p>Add a guest note first. Guestbook will bring you back here with its suggested themes.</p>
+              <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/")}>
+                <span>Add guest feedback</span><ArrowRightIcon size={18} weight="bold" aria-hidden="true" />
+              </BaseButton>
+            </div>
           )}
         </section>
 
@@ -886,14 +897,17 @@ function ReviewScreen() {
         </section>
       </main>
 
-      <DockedAction>
-        <div className="compact-grid dock-grid">
-          <div className="dock-copy"><UserCheckIcon size={18} weight="regular" aria-hidden="true" /><span>You decide what gets remembered.</span></div>
-          <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={confirm} disabled={!observation || (hasSensitive && !sensitiveConfirmed)}>
-            <span>Confirm</span><ArrowRightIcon size={18} weight="bold" aria-hidden="true" />
-          </BaseButton>
-        </div>
-      </DockedAction>
+      {observation && (
+        <DockedAction>
+          <div className="compact-grid dock-grid">
+            <div className="dock-copy"><UserCheckIcon size={18} weight="regular" aria-hidden="true" /><span>You decide what gets remembered.</span></div>
+            <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={confirm} disabled={hasSensitive && !sensitiveConfirmed}>
+              <span>{hasSensitive && !sensitiveConfirmed ? "Confirm the requirement first" : "Confirm"}</span>
+              {(!hasSensitive || sensitiveConfirmed) && <ArrowRightIcon size={18} weight="bold" aria-hidden="true" />}
+            </BaseButton>
+          </div>
+        </DockedAction>
+      )}
     </Shell>
   );
 }
@@ -976,31 +990,44 @@ function EvidenceScreen() {
           )}
         </section>
 
-        <section className="evidence-summary">
-          {signal && <>
-            <UsersThreeIcon size={22} weight="regular" aria-hidden="true" />
-            <div><h2>{signal.title}</h2><p>{signal.description}</p></div>
-            <strong>{signal.visitCount} visits</strong>
-          </>}
-        </section>
+        {signal ? (
+          <>
+            <section className="evidence-summary">
+              <UsersThreeIcon size={22} weight="regular" aria-hidden="true" />
+              <div><h2>{signal.title}</h2><p>{signal.description}</p></div>
+              <strong>{signal.visitCount} visits</strong>
+            </section>
 
-        <section className="evidence-ledger">
-          <div className="section-heading"><div><h2>Guest comments</h2><p>Exactly what was said on each visit.</p></div><span className="paragraph-small">{signal?.observations.length ?? 0}</span></div>
-          <div className="evidence-rows">
-            {(signal?.observations ?? []).map((observation) => (
-              <article className="evidence-row" key={observation.id}>
-                <QuotesIcon className="evidence-quote-icon" size={22} weight="fill" aria-hidden="true" />
-                <div className="evidence-quote">“{observation.rawText}”</div>
-                <div className="evidence-meta">
-                  <span>{observation.isDemo ? <InfoIcon size={15} weight="regular" aria-hidden="true" /> : <UserCheckIcon size={15} weight="regular" aria-hidden="true" />}{observation.isDemo ? "Demo" : sourceLabel(observation)}</span>
-                  <span><TranslateIcon size={15} weight="regular" aria-hidden="true" />{observation.language.toUpperCase()}</span>
-                  <span><ClockIcon size={15} weight="regular" aria-hidden="true" />{formatAge(observation.createdAt)}</span>
-                </div>
-                {observation.mediaDataUrl && <img className="evidence-media" src={observation.mediaDataUrl} alt="" />}
-              </article>
-            ))}
-          </div>
-        </section>
+            <section className="evidence-ledger">
+              <div className="section-heading"><div><h2>Guest comments</h2><p>Exactly what was said on each visit.</p></div><span className="paragraph-small">{signal.observations.length}</span></div>
+              <div className="evidence-rows">
+                {signal.observations.map((observation) => (
+                  <article className="evidence-row" key={observation.id}>
+                    <QuotesIcon className="evidence-quote-icon" size={22} weight="fill" aria-hidden="true" />
+                    <div className="evidence-quote">“{observation.rawText}”</div>
+                    <div className="evidence-meta">
+                      <span>{observation.isDemo ? <InfoIcon size={15} weight="regular" aria-hidden="true" /> : <UserCheckIcon size={15} weight="regular" aria-hidden="true" />}{observation.isDemo ? "Demo" : sourceLabel(observation)}</span>
+                      <span><TranslateIcon size={15} weight="regular" aria-hidden="true" />{observation.language.toUpperCase()}</span>
+                      <span><ClockIcon size={15} weight="regular" aria-hidden="true" />{formatAge(observation.createdAt)}</span>
+                    </div>
+                    {observation.mediaDataUrl && <img className="evidence-media" src={observation.mediaDataUrl} alt="" />}
+                  </article>
+                ))}
+              </div>
+            </section>
+          </>
+        ) : (
+          <section className="memory-empty evidence-empty">
+            <div className="empty-state">
+              <QuotesIcon size={30} weight="regular" aria-hidden="true" />
+              <h2>No comments to show yet</h2>
+              <p>Confirm a guest note first. Its source comments will stay attached here.</p>
+              <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={() => go("/review")}>
+                <span>Go to review</span><ArrowRightIcon size={18} weight="bold" aria-hidden="true" />
+              </BaseButton>
+            </div>
+          </section>
+        )}
       </main>
     </Shell>
   );
