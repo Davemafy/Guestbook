@@ -92,15 +92,17 @@ svg { display: block; }
   font-weight: 700;
   letter-spacing: 0;
 }
-.ds-title-block p {
-  width: 327px;
-  margin: 4px 0 0;
-  color: var(--light-secondary);
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 400;
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
-.dark-header .ds-title-block p { color: var(--dark-secondary); }
 
 /* tabs/rounded + chips/standard */
 .home-hero {
