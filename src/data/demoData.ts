@@ -18,7 +18,7 @@ export const DEMO_OBSERVATIONS: Observation[] = [
 ];
 
 export async function seedDemoData() {
-  if ((await db.observations.count()) === 0) {
-    await db.observations.bulkAdd(DEMO_OBSERVATIONS);
-  }
+  const existing = new Set((await db.observations.bulkGet(DEMO_OBSERVATIONS.map((item) => item.id))).filter(Boolean).map((item) => item!.id));
+  const missing = DEMO_OBSERVATIONS.filter((item) => !existing.has(item.id));
+  if (missing.length) await db.observations.bulkAdd(missing);
 }
