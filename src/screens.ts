@@ -77,7 +77,7 @@ export const screens: ScreenSpec[] = [
   { n:66, group:"Trust", slug:"model-limitations", title:"Model limitations", headline:"What Guestbook does not know", description:"Language, coverage, score, and validation limitations.", kind:"limits" },
   { n:67, group:"Trust", slug:"privacy", title:"Privacy", headline:"What stays on this device", description:"Explain local storage, voice paths, and export clearly.", kind:"privacy" },
   { n:68, group:"Technical", slug:"model-lab", title:"Model Lab", headline:"Test local inference", description:"Run one sentence through the classifier and inspect scores.", kind:"lab" },
-  { n:69, group:"Technical", slug:"benchmark-evidence", title:"Benchmark evidence", headline:"Frozen regression benchmark", description:"Precision, recall, F1, exact match, and model size.", kind:"benchmark" },
+  { n:69, group:"Technical", slug:"benchmark-evidence", title:"Why AI", headline:"Start with the simpler tool", description:"Compare transparent lexical rules with the learned model before claiming AI adds value.", kind:"benchmark" },
   { n:70, group:"Technical", slug:"external-validation", title:"External validation", headline:"Held-out transfer probes", description:"MASSIVE and Nairobi results, clearly not field accuracy.", kind:"validation" },
   { n:71, group:"Technical", slug:"offline-proof", title:"Offline proof", headline:"Prove the app still works disconnected", description:"Show shell, local model, and local records available offline.", kind:"proof" },
   { n:72, group:"Technical", slug:"demo-reset", title:"Demo reset", headline:"Restore the canonical recording state", description:"Return to five marked product-request demo visits.", kind:"reset" }
