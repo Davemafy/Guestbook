@@ -5,7 +5,34 @@ import { seedDemoData } from "./data/demoData";
 import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
 import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./domain/labels";
 import type { Observation, Prediction } from "./domain/observation";
-import { createOfflineVoice, type OfflineVoiceController, type VoiceProgress } from "./voice/moonshine";
+
+
+interface BrowserSpeechResultEvent {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
+interface BrowserSpeechRecognition {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: BrowserSpeechResultEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+interface BrowserSpeechRecognitionConstructor {
+  new (): BrowserSpeechRecognition;
+}
+
+function getBrowserSpeechRecognition(): BrowserSpeechRecognitionConstructor | null {
+  const scope = window as typeof window & {
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
+  };
+  return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
+}
 
 type Route = "guest" | "review" | "memory" | "evidence" | "decide" | "system";
 type BannerTone = "accent" | "positive" | "warning" | "negative" | "neutral";
@@ -271,16 +298,17 @@ function GuestScreen() {
   const [text, setText] = useState("");
   const [mediaDataUrl, setMediaDataUrl] = useState("");
   const [busy, setBusy] = useState(false);
-  const [voiceState, setVoiceState] = useState<"idle" | "loading" | "ready" | "listening" | "error">("idle");
-  const [voiceProgress, setVoiceProgress] = useState<VoiceProgress | null>(null);
+  const [voiceState, setVoiceState] = useState<"idle" | "listening" | "error" | "unavailable">(
+    () => getBrowserSpeechRecognition() ? "idle" : "unavailable",
+  );
   const [voiceError, setVoiceError] = useState("");
-  const voiceRef = useRef<OfflineVoiceController | null>(null);
+  const voiceRef = useRef<BrowserSpeechRecognition | null>(null);
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
 
   useEffect(() => () => {
-    void voiceRef.current?.stop();
-    voiceRef.current?.close();
+    voiceRef.current?.stop();
+    voiceRef.current = null;
   }, []);
 
   function attachPhoto(file?: File) {
@@ -290,52 +318,66 @@ function GuestScreen() {
     reader.readAsDataURL(file);
   }
 
-  async function prepareVoice() {
-    setVoiceError("");
-    setVoiceProgress(null);
-    setVoiceState("loading");
-    try {
-      voiceRef.current?.close();
-      const controller = await createOfflineVoice({
-        onText: (live) => setText(live),
-        onLine: (finalText) => setText(finalText),
-        onProgress: setVoiceProgress,
-        onError: (error) => {
-          setVoiceError(error.message || "Voice transcription failed.");
-          setVoiceState("error");
-        },
-      });
-      voiceRef.current = controller;
-      await controller.load();
-      localStorage.setItem("guestbook-moonshine-voice-v1", "cached");
-      setVoiceState("ready");
-    } catch (error) {
-      setVoiceError(error instanceof Error ? error.message : String(error));
+  function startVoice() {
+    if (!navigator.onLine) {
+      setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
       setVoiceState("error");
+      return;
     }
-  }
 
-  async function startVoice() {
-    if (!voiceRef.current) return;
+    const Recognition = getBrowserSpeechRecognition();
+    if (!Recognition) {
+      setVoiceState("unavailable");
+      setVoiceError("This browser does not expose speech recognition. Type instead.");
+      return;
+    }
+
+    const recognition = new Recognition();
+    const base = text.trim();
+    recognition.lang = language === "sw" ? "sw-KE" : "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let index = 0; index < event.results.length; index++) {
+        transcript += event.results[index]?.[0]?.transcript ?? "";
+      }
+      const clean = transcript.trim();
+      setText([base, clean].filter(Boolean).join(base && clean ? " " : ""));
+    };
+    recognition.onend = () => {
+      voiceRef.current = null;
+      setVoiceState("idle");
+    };
+    recognition.onerror = (event) => {
+      voiceRef.current = null;
+      setVoiceState("idle");
+      setVoiceError(
+        event.error === "not-allowed"
+          ? "Allow microphone access and try again."
+          : "Voice transcription failed. Typing remains available.",
+      );
+    };
+
+    setVoiceError("");
+    voiceRef.current = recognition;
     setVoiceState("listening");
-    setVoiceError("");
     try {
-      await voiceRef.current.start();
-    } catch (error) {
-      setVoiceError(error instanceof Error ? error.message : String(error));
+      recognition.start();
+    } catch {
+      voiceRef.current = null;
       setVoiceState("error");
+      setVoiceError("Voice could not start on this browser.");
     }
   }
 
-  async function stopVoice() {
-    if (!voiceRef.current) return;
-    await voiceRef.current.stop();
-    setVoiceState("ready");
+  function stopVoice() {
+    voiceRef.current?.stop();
   }
 
   async function submit() {
     if (text.trim().length < 3 || busy) return;
-    if (voiceState === "listening") await stopVoice();
+    if (voiceState === "listening") stopVoice();
     setBusy(true);
     const result = await activeClassifier.classify(text.trim());
     const id = crypto.randomUUID();
@@ -355,8 +397,6 @@ function GuestScreen() {
     sessionStorage.setItem("guestbook-pending-id", id);
     go("/review?id=" + encodeURIComponent(id));
   }
-
-  const progress = voiceProgress ? Math.round(voiceProgress.fraction * 100) : 0;
 
   return (
     <Shell route="guest" layout="normal">
@@ -394,13 +434,17 @@ function GuestScreen() {
 
           <div className="capture-tools">
             <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={() => mediaRef.current?.click()}>Attach photo</BaseButton>
-            {language === "en" && (voiceState === "idle" || voiceState === "error") && <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={prepareVoice}>Prepare offline voice</BaseButton>}
-            {language === "en" && voiceState === "ready" && <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={startVoice}>Speak offline</BaseButton>}
-            {language === "en" && voiceState === "listening" && <BaseButton hierarchy="negative" size="small" shape="rect" onClick={stopVoice}>Stop recording</BaseButton>}
+            {voiceState !== "listening" && voiceState !== "unavailable" && (
+              <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={startVoice}>Speak now</BaseButton>
+            )}
+            {voiceState === "listening" && (
+              <BaseButton hierarchy="negative" size="small" shape="rect" onClick={stopVoice}>Stop listening</BaseButton>
+            )}
           </div>
 
-          {voiceState === "loading" && <div className="voice-progress"><BaseProgress value={progress || 8} /><span>Preparing offline voice{progress ? " · " + progress + "%" : ""}</span></div>}
-          {voiceError && <BaseBanner tone="negative">{voiceError} Typing remains available.</BaseBanner>}
+          {voiceState === "unavailable" && <BaseBanner tone="neutral">Voice is unavailable in this browser. Typing and local Guestbook inference still work offline.</BaseBanner>}
+          {voiceError && <BaseBanner tone="negative">{voiceError}</BaseBanner>}
+          {voiceState !== "unavailable" && <span className="paragraph-small">Voice uses the phone browser's speech service while connected. No Guestbook voice-model download is required.</span>}
         </section>
 
         <aside className="guest-context">
@@ -737,10 +781,7 @@ function SystemScreen() {
   const { rows, refresh } = useObservations();
   const [tab, setTab] = useState("Offline");
   const [offlineReady, setOfflineReady] = useState(false);
-  const [voiceState, setVoiceState] = useState<"idle" | "loading" | "ready" | "error">(() => localStorage.getItem("guestbook-moonshine-voice-v1") ? "ready" : "idle");
-  const [voiceProgress, setVoiceProgress] = useState<VoiceProgress | null>(null);
-  const [voiceError, setVoiceError] = useState("");
-  const voiceRef = useRef<OfflineVoiceController | null>(null);
+  const browserVoiceAvailable = Boolean(getBrowserSpeechRecognition());
   const [labText, setLabText] = useState("How much is entry and can I pay by card?");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
@@ -748,28 +789,7 @@ function SystemScreen() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.ready.then(() => setOfflineReady(true)).catch(() => setOfflineReady(false));
-    return () => voiceRef.current?.close();
   }, []);
-
-  async function installVoice() {
-    setVoiceState("loading");
-    setVoiceError("");
-    try {
-      const controller = await createOfflineVoice({
-        onText: () => {},
-        onLine: () => {},
-        onProgress: setVoiceProgress,
-        onError: (error) => { setVoiceError(error.message); setVoiceState("error"); },
-      });
-      voiceRef.current = controller;
-      await controller.load();
-      localStorage.setItem("guestbook-moonshine-voice-v1", "cached");
-      setVoiceState("ready");
-    } catch (error) {
-      setVoiceError(error instanceof Error ? error.message : String(error));
-      setVoiceState("error");
-    }
-  }
 
   async function runInference() {
     const result = await activeClassifier.classify(labText);
@@ -811,8 +831,6 @@ function SystemScreen() {
     go("/memory");
   }
 
-  const voicePct = voiceProgress ? Math.round(voiceProgress.fraction * 100) : 0;
-
   return (
     <Shell route="system" layout="compact">
       <main className="compact-grid compact-page">
@@ -848,13 +866,14 @@ function SystemScreen() {
 
           {tab === "Voice" && (
             <div className="system-stack">
-              <BaseBanner tone="accent">Voice is an optional input adapter. The business classifier remains the ~240 KB local model.</BaseBanner>
-              <div className="voice-system-row">
-                <div><span className="label-small">English offline voice</span><h2>{voiceState === "ready" ? "Installed / cached" : voiceState === "loading" ? "Preparing…" : "Not installed"}</h2><p>Moonshine Tiny Streaming via WebAssembly. Kiswahili remains typed in this build.</p></div>
-                <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={installVoice} disabled={voiceState === "loading"}>{voiceState === "ready" ? "Reload voice pack" : "Install offline voice"}</BaseButton>
+              <BaseBanner tone="accent">Voice is an optional connected input adapter. The critical Guestbook classifier remains local and offline.</BaseBanner>
+              <div className="system-list">
+                <div><span>Guestbook voice-model download</span><strong>0 MB</strong></div>
+                <div><span>Browser speech API</span><strong>{browserVoiceAvailable ? "Available" : "Unavailable"}</strong></div>
+                <div><span>Offline free-form speech</span><strong>Not claimed</strong></div>
+                <div><span>Offline typed inference</span><strong>~240 KB · local</strong></div>
               </div>
-              {voiceState === "loading" && <><BaseProgress value={voicePct || 8} tone="accent" /><span className="paragraph-small">{voicePct ? voicePct + "%" : "Preparing model files…"}</span></>}
-              {voiceError && <BaseBanner tone="negative">{voiceError}</BaseBanner>}
+              <BaseBanner tone="neutral">General free-form offline speech recognition does not fit a credible ~1 MB model budget. Guestbook therefore keeps speech connected and optional instead of hiding a tens-of-megabytes download behind the core flow.</BaseBanner>
             </div>
           )}
 
