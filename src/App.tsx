@@ -146,6 +146,68 @@ function Guest() {
   );
 }
 
+
+function Capture() {
+  const [source, setSource] = useState<"guide" | "operator">("guide");
+  const [language, setLanguage] = useState("en");
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (text.trim().length < 3 || busy) return;
+    setBusy(true);
+    const result = await activeClassifier.classify(text.trim());
+    const id = crypto.randomUUID();
+    const observation: Observation = {
+      id,
+      visitId: crypto.randomUUID(),
+      rawText: text.trim(),
+      language,
+      source,
+      createdAt: Date.now(),
+      predictions: result.predictions,
+      confirmedLabels: [],
+      status: "pending",
+    };
+    await db.observations.add(observation);
+    go("/review?id=" + encodeURIComponent(id));
+  }
+
+  return (
+    <Shell operator>
+      <section className="narrow">
+        <p className="eyebrow">CAPTURE LATER · SAME OFFLINE LOOP</p>
+        <h1 className="screen-title">Keep what the guest said.</h1>
+        <p className="lede">If the guest never touches the phone, the guide or operator can record the observation afterward. Guestbook stores the source separately and still requires review.</p>
+        <div className="capture-controls">
+          <div className="language-switch" role="group" aria-label="Observation source">
+            <button className={source === "guide" ? "language active" : "language"} onClick={() => setSource("guide")}>GUIDE</button>
+            <button className={source === "operator" ? "language active" : "language"} onClick={() => setSource("operator")}>OPERATOR</button>
+          </div>
+          <div className="language-switch" role="group" aria-label="Language">
+            <button className={language === "en" ? "language active" : "language"} onClick={() => setLanguage("en")}>ENGLISH</button>
+            <button className={language === "sw" ? "language active" : "language"} onClick={() => setLanguage("sw")}>KISWAHILI</button>
+          </div>
+        </div>
+        <textarea
+          className="guest-input"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          placeholder="They loved the roasting, said the road was difficult, and asked whether we sell beans."
+          rows={7}
+          autoFocus
+        />
+        <div className="input-footer">
+          <span>{text.length} characters · source: {source}</span>
+          <button className="primary" disabled={text.trim().length < 3 || busy} onClick={submit}>
+            {busy ? "Understanding locally…" : "Interpret observation"}
+          </button>
+        </div>
+      </section>
+    </Shell>
+  );
+}
+
 function Review() {
   const params = new URLSearchParams(window.location.search);
   const requestedId = params.get("id");
@@ -187,7 +249,7 @@ function Review() {
     <Shell operator>
       <section className="review-layout">
         <div>
-          <p className="eyebrow">HUMAN REVIEW</p>
+          <p className="eyebrow">HUMAN REVIEW · {observation.source.toUpperCase()} SOURCE</p>
           <h1 className="screen-title">What Guestbook heard.</h1>
           <blockquote className="source-quote">“{observation.rawText}”</blockquote>
           <p className="microcopy">Nothing below replaces the original words. Tap any signal to correct the model before it enters memory.</p>
@@ -225,6 +287,31 @@ function Review() {
   );
 }
 
+function exportMemory(observations: Observation[]) {
+  const rows = observations
+    .filter((observation) => observation.status === "confirmed" && !observation.isDemo)
+    .map((observation) => ({
+      id: observation.id,
+      visitId: observation.visitId,
+      source: observation.source,
+      language: observation.language,
+      createdAt: new Date(observation.createdAt).toISOString(),
+      rawText: observation.rawText,
+      confirmedLabels: observation.confirmedLabels,
+    }));
+  const payload = JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    product: "Guestbook",
+    records: rows,
+  }, null, 2);
+  const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "guestbook-local-memory.json";
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 function Memory() {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [expanded, setExpanded] = useState<SignalLabel | null>(null);
@@ -243,7 +330,9 @@ function Memory() {
           <h1 className="screen-title">What keeps repeating?</h1>
         </div>
         <div className="memory-actions">
-          <button className="secondary" onClick={() => go("/guest")}>Add visit</button>
+          <button className="secondary" onClick={() => go("/guest")}>Guest entry</button>
+          <button className="secondary" onClick={() => go("/capture")}>Capture later</button>
+          <button className="secondary" onClick={() => exportMemory(observations)}>Export</button>
           <button className="primary" onClick={() => go("/decide")}>What should I act on?</button>
         </div>
       </section>
@@ -264,7 +353,7 @@ function Memory() {
                 <div className="evidence-list">
                   {signal.observations.map((obs) => (
                     <div key={obs.id} className="evidence-item">
-                      <span>{obs.language.toUpperCase()} · {obs.isDemo ? "DEMO VISIT" : "VISIT"}</span>
+                      <span>{obs.language.toUpperCase()} · {obs.isDemo ? "DEMO VISIT" : obs.source.toUpperCase()}</span>
                       <p>“{obs.rawText}”</p>
                     </div>
                   ))}
@@ -323,7 +412,7 @@ function Decide() {
 }
 
 function Lab() {
-  const [text, setText] = useState("The roasting was amazing, my mother struggled with the steep walk, and can we buy beans afterward?");
+  const [text, setText] = useState("We loved the roasting, the road was terrible, and we want to buy beans.");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [report, setReport] = useState<Awaited<ReturnType<typeof activeClassifier.benchmark>> | null>(null);
@@ -406,6 +495,7 @@ export default function App() {
   const path = location.split("?")[0];
   if (path === "/guest") return <Guest />;
   if (path === "/review") return <Review />;
+  if (path === "/capture") return <Capture />;
   if (path === "/memory") return <Memory />;
   if (path === "/decide") return <Decide />;
   if (path === "/lab") return <Lab />;
