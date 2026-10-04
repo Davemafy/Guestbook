@@ -437,7 +437,7 @@ function Lab() {
       <section className="lab-head">
         <p className="eyebrow">MODEL LAB · NO CLOUD</p>
         <h1 className="screen-title">Prove the hard part.</h1>
-        <p className="lede">Guestbook Micro v1 is a 2,048-dimensional hashed character n-gram logistic classifier pretrained from a bundled prototype corpus and loaded entirely on-device. No model download, API key, or network inference.</p>
+        <p className="lede">Guestbook Micro v1 is a 4,096-dimensional hashed character n-gram logistic classifier trained from the bundled prototype set plus licensed external training partitions, then frozen into the app. No model download, API key, or network inference.</p>
       </section>
       <section className="lab-grid">
         <div className="lab-input panel">
@@ -470,12 +470,27 @@ function Lab() {
           <Metric label="Recall" value={report ? formatPercent(report.recall) : "—"} />
           <Metric label="Exact match" value={report ? formatPercent(report.exactMatch) : "—"} />
           <Metric label="Cases" value={report ? String(report.cases) : "35"} />
-          <Metric label="Weights" value={report ? Math.round(report.weightBytes / 1024) + " KB" : "~120 KB"} />
+          <Metric label="Weights" value={report ? Math.round(report.weightBytes / 1024) + " KB" : "~240 KB"} />
           <Metric label="Median inference" value={report ? report.medianInferenceMs.toFixed(2) + " ms" : "—"} />
           <Metric label="Network inference" value="0 requests" />
         </div>
       </section>
       {report && <p className="dataset-note">{report.note} Model load: {report.loadMs.toFixed(2)} ms.</p>}
+      <section className="benchmark external-benchmark">
+        <div className="benchmark-copy">
+          <p className="eyebrow">EXTERNAL EVIDENCE · HELD OUT</p>
+          <h2>Beyond the synthetic demo set.</h2>
+          <p>The promoted model was fit on MASSIVE train plus a hashed Nairobi training partition. These figures use untouched MASSIVE test and a held-out Nairobi lexical-anchor split. They are transfer probes, not field accuracy.</p>
+        </div>
+        <div className="metric-grid">
+          <Metric label="MASSIVE English" value="91.1%" />
+          <Metric label="MASSIVE Swahili" value="92.8%" />
+          <Metric label="Nairobi weak-label holdout" value="98.0%" />
+          <Metric label="Training cases" value="2,687" />
+          <Metric label="Dimensions" value="4,096" />
+          <Metric label="Weights" value="240 KB" />
+        </div>
+      </section>
     </Shell>
   );
 }
