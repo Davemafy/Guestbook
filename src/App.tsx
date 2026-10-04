@@ -785,7 +785,7 @@ function SystemScreen() {
   const [labText, setLabText] = useState("How much is entry and can I pay by card?");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
-  const [benchmark, setBenchmark] = useState<{ f1: number; precision: number; recall: number; exactMatch: number; cases: number; weightBytes: number } | null>(null);
+  const [benchmark, setBenchmark] = useState<{ f1: number; precision: number; recall: number; exactMatch: number; cases: number; weightBytes: number; contradictionGuardCases?: number; contradictionGuardPassed?: number } | null>(null);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.ready.then(() => setOfflineReady(true)).catch(() => setOfflineReady(false));
@@ -898,6 +898,7 @@ function SystemScreen() {
                 <div className="metric-row"><span>Precision</span><strong>{benchmark ? formatPercent(benchmark.precision) : "92.5%"}</strong></div>
                 <div className="metric-row"><span>Recall</span><strong>{benchmark ? formatPercent(benchmark.recall) : "88.1%"}</strong></div>
                 <div className="metric-row"><span>Exact match</span><strong>{benchmark ? formatPercent(benchmark.exactMatch) : "82.9%"}</strong></div>
+                <div className="metric-row"><span>Contradiction guards</span><strong>{benchmark ? (benchmark.contradictionGuardPassed ?? 0) + "/" + (benchmark.contradictionGuardCases ?? 0) : "9 policy checks"}</strong></div>
                 <BaseBanner tone="neutral">External probes: MASSIVE English 91.1%, Swahili 92.8%, Nairobi weak-label agreement 98.0%. These are not field accuracy.</BaseBanner>
               </div>
             </div>
