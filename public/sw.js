@@ -1,5 +1,10 @@
-const CACHE = "guestbook-shell-v4";
-const STATIC = ["/manifest.webmanifest", "/icon.svg"];
+const CACHE = "guestbook-shell-v5";
+const STATIC = [
+  "/manifest.webmanifest",
+  "/icon.svg",
+  "/fonts/UberMoveMedium.woff2",
+  "/fonts/UberMoveBold.woff2",
+];
 
 async function precacheCurrentBuild() {
   const cache = await caches.open(CACHE);
