@@ -109,7 +109,7 @@ type Route = "guest" | "review" | "memory" | "evidence" | "decide" | "system";
 type BannerTone = "accent" | "positive" | "warning" | "negative" | "neutral";
 type ButtonHierarchy = "primary" | "secondary" | "tertiary" | "negative";
 type ButtonSize = "small" | "medium";
-type ButtonShape = "rect" | "pill";
+type ButtonShape = "rect";
 
 const NAV: Array<{ key: Route; label: string; path: string }> = [
   { key: "guest", label: "Guest", path: "/" },
@@ -210,7 +210,7 @@ function BaseButtonGroup({
   items,
   value,
   onChange,
-  shape = "pill",
+  shape = "rect",
   size = "small",
 }: {
   items: Array<{ value: string; label: string }>;
@@ -251,10 +251,6 @@ function BaseBanner({
       {action && <div className="banner-action">{action}</div>}
     </div>
   );
-}
-
-function BaseBadge({ children, tone = "neutral" }: { children: ReactNode; tone?: BannerTone }) {
-  return <span className={"base-badge " + tone}>{children}</span>;
 }
 
 function DockedAction({ children }: { children: ReactNode }) {
@@ -644,19 +640,19 @@ function GuestScreen() {
           {mediaDataUrl && (
             <div className="media-preview">
               <img src={mediaDataUrl} alt="" />
-              <div><span className="label-small">Attached photo</span><BaseButton hierarchy="tertiary" size="small" shape="rect" onClick={() => setMediaDataUrl("")}>Remove</BaseButton></div>
+              <div><span>Attached photo</span><BaseButton hierarchy="tertiary" size="small" shape="rect" onClick={() => setMediaDataUrl("")}>Remove</BaseButton></div>
             </div>
           )}
 
           <input ref={mediaRef} className="sr-only" type="file" accept="image/*" onChange={(event) => attachPhoto(event.target.files?.[0])} />
 
-          {voiceState === "unavailable" && <BaseBanner tone="neutral">Voice is unavailable in this browser. Typing and local Guestbook inference still work offline.</BaseBanner>}
+          {voiceState === "unavailable" && <div className="inline-note">Voice is unavailable in this browser. Typing and local Guestbook inference still work offline.</div>}
           {voiceError && <BaseBanner tone="negative">{voiceError}</BaseBanner>}
         </section>
 
         <aside className="guest-context">
           <div className="context-rule">
-            <div className="label-small">What happens next</div>
+            <h2 className="context-heading">What happens next</h2>
             <div className="context-step"><strong>Interpret</strong><p>~240 KB classifier. No inference request.</p></div>
             <div className="context-step"><strong>Review</strong><p>A person confirms or corrects the signals.</p></div>
             <div className="context-step"><strong>Remember</strong><p>Only confirmed evidence accumulates across distinct visits.</p></div>
@@ -666,7 +662,7 @@ function GuestScreen() {
 
       <DockedAction>
         <div className="normal-grid dock-grid">
-          <div className="dock-copy"><span className="label-small">Source stays attached</span><span>Guest words remain evidence, not a generated summary.</span></div>
+          <div className="dock-copy"><strong>Source stays attached</strong><span>Guest words remain evidence, not a generated summary.</span></div>
           <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={submit} disabled={text.trim().length < 3 || busy}>
             {busy ? "Interpreting locally…" : "Interpret locally"}
           </BaseButton>
@@ -725,7 +721,7 @@ function ReviewScreen() {
           {observation ? (
             <div className="source-block">
               <div className="source-meta">
-                <BaseBadge>{sourceLabel(observation)}</BaseBadge>
+                <strong>{sourceLabel(observation)}</strong>
                 <span>{observation.language.toUpperCase()}</span>
                 <span>{formatAge(observation.createdAt)}</span>
               </div>
@@ -733,14 +729,14 @@ function ReviewScreen() {
               {observation.mediaDataUrl && <img className="review-media" src={observation.mediaDataUrl} alt="" />}
             </div>
           ) : (
-            <BaseBanner tone="neutral">No pending observation. Capture a guest message first.</BaseBanner>
+            <div className="empty-inline">No pending observation. Capture a guest message first.</div>
           )}
         </section>
 
         <section className="review-signals">
           <div className="section-heading">
-            <div><span className="label-small">Local interpretation</span><h2>Proposed signals</h2></div>
-            <div className="proof-inline"><span>~240 KB</span><span>0 network</span></div>
+            <div><h2>Proposed signals</h2></div>
+            <div className="proof-inline"><span>~240 KB local classifier</span><span>No inference request</span></div>
           </div>
 
           {observation && (
@@ -772,7 +768,7 @@ function ReviewScreen() {
                     items={LABELS.filter((label) => label !== "UNKNOWN").map((label) => ({ value: label, label: LABEL_META[label].title }))}
                     value=""
                     onChange={(value) => toggle(value as SignalLabel)}
-                    shape="pill"
+                    shape="rect"
                     size="small"
                   />
                 </div>
@@ -790,7 +786,7 @@ function ReviewScreen() {
 
       <DockedAction>
         <div className="compact-grid dock-grid">
-          <div className="dock-copy"><span className="label-small">Human authority</span><span>Model scores are not calibrated probabilities.</span></div>
+          <div className="dock-copy"><strong>Human authority</strong><span>Model scores are not calibrated probabilities.</span></div>
           <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={confirm} disabled={!observation || (hasSensitive && !sensitiveConfirmed)}>Confirm into memory</BaseButton>
         </div>
       </DockedAction>
@@ -893,7 +889,7 @@ function EvidenceScreen() {
               <article className="evidence-row" key={observation.id}>
                 <div className="evidence-quote">“{observation.rawText}”</div>
                 <div className="evidence-meta">
-                  <BaseBadge tone={observation.isDemo ? "neutral" : "positive"}>{observation.isDemo ? "Demo" : "Real"}</BaseBadge>
+                  <strong>{observation.isDemo ? "Demo source" : "Confirmed source"}</strong>
                   <span>{sourceLabel(observation)}</span>
                   <span>{observation.language.toUpperCase()}</span>
                   <span>{formatAge(observation.createdAt)}</span>
@@ -951,7 +947,7 @@ function DecideScreen() {
                 shape="rect"
                 size="medium"
               />
-              {decision && <BaseBanner tone={decision === "Wrong signal" ? "negative" : decision === "Explore" ? "positive" : "neutral"}>Decision saved locally: {decision}.</BaseBanner>}
+              {decision && <div className={"decision-state " + (decision === "Wrong signal" ? "negative" : decision === "Explore" ? "positive" : "neutral")}>Decision saved locally: {decision}.</div>}
             </section>
 
             <section className="decision-proof">
@@ -965,7 +961,8 @@ function DecideScreen() {
             </section>
 
             <section className="decision-boundary">
-              <BaseBanner tone="accent">Guestbook does not set prices, order stock, send messages, change bookings, or take action automatically.</BaseBanner>
+              <h2>Guestbook stops before action.</h2>
+              <p>It does not set prices, order stock, send messages, change bookings, or act automatically.</p>
             </section>
           </>
         ) : (
@@ -1057,7 +1054,7 @@ function SystemScreen() {
                 <div><span>Business memory</span><strong>IndexedDB</strong></div>
               </div>
               <div className="proof-sequence">
-                <div className="label-small">Cold proof</div>
+                <h2>Cold proof</h2>
                 <ol><li>Wait for Offline ready.</li><li>Close the tab.</li><li>Disconnect.</li><li>Reopen Guestbook.</li><li>Enter an unseen sentence.</li><li>Classify, confirm, and reopen memory.</li></ol>
               </div>
             </div>
@@ -1065,14 +1062,14 @@ function SystemScreen() {
 
           {tab === "Voice" && (
             <div className="system-stack">
-              <BaseBanner tone="accent">Voice is an optional connected input adapter. The critical Guestbook classifier remains local and offline.</BaseBanner>
+              <div className="system-note"><strong>Voice is optional and connected.</strong><span>The critical Guestbook classifier remains local and offline.</span></div>
               <div className="system-list">
                 <div><span>Guestbook voice-model download</span><strong>0 MB</strong></div>
                 <div><span>Browser speech API</span><strong>{browserVoiceAvailable ? "Available" : "Unavailable"}</strong></div>
                 <div><span>Offline free-form speech</span><strong>Not claimed</strong></div>
                 <div><span>Offline typed inference</span><strong>~240 KB · local</strong></div>
               </div>
-              <BaseBanner tone="neutral">General free-form offline speech recognition does not fit a credible ~1 MB model budget. Guestbook therefore keeps speech connected and optional instead of hiding a tens-of-megabytes download behind the core flow.</BaseBanner>
+              <div className="system-caveat">General free-form offline speech recognition does not fit a credible ~1 MB model budget. Guestbook keeps speech connected and optional instead of hiding a tens-of-megabytes download behind the core flow.</div>
             </div>
           )}
 
@@ -1086,19 +1083,19 @@ function SystemScreen() {
                 {inferenceMs !== null && <span className="paragraph-small">{inferenceMs.toFixed(2)} ms on this device</span>}
               </div>
               <div className="model-results">
-                <div className="section-heading"><div><span className="label-small">Predictions</span><h2>Model output</h2></div></div>
+                <div className="section-heading"><div><h2>Model output</h2></div></div>
                 <div className="system-list">
                   {predictions.length ? predictions.map((prediction) => <div key={prediction.label}><span>{LABEL_META[prediction.label].title}</span><strong>{formatPercent(prediction.score)}</strong></div>) : <div><span>No run yet</span><strong>—</strong></div>}
                 </div>
               </div>
               <div className="benchmark-panel">
-                <div className="section-heading"><div><span className="label-small">Frozen stress set</span><h2>Regression evidence</h2></div><BaseButton hierarchy="secondary" size="small" shape="rect" onClick={runBenchmark}>Run benchmark</BaseButton></div>
+                <div className="section-heading"><div><h2>Regression evidence</h2></div><BaseButton hierarchy="secondary" size="small" shape="rect" onClick={runBenchmark}>Run benchmark</BaseButton></div>
                 <div className="metric-row"><span>Micro F1</span><strong>{benchmark ? formatPercent(benchmark.f1) : "90.2%"}</strong></div>
                 <div className="metric-row"><span>Precision</span><strong>{benchmark ? formatPercent(benchmark.precision) : "92.5%"}</strong></div>
                 <div className="metric-row"><span>Recall</span><strong>{benchmark ? formatPercent(benchmark.recall) : "88.1%"}</strong></div>
                 <div className="metric-row"><span>Exact match</span><strong>{benchmark ? formatPercent(benchmark.exactMatch) : "82.9%"}</strong></div>
                 <div className="metric-row"><span>Contradiction guards</span><strong>{benchmark ? (benchmark.contradictionGuardPassed ?? 0) + "/" + (benchmark.contradictionGuardCases ?? 0) : "9 policy checks"}</strong></div>
-                <BaseBanner tone="neutral">External probes: MASSIVE English 91.1%, Swahili 92.8%, Nairobi weak-label agreement 98.0%. These are not field accuracy.</BaseBanner>
+                <div className="system-caveat">External probes: MASSIVE English 91.1%, Swahili 92.8%, Nairobi weak-label agreement 98.0%. These are not field accuracy.</div>
               </div>
             </div>
           )}
