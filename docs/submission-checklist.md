@@ -21,7 +21,7 @@
 
 **Reset demo before each recorded take:** open `/lab` → **Reset demo**. This restores five marked product-request demo visits so the new guest becomes the visible sixth visit.
 
-If the Guest screen reports **VOICE READY**, speak the observation locally. If it reports unavailable, type it; do not troubleshoot voice during the recorded take.
+If the Moonshine voice pack is already installed and the Guest screen reports **VOICE READY**, speak the observation locally. Otherwise type it; do not troubleshoot voice during the recorded take.
 
 Use this exact tested observation:
 
@@ -67,7 +67,7 @@ Flow:
 
 - Do not call the synthetic, MASSIVE-transfer, or Nairobi weak-label metrics field accuracy.
 - Do not claim every language is supported.
-- Do not claim voice transcription exists in the submission build.
+- Voice is optional and real in the submission build through Moonshine WASM. Do not imply Kiswahili voice support or any cloud speech fallback.
 - Do not claim two disconnected phones synchronize offline.
 - Do not call model scores calibrated probabilities.
 - Do not claim real customer adoption or measured revenue impact.
