@@ -9,6 +9,7 @@ Guestbook is an offline-first Small AI prototype for small tourism operators. It
 ## Working product
 
 - Guest mode with English and Kiswahili prompts
+- Capability-gated browser-local English voice; typing remains the guaranteed fallback
 - Local multi-label inference with zero network requests
 - Human review and correction before a signal enters memory
 - Guide/operator capture when a guest never uses the phone
@@ -22,6 +23,12 @@ Guestbook is an offline-first Small AI prototype for small tourism operators. It
 ## Device model
 
 Guestbook's offline MVP uses **one shared smartphone** owned by the operator, guide, cooperative, or family member. A visitor can be handed that phone for a short interaction, or the guide/operator can capture the visitor's words afterward. The MVP does not pretend that two disconnected phones can silently sync with each other. Store-and-forward export is a future extension, not part of the critical demo path.
+
+## Voice input
+
+Guestbook treats speech recognition as an **input adapter**, not as the business-intelligence model. On browsers that expose on-device `SpeechRecognition.available()`, Guestbook checks specifically for an English local language pack with `processLocally: true`. If the pack is downloadable, the user may install it once through the browser. Recognition is only started after the browser reports local availability.
+
+Guestbook never silently falls back to cloud speech. If local recognition is unavailable, the microphone control is disabled and typing remains available. Kiswahili remains a typed path unless the browser itself reports a compatible local pack.
 
 ## Small AI architecture
 
