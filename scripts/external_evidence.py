@@ -71,7 +71,7 @@ def vectorize(text):
 def load_model():
     src = (ROOT / "src/ai/pretrained.ts").read_text(encoding="utf-8")
     b64 = re.search(r'MODEL_BASE64 = "([^"]+)"', src).group(1)
-    dim = int(re.search(r"MODEL_DIM = (\\d+)", src).group(1))
+    dim = int(re.search(r"MODEL_DIM = (\d+)", src).group(1))
     threshold = float(re.search(r"MODEL_THRESHOLD = ([0-9.]+)", src).group(1))
     floats = np.frombuffer(base64.b64decode(b64), dtype="<f4")
     weight_count = len(LABELS) * dim
@@ -95,25 +95,25 @@ def classify(text):
 # They are kept narrow and readable rather than tuned against the test set.
 BASELINE_RULES = {
     "WANT_PRODUCT": [
-        re.compile(r"\\b(buy|purchase|take .*home|for sale|sell|order)\\b", re.I),
-        re.compile(r"\\b(kununua|mnauza|nataka .*maharagwe)\\b", re.I),
+        re.compile(r"\b(buy|purchase|take .*home|for sale|sell|order)\b", re.I),
+        re.compile(r"\b(kununua|mnauza|nataka .*maharagwe)\b", re.I),
     ],
     "WANT_BOOKING": [
-        re.compile(r"\\b(book|reserve|reservation|schedule|available|space|room)\\b", re.I),
-        re.compile(r"\\b(come|visit).{0,20}\\b(saturday|sunday|friday|tomorrow|next)\\b", re.I),
-        re.compile(r"\\b(kuja|kuweka nafasi|kuhifadhi|nafasi)\\b", re.I),
+        re.compile(r"\b(book|reserve|reservation|schedule|available|space|room)\b", re.I),
+        re.compile(r"\b(come|visit).{0,20}\b(saturday|sunday|friday|tomorrow|next)\b", re.I),
+        re.compile(r"\b(kuja|kuweka nafasi|kuhifadhi|nafasi)\b", re.I),
     ],
     "ASK_ACCESS": [
-        re.compile(r"\\b(how (?:do|can|will) (?:we|i) (?:get|reach)|way to|get there|where (?:is|are)|directions?|route|transport|taxi|bus|pickup|located)\\b", re.I),
-        re.compile(r"\\b(tutafikaje|wapi|usafiri|njia|iko mbali)\\b", re.I),
+        re.compile(r"\b(how (?:do|can|will) (?:we|i) (?:get|reach)|way to|get there|where (?:is|are)|directions?|route|transport|taxi|bus|pickup|located)\b", re.I),
+        re.compile(r"\b(tutafikaje|wapi|usafiri|njia|iko mbali)\b", re.I),
     ],
     "ASK_PRICE": [
-        re.compile(r"\\b(how much|price|cost|fee|charge|pay per person|cheapest)\\b", re.I),
-        re.compile(r"\\b(bei|gharama|kiingilio)\\b", re.I),
+        re.compile(r"\b(how much|price|cost|fee|charge|pay per person|cheapest)\b", re.I),
+        re.compile(r"\b(bei|gharama|kiingilio)\b", re.I),
     ],
     "ASK_PAYMENT": [
-        re.compile(r"\\b(card|cash|visa|mastercard|m-?pesa|mobile money|bank transfer|payment method|electronically|debit)\\b", re.I),
-        re.compile(r"\\b(kadi|malipo|pesa taslimu|kulipa)\\b", re.I),
+        re.compile(r"\b(card|cash|visa|mastercard|m-?pesa|mobile money|bank transfer|payment method|electronically|debit)\b", re.I),
+        re.compile(r"\b(kadi|malipo|pesa taslimu|kulipa)\b", re.I),
     ],
 }
 
