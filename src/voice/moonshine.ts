@@ -19,6 +19,9 @@ export type OfflineVoiceController = {
   close: () => void;
 };
 
+const MOONSHINE_MIRROR =
+  "https://huggingface.co/moonshine-ai/moonshine-voice-assets/resolve/v0.1.5/model/tiny-streaming-en/quantized_26_08_21";
+
 const KEYTERMS = [
   "coffee",
   "coffee beans",
@@ -42,6 +45,7 @@ export async function createOfflineVoice(callbacks: VoiceCallbacks): Promise<Off
   const mic = new MicTranscriber()
     .language("en")
     .modelArch(ModelArch.TinyStreaming)
+    .modelsFrom(MOONSHINE_MIRROR)
     .onText((text) => callbacks.onText(text))
     .onLine((line) => callbacks.onLine(line.text))
     .onProgress((fraction, file, progress) => {
