@@ -2,15 +2,42 @@
   font-family: "Uber Move";
   src: url("/fonts/UberMoveMedium.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 600;
+  font-weight: 400;
   font-display: swap;
 }
-
+@font-face {
+  font-family: "Uber Move";
+  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move";
+  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
 @font-face {
   font-family: "Uber Move";
   src: url("/fonts/UberMoveBold.woff2") format("woff2");
   font-style: normal;
-  font-weight: 700 900;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move";
+  src: url("/fonts/UberMoveBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move";
+  src: url("/fonts/UberMoveBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
   font-display: swap;
 }
 
@@ -18,15 +45,42 @@
   font-family: "Uber Move Text";
   src: url("/fonts/UberMoveMedium.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 600;
+  font-weight: 400;
   font-display: swap;
 }
-
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
 @font-face {
   font-family: "Uber Move Text";
   src: url("/fonts/UberMoveBold.woff2") format("woff2");
   font-style: normal;
-  font-weight: 700 900;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("/fonts/UberMoveBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Uber Move Text";
+  src: url("/fonts/UberMoveBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
   font-display: swap;
 }
 
