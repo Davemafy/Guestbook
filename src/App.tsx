@@ -244,15 +244,6 @@ function DockedAction({ children }: { children: ReactNode }) {
   return <div className="docked-action">{children}</div>;
 }
 
-function NavGlyph({ route }: { route: Exclude<Route, "system"> }) {
-  const common = { width: 20, height: 20, viewBox: "0 0 20 20", "aria-hidden": true } as const;
-  if (route === "guest") return <svg {...common} fill="none"><path d="M3 8.25 10 2.75l7 5.5V17H12v-5H8v5H3V8.25Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/></svg>;
-  if (route === "review") return <svg {...common} fill="none"><path d="m4.5 10 3.1 3.1L15.8 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-  if (route === "memory") return <svg {...common} fill="none"><path d="M4 4h12v12H4z" stroke="currentColor" strokeWidth="1.6"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>;
-  if (route === "evidence") return <svg {...common} fill="none"><path d="M3.5 5.5h13v9h-13z" stroke="currentColor" strokeWidth="1.6"/><path d="M6.5 8h7M6.5 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>;
-  return <svg {...common} fill="none"><path d="M4 10.5 8 14l8-8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 3v3M17 10h-3M10 17v-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>;
-}
-
 function Shell({ route, children, layout = "compact" }: { route: Route; children: ReactNode; layout?: "normal" | "compact" }) {
   const [online, setOnline] = useState(navigator.onLine);
   const [offlineReady, setOfflineReady] = useState(false);
@@ -297,7 +288,6 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
       <nav className="base-bottom-navigation" aria-label="Primary mobile navigation">
         {mobileNav.map((item) => (
           <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
-            <span className="bottom-nav-icon"><NavGlyph route={item.key} /></span>
             <span>{item.label}</span>
           </button>
         ))}
@@ -357,23 +347,6 @@ function VoiceActivityVisualizer({ active, speaking, pulse }: { active: boolean;
         />
       ))}
     </div>
-  );
-}
-
-function PaperclipIcon() {
-  return (
-    <svg className="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.9-9.9a4 4 0 0 1 5.66 5.66l-9.9 9.9a2 2 0 0 1-2.83-2.83l9.19-9.19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function MicIcon() {
-  return (
-    <svg className="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8"/>
-      <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-    </svg>
   );
 }
 
@@ -693,13 +666,12 @@ function GuestScreen() {
               <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
             </Field>
             <div className="composer-controls">
-              <button className="composer-icon-button" type="button" onClick={() => mediaRef.current?.click()} aria-label="Attach photo" title="Attach photo">
-                <PaperclipIcon />
+              <button className="composer-icon-button" type="button" onClick={() => mediaRef.current?.click()}>
+                Add photo
               </button>
               {voiceState !== "listening" && voiceState !== "unavailable" && (
-                <button className="composer-voice-button" type="button" onClick={() => void startVoice()} aria-label="Speak now">
-                  <MicIcon />
-                  <span>Speak now</span>
+                <button className="composer-voice-button" type="button" onClick={() => void startVoice()}>
+                  Speak now
                 </button>
               )}
               {voiceState === "listening" && (
