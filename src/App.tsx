@@ -965,38 +965,36 @@ function EvidenceScreen() {
     <Shell route="evidence" layout="compact">
       <main className="compact-grid compact-page">
         <section className="evidence-title">
-          <PageTitle title={signal ? signal.title : "Evidence"} body="Original words stay visible. Guestbook never needs to replace evidence with a generated summary." />
+          <PageTitle title="Where this came from" body="Read the original guest comments behind a pattern." />
           {memory.length > 0 && (
-            <div className="section-gap">
-              <BaseButtonGroup
-                items={memory.slice(0, 6).map((item) => ({ value: item.label, label: item.title }))}
-                value={signal?.label ?? ""}
-                onChange={(value) => go("/evidence?signal=" + value)}
-                shape="rect"
-                size="small"
-              />
-            </div>
+            <label className="signal-switcher">
+              <span>Showing</span>
+              <select value={signal?.label ?? ""} onChange={(event) => go("/evidence?signal=" + event.target.value)}>
+                {memory.slice(0, 12).map((item) => <option key={item.label} value={item.label}>{item.title}</option>)}
+              </select>
+            </label>
           )}
         </section>
 
         <section className="evidence-summary">
           {signal && <>
-            <strong>{signal.visitCount} distinct visits</strong>
-            <p>{signal.description}</p>
+            <UsersThreeIcon size={22} weight="regular" aria-hidden="true" />
+            <div><h2>{signal.title}</h2><p>{signal.description}</p></div>
+            <strong>{signal.visitCount} visits</strong>
           </>}
         </section>
 
         <section className="evidence-ledger">
-          <div className="section-heading"><div><h2>Every source record</h2></div><span className="paragraph-small">{signal?.observations.length ?? 0} observations</span></div>
+          <div className="section-heading"><div><h2>Guest comments</h2><p>Exactly what was said on each visit.</p></div><span className="paragraph-small">{signal?.observations.length ?? 0}</span></div>
           <div className="evidence-rows">
             {(signal?.observations ?? []).map((observation) => (
               <article className="evidence-row" key={observation.id}>
+                <QuotesIcon className="evidence-quote-icon" size={22} weight="fill" aria-hidden="true" />
                 <div className="evidence-quote">“{observation.rawText}”</div>
                 <div className="evidence-meta">
-                  <strong>{observation.isDemo ? "Demo source" : "Confirmed source"}</strong>
-                  <span>{sourceLabel(observation)}</span>
-                  <span>{observation.language.toUpperCase()}</span>
-                  <span>{formatAge(observation.createdAt)}</span>
+                  <span>{observation.isDemo ? <InfoIcon size={15} weight="regular" aria-hidden="true" /> : <UserCheckIcon size={15} weight="regular" aria-hidden="true" />}{observation.isDemo ? "Demo" : sourceLabel(observation)}</span>
+                  <span><TranslateIcon size={15} weight="regular" aria-hidden="true" />{observation.language.toUpperCase()}</span>
+                  <span><ClockIcon size={15} weight="regular" aria-hidden="true" />{formatAge(observation.createdAt)}</span>
                 </div>
                 {observation.mediaDataUrl && <img className="evidence-media" src={observation.mediaDataUrl} alt="" />}
               </article>
