@@ -92,9 +92,12 @@ function Header({ operator = false }: { operator?: boolean }) {
 
   return (
     <header className="topbar">
-      <button className="wordmark" onClick={() => go("/")}>GUESTBOOK</button>
+      <div className="brand-lockup">
+        <button className="wordmark" onClick={() => go("/")}>GUESTBOOK</button>
+        <span>FIELD MEMORY / TOURISM</span>
+      </div>
       <div className="top-actions">
-        {operator && <button className="quiet-link" onClick={() => go("/memory")}>Operator</button>}
+        {operator && <button className="quiet-link" onClick={() => go("/memory")}>Operator memory</button>}
         <span className={statusClass}><span className="status-dot" />{statusText}</span>
       </div>
     </header>
@@ -106,21 +109,62 @@ function Shell({ children, operator = false }: { children: ReactNode; operator?:
 }
 
 function Home() {
+  const [preview, setPreview] = useState<MemorySignal | null>(null);
+
+  useEffect(() => {
+    seedDemoData()
+      .then(() => db.observations.toArray())
+      .then((rows) => {
+        const memory = buildMemory(rows);
+        setPreview(memory.find((signal) => signal.label === "WANT_PRODUCT") ?? memory[0] ?? null);
+      });
+  }, []);
+
   return (
     <Shell>
-      <section className="hero">
-        <p className="eyebrow">OFFLINE SMALL AI · TOURISM</p>
-        <h1>Every visit teaches the business.</h1>
-        <p className="lede">On one shared phone, Guestbook turns the comments, questions and needs that normally disappear after a visit into evidence a small tourism operator can actually use.</p>
-        <div className="hero-actions">
-          <button className="primary" onClick={() => go("/guest")}>I’m visiting</button>
-          <button className="secondary" onClick={() => go("/memory")}>Open operator memory</button>
+      <section className="hero hero-editorial">
+        <div className="hero-copy">
+          <p className="eyebrow">OFFLINE SMALL AI · TOURISM</p>
+          <h1>Every visit teaches the business.</h1>
+          <p className="lede">Guestbook turns the comments, questions and needs that normally disappear after a visit into evidence a small tourism operator can use — on one shared phone, even offline.</p>
+          <div className="hero-actions">
+            <button className="primary" onClick={() => go("/guest")}>Leave a guest note</button>
+            <button className="secondary" onClick={() => go("/memory")}>Open business memory</button>
+          </div>
+          <div className="hero-specs" aria-label="Technical proof">
+            <span><strong>~240 KB</strong> local model</span>
+            <span><strong>0</strong> network inference</span>
+            <span><strong>15</strong> bounded signals</span>
+          </div>
         </div>
+
+        <aside className="hero-ledger" aria-label="Local memory preview">
+          <div className="ledger-topline">
+            <span>LOCAL MEMORY</span>
+            <span>THIS DEVICE</span>
+          </div>
+          {preview ? (
+            <>
+              <div className="ledger-count"><strong>{preview.visitCount}</strong><span>independent visits</span></div>
+              <h2>{preview.title}</h2>
+              <p>{preview.description}</p>
+              <div className="ledger-sources">
+                {preview.observations.slice(0, 2).map((observation) => (
+                  <blockquote key={observation.id}>“{observation.rawText}”</blockquote>
+                ))}
+              </div>
+              <button className="ledger-link" onClick={() => go("/memory")}>See the evidence →</button>
+            </>
+          ) : (
+            <p className="muted">Loading local memory…</p>
+          )}
+        </aside>
       </section>
-      <section className="principle-strip">
-        <div><span>01</span><strong>Pass the shared phone</strong><p>A guest speaks naturally, or a guide captures their words later. No account.</p></div>
-        <div><span>02</span><strong>Small AI interprets locally</strong><p>No cloud inference. Multiple signals from one message.</p></div>
-        <div><span>03</span><strong>Operator keeps control</strong><p>Every signal links back to the original words.</p></div>
+
+      <section className="principle-strip principle-editorial">
+        <div><span>CAPTURE</span><strong>Natural words in.</strong><p>Guest voice or text, or a guide captures it later.</p></div>
+        <div><span>INTERPRET</span><strong>Small AI, locally.</strong><p>Bounded signals. No cloud inference. Unknown stays unknown.</p></div>
+        <div><span>DECIDE</span><strong>Evidence out.</strong><p>Patterns link back to source words. The operator makes the call.</p></div>
       </section>
       <footer className="footer-line"><span>AI interprets.</span><span>Evidence accumulates.</span><span>Humans decide.</span></footer>
     </Shell>
@@ -604,7 +648,7 @@ function Decide() {
           {signals.map((signal) => {
             const copy = decisionCopy(signal);
             return (
-              <article className="decision-card" key={signal.label}>
+              <article className={"decision-card " + (signal.label === "WANT_PRODUCT" ? "decision-card-signature" : "")} key={signal.label}>
                 <span className="decision-count">{signal.visitCount} independent visits</span>
                 <h2>{copy.headline}</h2>
                 {signal.label === "WANT_PRODUCT" && (
