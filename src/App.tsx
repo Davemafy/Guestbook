@@ -337,7 +337,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
 
       <nav className="base-bottom-navigation" aria-label="Primary mobile navigation">
         {mobileNav.map((item) => (
-          <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
+          <button key={item.key} className={route === item.key ? "active" : ""} aria-current={route === item.key ? "page" : undefined} onClick={() => go(item.path)}>
             <RouteIcon route={item.key} active={route === item.key} size={20} />
             <span>{item.label}</span>
           </button>
@@ -777,10 +777,15 @@ function ReviewScreen() {
 
   useEffect(() => {
     (async () => {
-      const row = requestedId
-        ? await db.observations.get(requestedId)
+      const requestedRow = requestedId ? await db.observations.get(requestedId) : undefined;
+      const row = requestedRow?.status === "pending"
+        ? requestedRow
         : await db.observations.where("status").equals("pending").last();
-      if (!row) return;
+      if (!row) {
+        setObservation(null);
+        setSelected(new Set());
+        return;
+      }
       setObservation(row);
       setSelected(new Set(row.predictions.filter((prediction) => prediction.label !== "UNKNOWN").map((prediction) => prediction.label)));
     })();
@@ -804,6 +809,7 @@ function ReviewScreen() {
     const previous = Object.fromEntries([...selected].map((label) => [label, before.find((signal) => signal.label === label)?.visitCount ?? 0]));
     sessionStorage.setItem("guestbook-last-accumulation", JSON.stringify(previous));
     await db.observations.update(observation.id, { status: "confirmed", confirmedLabels: [...selected] });
+    sessionStorage.removeItem("guestbook-pending-id");
     go("/memory");
   }
 
@@ -1142,7 +1148,9 @@ function SystemScreen() {
 
   async function resetDemo() {
     await db.observations.clear();
-    localStorage.removeItem("guestbook-decisions");
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("guestbook-decision-"))
+      .forEach((key) => localStorage.removeItem(key));
     sessionStorage.removeItem("guestbook-last-accumulation");
     sessionStorage.removeItem("guestbook-pending-id");
     await seedDemoData();
