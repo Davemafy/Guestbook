@@ -2,90 +2,21 @@
   font-family: "Uber Move";
   src: url("/fonts/UberMoveMedium.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move";
-  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
-  font-style: normal;
   font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move";
-  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move";
-  src: url("/fonts/UberMoveBold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move";
-  src: url("/fonts/UberMoveBold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move";
-  src: url("/fonts/UberMoveBold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 900;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Uber Move Text";
-  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move Text";
-  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move Text";
-  src: url("/fonts/UberMoveMedium.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move Text";
+  font-family: "Uber Move";
   src: url("/fonts/UberMoveBold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move Text";
-  src: url("/fonts/UberMoveBold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Uber Move Text";
-  src: url("/fonts/UberMoveBold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 900;
   font-display: swap;
 }
 
 :root {
-  font-family: "Uber Move Text", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 500;
   color: #000000;
   background: #ffffff;
   font-synthesis: none;
@@ -199,7 +130,7 @@ button:disabled {
   border: 0;
   background: transparent;
   color: var(--content-primary);
-  font-family: "Uber Move Text", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 20px;
   line-height: 28px;
   font-weight: 700;
@@ -277,7 +208,7 @@ button:disabled {
 .decision-main h3,
 .voice-system-row h2,
 .empty-state h2 {
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -678,7 +609,7 @@ button:disabled {
 .source-block blockquote {
   margin: 0;
   padding: 24px 0 32px;
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 28px;
   line-height: 36px;
   font-weight: 700;
@@ -804,7 +735,7 @@ button:disabled {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .count-line span {
@@ -934,7 +865,7 @@ button:disabled {
 }
 
 .evidence-stat strong {
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 52px;
   line-height: 64px;
   font-weight: 700;
@@ -976,7 +907,7 @@ button:disabled {
 }
 
 .evidence-quote {
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 20px;
   line-height: 28px;
   font-weight: 500;
@@ -1019,7 +950,7 @@ button:disabled {
 }
 
 .decision-count strong {
-  font-family: "Uber Move", "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Uber Move", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 52px;
   line-height: 64px;
   font-weight: 700;
