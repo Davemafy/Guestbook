@@ -167,10 +167,18 @@ function DockedAction({ children }: { children: ReactNode }) {
   return <div className="docked-action">{children}</div>;
 }
 
+function NavGlyph({ route }: { route: Exclude<Route, "system"> }) {
+  const common = { width: 20, height: 20, viewBox: "0 0 20 20", "aria-hidden": true } as const;
+  if (route === "guest") return <svg {...common} fill="none"><path d="M3 8.25 10 2.75l7 5.5V17H12v-5H8v5H3V8.25Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/></svg>;
+  if (route === "review") return <svg {...common} fill="none"><path d="m4.5 10 3.1 3.1L15.8 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  if (route === "memory") return <svg {...common} fill="none"><path d="M4 4h12v12H4z" stroke="currentColor" strokeWidth="1.6"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>;
+  if (route === "evidence") return <svg {...common} fill="none"><path d="M3.5 5.5h13v9h-13z" stroke="currentColor" strokeWidth="1.6"/><path d="M6.5 8h7M6.5 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>;
+  return <svg {...common} fill="none"><path d="M4 10.5 8 14l8-8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 3v3M17 10h-3M10 17v-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>;
+}
+
 function Shell({ route, children, layout = "compact" }: { route: Route; children: ReactNode; layout?: "normal" | "compact" }) {
   const [online, setOnline] = useState(navigator.onLine);
   const [offlineReady, setOfflineReady] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -185,6 +193,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   }, []);
 
   const status = online ? (offlineReady ? "Offline ready" : "Preparing offline") : "Offline";
+  const mobileNav = NAV.filter((item): item is { key: Exclude<Route, "system">; label: string; path: string } => item.key !== "system");
 
   return (
     <div className={"base-app " + layout}>
@@ -200,17 +209,22 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
             <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
             <span>{status}</span>
           </div>
-          <BaseButton hierarchy="secondary" size="small" shape="rect" className="mobile-menu-button" onClick={() => setMenuOpen((value) => !value)}>
-            {menuOpen ? "Close" : "Menu"}
-          </BaseButton>
+          <button className={"mobile-system-link " + (route === "system" ? "active" : "")} onClick={() => go("/system")}>
+            System
+          </button>
         </div>
-        {menuOpen && (
-          <div className="mobile-nav-menu">
-            {NAV.map((item) => <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => { setMenuOpen(false); go(item.path); }}>{item.label}</button>)}
-          </div>
-        )}
       </header>
+
       {children}
+
+      <nav className="base-bottom-navigation" aria-label="Primary mobile navigation">
+        {mobileNav.map((item) => (
+          <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
+            <span className="bottom-nav-icon"><NavGlyph route={item.key} /></span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
