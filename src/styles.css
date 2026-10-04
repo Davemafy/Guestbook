@@ -3105,3 +3105,63 @@ select {
     background: #fffaf2;
   }
 }
+
+/* Keyboard and touch feedback */
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid rgba(39,110,241,.28);
+  outline-offset: 3px;
+}
+
+.selection-row:focus-visible,
+.correction-choice:focus-visible,
+.base-list-row:focus-visible,
+.decision-choice-grid button:focus-visible,
+.system-tabs button:focus-visible,
+.desktop-nav button:focus-visible,
+.base-bottom-navigation button:focus-visible {
+  box-shadow: 0 0 0 4px rgba(39,110,241,.18), var(--paper-shadow);
+}
+
+.selection-row.selected:focus-visible,
+.correction-choice.selected:focus-visible,
+.decision-choice-grid button.selected:focus-visible,
+.system-tabs button.active:focus-visible,
+.desktop-nav button.active:focus-visible,
+.base-bottom-navigation button.active:focus-visible {
+  box-shadow: 0 0 0 4px rgba(39,110,241,.2), var(--gel-shadow);
+}
+
+.sensitive-confirm {
+  min-height: 44px;
+  align-items: center;
+}
+
+.sensitive-confirm input {
+  flex: 0 0 auto;
+}
+
+.signal-switcher select {
+  min-height: 40px;
+}
+
+.system-tabs button {
+  min-height: 44px;
+}
+
+.decision-choice-grid button {
+  min-height: 80px;
+}
+
+@media (max-width: 820px) {
+  .decision-choice-grid button {
+    min-height: 60px;
+  }
+
+  .signal-switcher select {
+    min-height: 44px;
+  }
+}
