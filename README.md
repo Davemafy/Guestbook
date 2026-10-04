@@ -60,7 +60,7 @@ Raw source text is always preserved. The model can abstain with UNKNOWN. Accessi
 
 The /lab route runs the frozen synthetic stress set on the actual in-browser model and also displays held-out external evidence. The promoted model keeps 90.2% micro-F1 on the 35-case synthetic regression set. On untouched MASSIVE test slices mapped to the nearest Guestbook signals, it reaches 91.1% mapped-label hit in English and 92.8% in Swahili. On a held-out Nairobi public-review partition with transparent lexical weak labels, it reaches 98.0% label agreement.
 
-The MASSIVE numbers are semantic-transfer probes and the Nairobi labels are weak supervision, not manually labeled field truth. None of these are claimed as real-world tourism accuracy. The next validation step is independently collected, consented, human-labeled field data.
+The MASSIVE numbers are semantic-transfer probes and the Nairobi labels are weak supervision, not manually labeled field truth. None of these are claimed as real-world tourism accuracy. A transparent no-ML lexical baseline is competitive on the small synthetic benchmark (93.0% micro-F1) but falls to 16.7% mapped-label hit on untouched MASSIVE English and 2.3% on Kiswahili, versus 91.1% and 92.8% for Guestbook Micro. This is why learned AI is restricted to language interpretation while counts, thresholds, evidence grouping, and business decisions stay deterministic or human-controlled. The next validation step is independently collected, consented, human-labeled field data.
 
 ## Offline proof
 
