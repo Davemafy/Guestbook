@@ -162,6 +162,23 @@ const guestCopy = {
   },
 } as const;
 
+const hostCopy = {
+  en: {
+    language: "English",
+    title: "What did you hear?",
+    body: "Document a visitor request, friction, or comment while it is still fresh.",
+    field: "Host note",
+    placeholder: "What did the visitor ask for, struggle with, or say they would return for?",
+  },
+  sw: {
+    language: "Kiswahili",
+    title: "Ulisikia nini?",
+    body: "Andika ombi, changamoto, au maoni ya mgeni kabla hayajasahaulika.",
+    field: "Ujumbe wa mwenyeji",
+    placeholder: "Mgeni aliomba nini, alipata ugumu gani, au alisema angerudi kwa nini?",
+  },
+} as const;
+
 function useLocationKey() {
   const [key, setKey] = useState(() => window.location.pathname + window.location.search);
   useEffect(() => {
@@ -206,7 +223,7 @@ function formatAge(timestamp: number) {
 function sourceLabel(observation: Observation) {
   if (observation.isDemo || observation.source === "demo") return "Demo visit";
   if (observation.source === "guide") return "Guide";
-  if (observation.source === "operator") return "Operator";
+  if (observation.source === "operator") return "Host note";
   return "Guest";
 }
 
@@ -452,6 +469,7 @@ function VoiceActivityVisualizer({ active, speaking, pulse }: { active: boolean;
 
 function GuestScreen() {
   const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
+  const [captureSource, setCaptureSource] = useState<"guest" | "operator">("guest");
   const [text, setText] = useState("");
   const [mediaDataUrl, setMediaDataUrl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -471,7 +489,7 @@ function GuestScreen() {
   const voiceCommittedRef = useRef("");
   const voiceSegmentRef = useRef("");
   const mediaRef = useRef<HTMLInputElement | null>(null);
-  const copy = guestCopy[language];
+  const copy = captureSource === "operator" ? hostCopy[language] : guestCopy[language];
 
   useEffect(() => () => {
     wantsListeningRef.current = false;
@@ -729,7 +747,7 @@ function GuestScreen() {
       visitId: crypto.randomUUID(),
       rawText: text.trim(),
       language,
-      source: "guest",
+      source: captureSource,
       createdAt: Date.now(),
       predictions: result.predictions,
       confirmedLabels: [],
@@ -747,7 +765,25 @@ function GuestScreen() {
         <section className="guest-primary">
           <PageTitle title={copy.title} body={copy.body} />
 
-          <div className="section-gap">
+          <div className="guest-control-stack">
+            <div className="capture-mode-switch" role="group" aria-label="Who is recording this?">
+              <button
+                type="button"
+                className={captureSource === "guest" ? "active" : ""}
+                aria-pressed={captureSource === "guest"}
+                onClick={() => setCaptureSource("guest")}
+              >
+                Guest entry
+              </button>
+              <button
+                type="button"
+                className={captureSource === "operator" ? "active" : ""}
+                aria-pressed={captureSource === "operator"}
+                onClick={() => setCaptureSource("operator")}
+              >
+                Host note
+              </button>
+            </div>
             <BaseButtonGroup
               items={[
                 { value: "en", label: "English" },
@@ -759,7 +795,15 @@ function GuestScreen() {
           </div>
 
           <div className={"message-composer " + (voiceState === "listening" ? "is-listening" : "")}>
-            <Field label={copy.field} meta={text.length + "/1000"} hint={language === "sw" ? "Huhitaji akaunti." : "No account needed."}>
+            <Field
+              label={copy.field}
+              meta={text.length + "/1000"}
+              hint={
+                captureSource === "operator"
+                  ? (language === "sw" ? "Imeandikwa na mwenyeji." : "Recorded by the host.")
+                  : (language === "sw" ? "Huhitaji akaunti." : "No account needed.")
+              }
+            >
               <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
             </Field>
             <div className="composer-controls">
@@ -796,9 +840,19 @@ function GuestScreen() {
 
         <aside className="guest-context" aria-label="About your feedback">
           <div className="guest-facts">
-            <div><ShieldCheckIcon size={22} weight="regular" aria-hidden="true" /><span>No account needed</span></div>
-            <div><UserCheckIcon size={22} weight="regular" aria-hidden="true" /><span>The host reviews it</span></div>
-            <div><TrendUpIcon size={22} weight="regular" aria-hidden="true" /><span>Repeat requests stand out</span></div>
+            {captureSource === "operator" ? (
+              <>
+                <div><FileTextIcon size={22} weight="regular" aria-hidden="true" /><span>Recorded as a host note</span></div>
+                <div><UserCheckIcon size={22} weight="regular" aria-hidden="true" /><span>Still reviewed before memory</span></div>
+                <div><TrendUpIcon size={22} weight="regular" aria-hidden="true" /><span>Repeat requests stand out</span></div>
+              </>
+            ) : (
+              <>
+                <div><ShieldCheckIcon size={22} weight="regular" aria-hidden="true" /><span>No account needed</span></div>
+                <div><UserCheckIcon size={22} weight="regular" aria-hidden="true" /><span>The host reviews it</span></div>
+                <div><TrendUpIcon size={22} weight="regular" aria-hidden="true" /><span>Repeat requests stand out</span></div>
+              </>
+            )}
           </div>
         </aside>
       </main>
@@ -807,7 +861,15 @@ function GuestScreen() {
         <div className="normal-grid dock-grid">
           <div className="dock-copy"><LockSimpleIcon size={18} weight="regular" aria-hidden="true" /><span>No sign-in. Your words stay with this visit.</span></div>
           <BaseButton hierarchy="primary" size="medium" shape="rect" onClick={submit} disabled={text.trim().length < 3 || busy}>
-            <span>{busy ? "Sending…" : text.trim().length < 3 ? "Write a note to continue" : "Send feedback"}</span>
+            <span>{
+              busy
+                ? "Saving…"
+                : text.trim().length < 3
+                  ? "Write a note to continue"
+                  : captureSource === "operator"
+                    ? "Review host note"
+                    : "Send feedback"
+            }</span>
             {!busy && text.trim().length >= 3 && <ArrowRightIcon size={18} weight="bold" aria-hidden="true" />}
           </BaseButton>
         </div>
