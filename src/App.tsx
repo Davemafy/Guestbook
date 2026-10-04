@@ -167,163 +167,95 @@ function Guest() {
   const copy = guestCopy[language];
 
   useEffect(() => {
-    return () => {
-      void voiceRef.current?.stop();
-      voiceRef.current?.close();
-      voiceRef.current = null;
-    };
-  }, []);
-
-  async function prepareVoice() {
-    if (language !== "en" || voiceState === "loading" || voiceState === "listening") return;
-    if (!navigator.onLine && voiceState === "install") {
-      setVoiceError("Connect once to install the offline voice pack.");
-      setVoiceState("error");
-      return;
-    }
-
-    setVoiceError("");
-    setVoiceProgress(null);
-    setVoiceState("loading");
-
-    try {
-      voiceRef.current?.close();
-      const controller = await createOfflineVoice({
-        onText: (live) => {
-          const next = [voiceBaseRef.current, live.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
-          setText(next);
-        },
-        onLine: (finalText) => {
-          const next = [voiceBaseRef.current, finalText.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
-          setText(next);
-        },
-        onProgress: (progress) => setVoiceProgress(progress),
-        onError: (error) => {
-          setVoiceError(error.message || "Voice transcription failed.");
-          setVoiceState("error");
-        },
-      });
-      voiceRef.current = controller;
-      await controller.load();
-      localStorage.setItem("guestbook-moonshine-voice-v1", "cached");
-      setVoiceProgress(null);
-      setVoiceState("ready");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setVoiceError(message || "Could not load offline voice.");
-      setVoiceState(localStorage.getItem("guestbook-moonshine-voice-v1") ? "cached" : "error");
-    }
-  }
-
-  async function startVoice() {
-    if (!voiceRef.current || voiceState !== "ready") return;
-    voiceBaseRef.current = text.trim();
-    setVoiceError("");
-    setVoiceState("listening");
-    try {
-      await voiceRef.current.start();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setVoiceError(message || "Microphone access failed.");
-      setVoiceState("ready");
-    }
-  }
-
-  async function stopVoice() {
-    if (!voiceRef.current) return;
-    try {
-      await voiceRef.current.stop();
-    } finally {
-      setVoiceState("ready");
-    }
-  }
-
-  async function submit() {
-    if (text.trim().length < 3 || busy) return;
-    if (voiceState === "listening") await stopVoice();
-    setBusy(true);
-    const result = await activeClassifier.classify(text.trim());
-    const id = crypto.randomUUID();
-    const observation: Observation = {
-      id,
-      visitId: crypto.randomUUID(),
-      rawText: text.trim(),
-      language,
-      source: "guest",
-      createdAt: Date.now(),
-      predictions: result.predictions,
-      confirmedLabels: [],
-      status: "pending",
-    };
-    await db.observations.add(observation);
-    go("/review?id=" + encodeURIComponent(id));
-  }
-
-  const canInstall = language === "en" && (voiceState === "install" || voiceState === "cached" || voiceState === "error");
-  const progressPercent = voiceProgress ? Math.round(voiceProgress.fraction * 100) : null;
-  const progressSize = voiceProgress?.total
-    ? `${((voiceProgress.loaded ?? 0) / 1024 / 1024).toFixed(1)} / ${(voiceProgress.total / 1024 / 1024).toFixed(1)} MB`
-    : null;
-
-  return (
+    return (
     <Shell>
-      <section className="narrow">
-        <div className="language-switch" role="group" aria-label="Language">
-          {(Object.keys(guestCopy) as Array<keyof typeof guestCopy>).map((key) => (
-            <button key={key} className={language === key ? "language active" : "language"} onClick={() => setLanguage(key)}>
-              {guestCopy[key].label}
-            </button>
-          ))}
+      <section className="capture-screen">
+        <div className="capture-context">
+          <span>VISITOR NOTE</span>
+          <span>{language === "en" ? "ENGLISH" : "KISWAHILI"}</span>
+          <span>THIS DEVICE</span>
         </div>
-        <p className="eyebrow">{copy.eyebrow}</p>
-        <h1 className="screen-title">{copy.title}</h1>
-        <p className="lede">{copy.helper}</p>
 
-        {language === "en" && (
-          <section className={"voice-panel " + (voiceState === "listening" ? "listening" : "")}>
-            <div className="voice-copy">
-              <span>VOICE INPUT · ON-DEVICE WASM</span>
-              <strong>
-                {voiceState === "install" && "INSTALL OFFLINE VOICE"}
-                {voiceState === "cached" && "LOAD CACHED VOICE"}
-                {voiceState === "loading" && "PREPARING VOICE…"}
-                {voiceState === "ready" && "VOICE READY"}
-                {voiceState === "listening" && "LISTENING…"}
-                {voiceState === "error" && "VOICE NEEDS ATTENTION"}
-              </strong>
+        <div className="capture-heading">
+          <div>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h1>{copy.title}</h1>
+          </div>
+          <p>{copy.helper}</p>
+        </div>
+
+        <div className="capture-workspace">
+          <div className="transcript-column">
+            <div className="transcript-head">
+              <span>TRANSCRIPT</span>
+              <span>EDITABLE BEFORE SAVE</span>
+            </div>
+            <textarea
+              className="capture-transcript"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={copy.placeholder}
+              rows={8}
+              aria-label="Guest note"
+            />
+            <div className="transcript-meta">
+              <span>{text.length} characters</span>
+              <span>stored locally after review</span>
+            </div>
+          </div>
+
+          <aside className={"capture-dock " + (voiceState === "listening" ? "listening" : "")}>
+            <div className="capture-dock-top">
+              <span>VOICE</span>
+              <span>{language === "en" ? "EN-US" : "TYPE ONLY"}</span>
+            </div>
+
+            <button
+              className="record-control"
+              onClick={voiceAction}
+              disabled={!voiceAction || voiceState === "installing" || voiceState === "downloading" || voiceState === "checking"}
+              aria-label={voiceLabel}
+            >
+              <span className="record-ring">
+                <span className="record-core" />
+              </span>
+            </button>
+
+            <div className="record-bars" aria-hidden="true">
+              {Array.from({ length: 11 }).map((_, index) => <i key={index} />)}
+            </div>
+
+            <div className="record-copy">
+              <strong>{voiceLabel}</strong>
               <p>
-                {voiceState === "install" && "Download the small English speech pack once while connected. After that, transcription runs on this device."}
-                {voiceState === "cached" && "The speech pack was installed before. Load it from the browser cache to use voice offline."}
-                {voiceState === "loading" && `Downloading/loading locally${progressPercent === null ? "" : ` · ${progressPercent}%`}${progressSize ? ` · ${progressSize}` : ""}`}
-                {(voiceState === "ready" || voiceState === "listening") && "Moonshine transcribes locally. Audio never goes to Guestbook servers or a speech API."}
-                {voiceState === "error" && (voiceError || "Typing remains available while voice is unavailable.")}
+                {voiceState === "available" || voiceState === "listening"
+                  ? "Speech stays on this device. Tap once to start, again to stop."
+                  : voiceState === "downloadable"
+                    ? "Install the browser's offline English speech pack once."
+                    : language === "en"
+                      ? "Local speech is not available here. Type the note instead."
+                      : "Kiswahili stays fully offline through typed input."}
               </p>
             </div>
-            {canInstall && (
-              <button className="voice-action" onClick={prepareVoice}>
-                {voiceState === "cached" ? "LOAD" : "INSTALL"}
+
+            <div className="capture-trust">
+              <span>~240 KB model</span>
+              <span>0 inference requests</span>
+            </div>
+          </aside>
+        </div>
+
+        <div className="capture-footer">
+          <div className="language-switch compact-switch" role="group" aria-label="Language">
+            {(Object.keys(guestCopy) as Array<keyof typeof guestCopy>).map((key) => (
+              <button key={key} className={language === key ? "language active" : "language"} onClick={() => setLanguage(key)}>
+                {guestCopy[key].label}
               </button>
-            )}
-            {voiceState === "loading" && (
-              <div className="voice-progress" aria-label="Voice pack loading progress">
-                <span style={{ width: `${progressPercent ?? 8}%` }} />
-              </div>
-            )}
-            {voiceState === "ready" && <button className="voice-action" onClick={startVoice}>SPEAK</button>}
-            {voiceState === "listening" && <button className="voice-action" onClick={stopVoice}>STOP</button>}
-          </section>
-        )}
-
-        {language === "sw" && (
-          <p className="voice-language-note">Kiswahili stays typed in this prototype; the local voice pack is English-only.</p>
-        )}
-
-        <div className="type-divider"><span>{language === "en" ? "OR TYPE" : "TYPE"}</span></div>
-        <textarea className="guest-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={copy.placeholder} rows={7} />
-        <div className="input-footer">
-          <span>{text.length} characters</span>
-          <button className="primary" disabled={text.trim().length < 3 || busy} onClick={submit}>
-            {busy ? "Understanding locally…" : copy.submit}
+            ))}
+          </div>
+          <button className="capture-save" disabled={text.trim().length < 3 || busy} onClick={submit}>
+            <span>{busy ? "INTERPRETING LOCALLY" : "REVIEW NOTE"}</span>
+            <b>→</b>
           </button>
         </div>
       </section>
