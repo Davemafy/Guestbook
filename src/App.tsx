@@ -1,4 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  ChatCenteredDotsIcon,
+  CheckSquareOffsetIcon,
+  CompassIcon,
+  DatabaseIcon,
+  FileTextIcon,
+  GearSixIcon,
+  ImageIcon,
+  MicrophoneIcon,
+} from "@phosphor-icons/react";
 import { activeClassifier } from "./ai/classifier";
 import { db } from "./storage/db";
 import { seedDemoData } from "./data/demoData";
@@ -244,6 +254,20 @@ function DockedAction({ children }: { children: ReactNode }) {
   return <div className="docked-action">{children}</div>;
 }
 
+function RouteIcon({ route, active, size = 18 }: { route: Route; active: boolean; size?: number }) {
+  const props = {
+    size,
+    weight: active ? "fill" as const : "regular" as const,
+    "aria-hidden": true,
+  };
+  if (route === "guest") return <ChatCenteredDotsIcon {...props} />;
+  if (route === "review") return <CheckSquareOffsetIcon {...props} />;
+  if (route === "memory") return <DatabaseIcon {...props} />;
+  if (route === "evidence") return <FileTextIcon {...props} />;
+  if (route === "decide") return <CompassIcon {...props} />;
+  return <GearSixIcon {...props} />;
+}
+
 function Shell({ route, children, layout = "compact" }: { route: Route; children: ReactNode; layout?: "normal" | "compact" }) {
   const [online, setOnline] = useState(navigator.onLine);
   const [offlineReady, setOfflineReady] = useState(false);
@@ -270,7 +294,10 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
           <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
           <nav className="desktop-nav" aria-label="Primary">
             {NAV.map((item) => (
-              <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>{item.label}</button>
+              <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
+                <RouteIcon route={item.key} active={route === item.key} size={16} />
+                <span>{item.label}</span>
+              </button>
             ))}
           </nav>
           <div className="nav-status">
@@ -278,7 +305,8 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
             <span>{status}</span>
           </div>
           <button className={"mobile-system-link " + (route === "system" ? "active" : "")} onClick={() => go("/system")}>
-            System
+            <RouteIcon route="system" active={route === "system"} size={18} />
+            <span>System</span>
           </button>
         </div>
       </header>
@@ -288,6 +316,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
       <nav className="base-bottom-navigation" aria-label="Primary mobile navigation">
         {mobileNav.map((item) => (
           <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
+            <RouteIcon route={item.key} active={route === item.key} size={20} />
             <span>{item.label}</span>
           </button>
         ))}
@@ -667,11 +696,13 @@ function GuestScreen() {
             </Field>
             <div className="composer-controls">
               <button className="composer-tool-button" type="button" onClick={() => mediaRef.current?.click()}>
-                Add photo
+                <ImageIcon size={18} weight="regular" aria-hidden="true" />
+                <span>Add photo</span>
               </button>
               {voiceState !== "listening" && voiceState !== "unavailable" && (
                 <button className="composer-voice-button" type="button" onClick={() => void startVoice()}>
-                  Speak now
+                  <MicrophoneIcon size={18} weight="regular" aria-hidden="true" />
+                  <span>Speak now</span>
                 </button>
               )}
               {voiceState === "listening" && (
