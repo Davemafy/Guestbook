@@ -61,9 +61,28 @@ body,
 
 body {
   min-height: 100vh;
+  overflow-y: auto;
   font-size: 16px;
   line-height: 24px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollable without visible scrollbar chrome */
+html,
+body,
+.system-content,
+.base-button-group {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.system-content::-webkit-scrollbar,
+.base-button-group::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 button,
@@ -2320,7 +2339,6 @@ summary:focus-visible {
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-right: 8px;
-    scrollbar-gutter: stable;
   }
 
   .system-content > * {
