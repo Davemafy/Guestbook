@@ -181,6 +181,15 @@ function AvatarStack({ count = 3, dark = false }: { count?: number; dark?: boole
   );
 }
 
+function GuestMedia({ src, label = "Guest photo" }: { src: string; label?: string }) {
+  return (
+    <div className="guest-media">
+      <img src={src} alt="" />
+      <span className="media-tag">{label}</span>
+    </div>
+  );
+}
+
 function EntryCard({
   observation,
   reacted,
@@ -216,6 +225,7 @@ function EntryCard({
           </div>
         </div>
         <p className="post-message">{observation.rawText}</p>
+        {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
         <div className="user-likes-row">
           <button className="reply-summary" onClick={() => setShowReplies((value) => !value)}>
             <AvatarStack count={Math.max(1, replies.length)} />
@@ -329,6 +339,7 @@ const guestCopy = {
 function Guest() {
   const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
   const [text, setText] = useState("");
+  const [mediaDataUrl, setMediaDataUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [voiceState, setVoiceState] = useState<"install" | "cached" | "loading" | "ready" | "listening" | "error">(
     () => localStorage.getItem("guestbook-moonshine-voice-v1") ? "cached" : "install",
@@ -465,6 +476,13 @@ function Guest() {
     }
   }
 
+  function attachMedia(file?: File) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setMediaDataUrl(typeof reader.result === "string" ? reader.result : "");
+    reader.readAsDataURL(file);
+  }
+
   async function submit() {
     if (text.trim().length < 3 || busy) return;
     if (voiceState === "listening") await stopVoice();
@@ -482,6 +500,7 @@ function Guest() {
       predictions: result.predictions,
       confirmedLabels: [],
       status: "pending",
+      mediaDataUrl: mediaDataUrl || undefined,
     };
     await db.observations.add(observation);
     go("/review?id=" + encodeURIComponent(id));
@@ -519,7 +538,17 @@ function Guest() {
 
             <div className="message-composer writing">
               <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} rows={6} aria-label={copy.title} />
+              {mediaDataUrl && <GuestMedia src={mediaDataUrl} label="Photo" />}
+              <input
+                ref={mediaInputRef}
+                className="sr-only"
+                type="file"
+                accept="image/*"
+                onChange={(event) => attachMedia(event.target.files?.[0])}
+                aria-label="Attach guest photo"
+              />
               <div className="composer-actions">
+                <button className="field-action labelled" onClick={() => mediaInputRef.current?.click()}><Icon name="attach" size={16} /><span>Photo</span></button>
                 {language === "en" && (
                   <>
                     {quickVoiceState === "idle" && navigator.onLine && (
@@ -689,6 +718,7 @@ function Review() {
               <div><strong>{sourceName(observation)}</strong><span>{formatRelative(observation.createdAt)} · {observation.language.toUpperCase()}</span></div>
             </div>
             <p className="post-message">{observation.rawText}</p>
+            {observation.mediaDataUrl && <GuestMedia src={observation.mediaDataUrl} />}
           </div>
         </article>
 
