@@ -10,6 +10,13 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Davemafy/Guestbook/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Davemafy/Guestbook/actions/workflows/ci.yml/badge.svg" /></a>
+  <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-111111" />
+  <img alt="Zero network inference" src="https://img.shields.io/badge/inference-0%20network%20requests-111111" />
+  <img alt="Learned weights" src="https://img.shields.io/badge/learned%20weights-245%2C820%20bytes-111111" />
+</p>
+
+<p align="center">
   <a href="https://guestbook-small-ai.vercel.app/">Live demo</a> ·
   <a href="docs/model-card.md">Model card</a> ·
   <a href="docs/system-design.md">System design</a> ·
@@ -17,6 +24,17 @@
 </p>
 
 > Built for the **7th Hack-Nation Global AI Hackathon** — **World Bank: Small AI for Development, Track C (Tourism)**.
+
+## Judge it in 60 seconds
+
+1. Open the [live demo](https://guestbook-small-ai.vercel.app/) and wait for the local/offline-ready indicator.
+2. Enter **“The roasting was amazing. Can we buy some beans to take home?”**
+3. Review the proposed signals, then confirm them.
+4. Open **Memory → Evidence → Decide** to see repetition, source provenance, and the human decision boundary.
+5. Open **System → Model** for model size, failed-model history, external probes, and the rules baseline.
+6. For the strongest offline proof: load once, enable airplane mode, reopen, and classify a new typed observation.
+
+> The critical claim is deliberately narrow: **typed language interpretation runs locally with zero network inference**. Browser speech recognition is optional and connected.
 
 ## The problem
 
