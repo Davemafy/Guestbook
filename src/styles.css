@@ -2682,3 +2682,250 @@ summary:focus-visible {
     animation: none !important;
   }
 }
+
+/* Mobile QA hardening */
+@media (max-width: 760px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  .base-app {
+    width: 100%;
+    min-height: 100dvh;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    overflow-x: clip;
+  }
+
+  .base-navigation {
+    top: 0;
+    padding-top: env(safe-area-inset-top);
+    background: #ffffff;
+  }
+
+  .nav-grid {
+    min-height: 60px;
+  }
+
+  .brand-mark {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .nav-system-link {
+    width: 40px;
+    height: 40px;
+  }
+
+  .base-bottom-navigation {
+    min-height: 64px;
+    height: auto;
+    padding: 5px 6px calc(5px + env(safe-area-inset-bottom));
+    bottom: 0;
+  }
+
+  .base-bottom-navigation button {
+    min-height: 54px;
+    height: 54px;
+  }
+
+  .docked-action {
+    bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .dock-grid {
+    min-height: 72px;
+  }
+
+  .dock-grid > .base-button {
+    min-height: 48px;
+  }
+
+  .guest-layout,
+  .compact-page {
+    padding-top: 24px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .base-app.route-guest .guest-layout,
+  .base-app.route-review .compact-page {
+    padding-bottom: calc(168px + env(safe-area-inset-bottom));
+  }
+
+  .page-title h1,
+  .compact-page .page-title h1 {
+    font-size: 32px;
+    line-height: 38px;
+  }
+
+  .page-title p {
+    margin-top: 8px;
+  }
+
+  .guest-context,
+  .memory-feature,
+  .evidence-summary,
+  .evidence-ledger,
+  .decision-main,
+  .decision-proof {
+    margin-top: 24px;
+  }
+
+  .review-source,
+  .review-signals {
+    margin-top: 20px;
+  }
+
+  .memory-feature,
+  .decision-main,
+  .decision-boundary {
+    padding: 20px;
+  }
+
+  .evidence-row,
+  .source-block {
+    padding: 16px;
+  }
+
+  .selection-row {
+    min-height: 64px;
+    padding: 12px 14px;
+  }
+
+  .correction-choice {
+    min-height: 60px;
+    padding: 12px 14px;
+  }
+
+  .base-list-row {
+    min-height: 82px;
+    padding: 14px 16px;
+  }
+
+  .system-tabs {
+    position: sticky;
+    top: calc(60px + env(safe-area-inset-top));
+    z-index: 20;
+    margin-top: 16px;
+    background: var(--background-secondary);
+  }
+
+  .system-content {
+    margin-top: 20px;
+  }
+
+  .model-grid {
+    row-gap: 24px;
+  }
+
+  .memory-feature.changed {
+    animation: none;
+  }
+
+  .memory-signal-chain {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .memory-signal-chain.changed span {
+    animation-duration: 480ms;
+  }
+
+  .message-composer .base-textarea {
+    min-height: 180px;
+    padding-bottom: 68px;
+  }
+
+  .composer-controls {
+    left: 8px;
+    right: 8px;
+    bottom: 28px;
+    gap: 6px;
+  }
+
+  .composer-icon-action {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  .listening-control {
+    height: 40px;
+    min-width: 0;
+    grid-template-columns: auto minmax(36px,1fr) auto;
+    gap: 6px;
+    padding: 0 6px 0 9px;
+  }
+
+  .listening-label {
+    min-width: 0;
+    font-size: 11px;
+  }
+
+  .voice-activity {
+    min-width: 0;
+  }
+
+  .stop-listening {
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .normal-grid,
+  .compact-grid {
+    padding-inline: 12px;
+    column-gap: 12px;
+  }
+
+  .base-bottom-navigation button {
+    font-size: 10px;
+    padding-inline: 2px;
+  }
+
+  .system-tabs button {
+    padding-inline: 4px;
+  }
+
+  .message-composer .base-textarea {
+    min-height: 168px;
+  }
+
+  .listening-label span:last-child {
+    display: none;
+  }
+}
+
+/* Hover deformation is desktop-only; touch gets a smaller press */
+@media (hover: hover) and (pointer: fine) {
+  .base-button.primary:not(:disabled):hover,
+  .decision-choice-grid button:hover,
+  .selection-row:hover,
+  .correction-choice:hover,
+  .base-list-row:hover {
+    transform: translateY(-2px) scale(1.015,.985);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .base-button.primary:not(:disabled):hover,
+  .decision-choice-grid button:hover,
+  .selection-row:hover,
+  .correction-choice:hover,
+  .base-list-row:hover,
+  .sidebar-nav button:hover,
+  .sidebar-system:hover {
+    transform: none;
+  }
+
+  .base-button.primary:not(:disabled):active,
+  .decision-choice-grid button:active,
+  .selection-row:active,
+  .correction-choice:active,
+  .base-list-row:active,
+  .base-bottom-navigation button:active,
+  .nav-system-link:active {
+    transform: scale(.975,.95);
+  }
+}
