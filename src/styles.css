@@ -3776,3 +3776,53 @@ summary:focus-visible {
     color: #ffffff;
   }
 }
+
+
+/* Final mobile spacing polish */
+@media (max-width: 760px) {
+  .normal-grid,
+  .compact-grid {
+    padding-inline: 20px;
+    column-gap: 14px;
+  }
+
+  .base-navigation {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .guest-layout,
+  .compact-page {
+    padding-top: 20px;
+  }
+
+  .section-gap {
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+
+  .message-composer {
+    margin-top: 0;
+  }
+
+  .dock-grid {
+    min-height: 76px;
+  }
+
+  .base-bottom-navigation {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .normal-grid,
+  .compact-grid {
+    padding-inline: 16px;
+  }
+
+  .base-navigation {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
