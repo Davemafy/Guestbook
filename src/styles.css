@@ -2412,3 +2412,273 @@ summary:focus-visible {
     width: 100%;
   }
 }
+
+/* Final desktop density + selective Workprint kinetics */
+@media (min-width: 761px) {
+  .base-app {
+    grid-template-columns: 208px minmax(0, 1fr);
+  }
+
+  .desktop-sidebar {
+    padding: 20px 12px 16px;
+    gap: 20px;
+  }
+
+  .sidebar-brand {
+    padding-inline: 10px;
+  }
+
+  .sidebar-nav button,
+  .sidebar-system {
+    min-height: 42px;
+    padding-inline: 10px;
+  }
+
+  .app-stage .normal-grid,
+  .app-stage .compact-grid {
+    max-width: 1040px;
+    column-gap: 20px;
+    padding-inline: 28px;
+  }
+
+  .guest-layout,
+  .compact-page {
+    padding-top: 36px;
+    padding-bottom: 92px;
+  }
+
+  .docked-action {
+    left: 208px;
+  }
+
+  .dock-grid {
+    max-width: 1040px;
+    min-height: 68px;
+  }
+
+  .guest-context {
+    padding-top: 88px;
+  }
+
+  .guest-facts {
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .source-block {
+    padding: 20px;
+  }
+
+  .review-source,
+  .review-signals {
+    margin-top: 24px;
+  }
+
+  .selection-row {
+    min-height: 66px;
+    padding: 12px 14px;
+  }
+
+  .correction-choice {
+    min-height: 64px;
+    padding: 12px 14px;
+  }
+
+  .memory-feature {
+    margin-top: 32px;
+    padding: 24px;
+  }
+
+  .memory-list-section {
+    margin-top: 44px;
+  }
+
+  .base-list-row {
+    min-height: 88px;
+    padding: 14px 16px;
+  }
+
+  .evidence-summary {
+    margin-top: 24px;
+    padding: 18px 20px;
+  }
+
+  .evidence-ledger {
+    margin-top: 36px;
+  }
+
+  .evidence-row {
+    padding: 18px 20px;
+    row-gap: 10px;
+  }
+
+  .decision-main {
+    margin-top: 32px;
+    padding: 24px;
+  }
+
+  .decision-proof {
+    margin-top: 32px;
+  }
+
+  .mini-evidence > div {
+    padding: 14px;
+  }
+
+  .decision-boundary {
+    margin-top: 36px;
+    padding: 24px;
+  }
+
+  .system-title .page-title p {
+    margin-top: 8px;
+  }
+
+  .system-tabs {
+    margin-top: 18px;
+  }
+
+  .system-content {
+    height: calc(100dvh - 206px);
+    min-height: 520px;
+    margin-top: 20px;
+  }
+
+  .system-stack {
+    gap: 16px;
+  }
+
+  .system-list {
+    gap: 8px;
+  }
+
+  .system-list > div,
+  .metric-row {
+    min-height: 60px;
+    padding: 12px 14px;
+  }
+
+  .system-note {
+    padding: 14px 16px;
+  }
+
+  .system-caveat {
+    padding: 12px 14px;
+  }
+
+  .proof-sequence {
+    padding: 14px 16px;
+  }
+}
+
+/* Workprint physics only where interaction should feel memorable */
+.base-button.primary:not(:disabled),
+.decision-choice-grid button,
+.selection-row,
+.correction-choice,
+.sidebar-nav button,
+.sidebar-system,
+.base-list-row {
+  transition:
+    transform 420ms cubic-bezier(.18,1.55,.3,1),
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 260ms ease;
+}
+
+.base-button.primary:not(:disabled):hover,
+.decision-choice-grid button:hover,
+.selection-row:hover,
+.correction-choice:hover,
+.base-list-row:hover {
+  transform: translateY(-2px) scale(1.015,.985);
+}
+
+.base-button.primary:not(:disabled):active,
+.decision-choice-grid button:active,
+.selection-row:active,
+.correction-choice:active,
+.base-list-row:active {
+  transform: translateY(2px) scale(.94,.88);
+}
+
+.sidebar-nav button:hover,
+.sidebar-system:hover {
+  transform: translateX(3px) scale(1.015,.985);
+}
+
+.sidebar-nav button:active,
+.sidebar-system:active {
+  transform: translateX(1px) scale(.95,.9);
+}
+
+.selection-row.selected,
+.correction-choice.selected,
+.decision-choice-grid button.selected {
+  animation: control-snap 360ms cubic-bezier(.18,1.55,.3,1);
+}
+
+@keyframes control-snap {
+  0% { transform: scale(.94,.9); }
+  62% { transform: scale(1.025,1.045); }
+  100% { transform: scale(1); }
+}
+
+/* Guestbook signature: confirmed visits visibly accumulate */
+.memory-signal-chain {
+  width: min(360px, 100%);
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.memory-signal-chain span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.32);
+  transform-origin: center;
+}
+
+.memory-signal-chain span:last-child {
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+}
+
+.memory-signal-chain.changed span {
+  animation: visit-arrive 620ms cubic-bezier(.18,1.55,.3,1) both;
+}
+
+.memory-signal-chain.changed span:nth-child(2) { animation-delay: 35ms; }
+.memory-signal-chain.changed span:nth-child(3) { animation-delay: 70ms; }
+.memory-signal-chain.changed span:nth-child(4) { animation-delay: 105ms; }
+.memory-signal-chain.changed span:nth-child(5) { animation-delay: 140ms; }
+.memory-signal-chain.changed span:nth-child(6) { animation-delay: 175ms; }
+
+@keyframes visit-arrive {
+  0% { opacity: .16; transform: translateX(-8px) scale(.55,.45); }
+  64% { opacity: 1; transform: translateX(1px) scale(1.18,1.32); }
+  100% { opacity: 1; transform: none; }
+}
+
+.memory-feature.changed {
+  animation: memory-breathe 640ms cubic-bezier(.18,1.55,.3,1);
+}
+
+@keyframes memory-breathe {
+  0% { transform: scale(.985,.96); }
+  55% { transform: scale(1.01,1.025); }
+  100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selection-row.selected,
+  .correction-choice.selected,
+  .decision-choice-grid button.selected,
+  .memory-signal-chain.changed span,
+  .memory-feature.changed {
+    animation: none !important;
+  }
+}
