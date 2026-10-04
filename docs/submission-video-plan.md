@@ -14,7 +14,7 @@ Tap **I’m visiting**.
 **0:05–0:17 — Visitor input**
 Use the tested message:
 
-> We loved the roasting, the road was terrible, and we want to buy beans.
+> My mother cannot walk very far and I want to buy some coffee beans.
 
 > Guestbook works on one shared phone, even offline. A visitor speaks naturally; no account or cloud AI.
 
@@ -22,8 +22,7 @@ Submit.
 
 **0:17–0:29 — Local interpretation + human control**
 Expected signals:
-- Experience praised
-- Access friction
+- Accessibility need — explicitly marked for human confirmation
 - Wants a product
 
 > A tiny local model turns the message into bounded signals. The original words never disappear, and the operator can correct anything before it enters memory.
