@@ -1,5 +1,21 @@
 @font-face {
   font-family: "Uber Move";
+  src: url("/fonts/uber-move-medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move";
+  src: url("/fonts/uber-move-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Uber Move";
   src: url("https://cdn.jsdelivr.net/gh/Davemafy/Guestbook@407468c2eac92f584b8de91a2ff088dc8ca2a8ba/public/fonts/UberMoveMedium.woff2") format("woff2");
   font-style: normal;
   font-weight: 400 600;
