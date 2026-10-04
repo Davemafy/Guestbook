@@ -36,6 +36,12 @@
 
 > The critical claim is deliberately narrow: **typed language interpretation runs locally with zero network inference**. Browser speech recognition is optional and connected.
 
+## What makes the approach distinct
+
+- **Bounded Small AI:** the 245,820-byte learned model is limited to language interpretation; deterministic code handles storage, counting and evidence grouping.
+- **Visible model iteration:** the rejected first model and external probes are documented instead of presenting only the best result.
+- **Human authority:** source text, review and provenance remain visible through to the operator decision.
+
 ## The problem
 
 Small tourism operators learn valuable things in ordinary conversations: what visitors loved, what was difficult, what they wanted to buy, and what would make them return. Most of that information disappears when the conversation ends.
