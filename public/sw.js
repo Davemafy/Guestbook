@@ -1,4 +1,4 @@
-const CACHE = "guestbook-shell-v3";
+const CACHE = "guestbook-shell-v4";
 const STATIC = ["/manifest.webmanifest", "/icon.svg"];
 
 async function precacheCurrentBuild() {
@@ -6,9 +6,10 @@ async function precacheCurrentBuild() {
 
   for (const url of STATIC) {
     try {
-      await cache.add(url);
+      const asset = await fetch(url, { cache: "no-store" });
+      if (asset.ok) await cache.put(url, asset.clone());
     } catch {
-      // A non-critical icon/manifest failure should not block offline app install.
+      // Non-critical static assets should not block install.
     }
   }
 
@@ -21,15 +22,14 @@ async function precacheCurrentBuild() {
   const urls = new Set();
   for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     const value = match[1];
-    if (!value || !value.startsWith("/")) continue;
-    if (value === "/") continue;
+    if (!value || !value.startsWith("/") || value === "/") continue;
     urls.add(value);
   }
 
   await Promise.allSettled(
     [...urls].map(async (url) => {
       const asset = await fetch(url, { cache: "no-store" });
-      if (asset.ok) await cache.put(url, asset);
+      if (asset.ok) await cache.put(url, asset.clone());
     }),
   );
 }
@@ -53,9 +53,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const url = new URL(event.request.url);
+  const sameOrigin = url.origin === self.location.origin;
+
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: "no-store" })
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
@@ -68,12 +71,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (sameOrigin && url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
-
       return fetch(event.request).then((response) => {
-        if (response.ok && new URL(event.request.url).origin === self.location.origin) {
+        if (response.ok && sameOrigin) {
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         }
