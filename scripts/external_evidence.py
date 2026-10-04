@@ -15,8 +15,8 @@ LABELS = [
     "FRICTION_EXPECTATION","REQUIREMENT_ACCESSIBILITY","REQUIREMENT_DIETARY_SAFETY",
     "COMMUNICATION_GAP","RETURN_REFERRAL","UNKNOWN"
 ]
-DIM = 2048
-THRESHOLD = 0.60
+DIM = None
+THRESHOLD = None
 
 INTENTS = [
     'datetime_query','iot_hue_lightchange','transport_ticket','takeaway_query','qa_stock',
@@ -71,13 +71,15 @@ def vectorize(text):
 def load_model():
     src = (ROOT / "src/ai/pretrained.ts").read_text(encoding="utf-8")
     b64 = re.search(r'MODEL_BASE64 = "([^"]+)"', src).group(1)
+    dim = int(re.search(r"MODEL_DIM = (\\d+)", src).group(1))
+    threshold = float(re.search(r"MODEL_THRESHOLD = ([0-9.]+)", src).group(1))
     floats = np.frombuffer(base64.b64decode(b64), dtype="<f4")
-    weight_count = len(LABELS) * DIM
-    weights = floats[:weight_count].reshape(len(LABELS), DIM)
+    weight_count = len(LABELS) * dim
+    weights = floats[:weight_count].reshape(len(LABELS), dim)
     bias = floats[weight_count:weight_count + len(LABELS)]
-    return weights, bias
+    return weights, bias, dim, threshold
 
-WEIGHTS, BIAS = load_model()
+WEIGHTS, BIAS, DIM, THRESHOLD = load_model()
 
 def classify(text):
     idxs, vals = vectorize(text)
@@ -87,6 +89,40 @@ def classify(text):
     scores = 1.0 / (1.0 + np.exp(-np.clip(z, -30, 30)))
     accepted = [LABELS[i] for i, score in enumerate(scores) if LABELS[i] != "UNKNOWN" and score >= THRESHOLD]
     return accepted or ["UNKNOWN"]
+
+# A deliberately transparent non-ML comparison. These are ordinary lexical
+# rules a small operator could encode in a form or spreadsheet-like workflow.
+# They are kept narrow and readable rather than tuned against the test set.
+BASELINE_RULES = {
+    "WANT_PRODUCT": [
+        re.compile(r"\\b(buy|purchase|take .*home|for sale|sell|order)\\b", re.I),
+        re.compile(r"\\b(kununua|mnauza|nataka .*maharagwe)\\b", re.I),
+    ],
+    "WANT_BOOKING": [
+        re.compile(r"\\b(book|reserve|reservation|schedule|available|space|room)\\b", re.I),
+        re.compile(r"\\b(come|visit).{0,20}\\b(saturday|sunday|friday|tomorrow|next)\\b", re.I),
+        re.compile(r"\\b(kuja|kuweka nafasi|kuhifadhi|nafasi)\\b", re.I),
+    ],
+    "ASK_ACCESS": [
+        re.compile(r"\\b(how (?:do|can|will) (?:we|i) (?:get|reach)|way to|get there|where (?:is|are)|directions?|route|transport|taxi|bus|pickup|located)\\b", re.I),
+        re.compile(r"\\b(tutafikaje|wapi|usafiri|njia|iko mbali)\\b", re.I),
+    ],
+    "ASK_PRICE": [
+        re.compile(r"\\b(how much|price|cost|fee|charge|pay per person|cheapest)\\b", re.I),
+        re.compile(r"\\b(bei|gharama|kiingilio)\\b", re.I),
+    ],
+    "ASK_PAYMENT": [
+        re.compile(r"\\b(card|cash|visa|mastercard|m-?pesa|mobile money|bank transfer|payment method|electronically|debit)\\b", re.I),
+        re.compile(r"\\b(kadi|malipo|pesa taslimu|kulipa)\\b", re.I),
+    ],
+}
+
+def baseline_classify(text):
+    hits = [
+        label for label, patterns in BASELINE_RULES.items()
+        if any(pattern.search(str(text)) for pattern in patterns)
+    ]
+    return hits or ["UNKNOWN"]
 
 def get(url):
     response = requests.get(url, timeout=90, headers={"User-Agent": "Guestbook-Hackathon-Evaluation/1.0"})
@@ -160,7 +196,9 @@ def run_massive():
         df = df[df["intent_name"].isin(MAPPING)].copy()
         df["expected_guestbook_label"] = df["intent_name"].map(MAPPING)
         df["prediction"] = df["utt"].astype(str).apply(classify)
+        df["baseline_prediction"] = df["utt"].astype(str).apply(baseline_classify)
         df["hit"] = [expected in pred for expected, pred in zip(df["expected_guestbook_label"], df["prediction"])]
+        df["baseline_hit"] = [expected in pred for expected, pred in zip(df["expected_guestbook_label"], df["baseline_prediction"])]
         frames[locale] = df
         by_intent = {}
         for intent, part in df.groupby("intent_name"):
@@ -168,10 +206,12 @@ def run_massive():
                 "mapped_label": MAPPING[intent],
                 "cases": int(len(part)),
                 "mapped_label_hit_rate": float(part["hit"].mean()) if len(part) else None,
+                "baseline_hit_rate": float(part["baseline_hit"].mean()) if len(part) else None,
             }
         results[locale] = {
             "cases": int(len(df)),
             "mapped_label_hit_rate": float(df["hit"].mean()) if len(df) else None,
+            "baseline_hit_rate": float(df["baseline_hit"].mean()) if len(df) else None,
             "by_intent": by_intent,
             "source_url": url,
         }
@@ -230,11 +270,16 @@ def main():
             md += [
                 f"### {locale}",
                 f"- Cases: **{x.get('cases', 0)}**",
-                f"- Mapped-label hit rate: **{pct(x.get('mapped_label_hit_rate'))}**",
+                f"- Guestbook Micro mapped-label hit: **{pct(x.get('mapped_label_hit_rate'))}**",
+                f"- Transparent lexical baseline hit: **{pct(x.get('baseline_hit_rate'))}**",
                 "",
             ]
             for intent, values in x.get("by_intent", {}).items():
-                md.append(f"- {intent} -> {values['mapped_label']}: {values['cases']} cases, **{pct(values['mapped_label_hit_rate'])}**")
+                md.append(
+                    f"- {intent} -> {values['mapped_label']}: {values['cases']} cases, "
+                    f"Guestbook **{pct(values['mapped_label_hit_rate'])}**, "
+                    f"lexical baseline **{pct(values['baseline_hit_rate'])}**"
+                )
             md.append("")
         if "paired" in m:
             md += [
