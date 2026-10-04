@@ -293,6 +293,84 @@ function useObservations() {
   return { rows, refresh };
 }
 
+function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!stream || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    const audio = new AudioContextCtor();
+    const source = audio.createMediaStreamSource(stream);
+    const analyser = audio.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.82;
+    source.connect(analyser);
+
+    const bins = new Uint8Array(analyser.frequencyBinCount);
+    let frame = 0;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+      canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+    };
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
+    resize();
+
+    const draw = () => {
+      frame = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(bins);
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--content-primary").trim() || "#111";
+
+      const barCount = 28;
+      const gap = Math.max(2, width * 0.006);
+      const barWidth = Math.max(2, (width - gap * (barCount - 1)) / barCount);
+      const usableBins = Math.min(bins.length, 72);
+      const step = usableBins / barCount;
+
+      for (let index = 0; index < barCount; index++) {
+        const start = Math.floor(index * step);
+        const end = Math.max(start + 1, Math.floor((index + 1) * step));
+        let total = 0;
+        for (let bin = start; bin < end; bin++) total += bins[bin] ?? 0;
+        const level = total / Math.max(1, end - start) / 255;
+        const shaped = Math.pow(level, 0.72);
+        const barHeight = Math.max(height * 0.08, shaped * height * 0.92);
+        const x = index * (barWidth + gap);
+        const y = (height - barHeight) / 2;
+        ctx.globalAlpha = 0.28 + shaped * 0.72;
+        ctx.fillRect(x, y, barWidth, barHeight);
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      source.disconnect();
+      void audio.close();
+    };
+  }, [stream]);
+
+  return <canvas ref={canvasRef} className="audio-visualizer" aria-hidden="true" />;
+}
+
 function GuestScreen() {
   const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
   const [text, setText] = useState("");
@@ -302,14 +380,24 @@ function GuestScreen() {
     () => getBrowserSpeechRecognition() ? "idle" : "unavailable",
   );
   const [voiceError, setVoiceError] = useState("");
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const voiceRef = useRef<BrowserSpeechRecognition | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const copy = guestCopy[language];
 
   useEffect(() => () => {
     voiceRef.current?.stop();
     voiceRef.current = null;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
   }, []);
+
+  function releaseAudioStream() {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setAudioStream(null);
+  }
 
   function attachPhoto(file?: File) {
     if (!file || !file.type.startsWith("image/")) return;
@@ -318,7 +406,7 @@ function GuestScreen() {
     reader.readAsDataURL(file);
   }
 
-  function startVoice() {
+  async function startVoice() {
     if (!navigator.onLine) {
       setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
       setVoiceState("error");
@@ -329,6 +417,20 @@ function GuestScreen() {
     if (!Recognition) {
       setVoiceState("unavailable");
       setVoiceError("This browser does not expose speech recognition. Type instead.");
+      return;
+    }
+
+    releaseAudioStream();
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      streamRef.current = stream;
+      setAudioStream(stream);
+    } catch {
+      setVoiceError("Allow microphone access to use voice. Typing remains available.");
+      setVoiceState("error");
       return;
     }
 
@@ -347,10 +449,12 @@ function GuestScreen() {
     };
     recognition.onend = () => {
       voiceRef.current = null;
+      releaseAudioStream();
       setVoiceState("idle");
     };
     recognition.onerror = (event) => {
       voiceRef.current = null;
+      releaseAudioStream();
       setVoiceState("idle");
       setVoiceError(
         event.error === "not-allowed"
@@ -366,13 +470,20 @@ function GuestScreen() {
       recognition.start();
     } catch {
       voiceRef.current = null;
+      releaseAudioStream();
       setVoiceState("error");
       setVoiceError("Voice could not start on this browser.");
     }
   }
 
   function stopVoice() {
-    voiceRef.current?.stop();
+    try {
+      voiceRef.current?.stop();
+    } finally {
+      window.setTimeout(() => {
+        if (streamRef.current) releaseAudioStream();
+      }, 250);
+    }
   }
 
   async function submit() {
@@ -419,9 +530,29 @@ function GuestScreen() {
             />
           </div>
 
-          <Field label="Your message" meta={text.length + "/1000"} hint="No account required. You can edit this before it is saved.">
-            <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
-          </Field>
+          <div className={"message-composer " + (voiceState === "listening" ? "is-listening" : "")}>
+            <Field label="Your message" meta={text.length + "/1000"} hint="No account required. You can edit this before it is saved.">
+              <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
+            </Field>
+            <div className="composer-controls">
+              <button className="composer-icon-button" type="button" onClick={() => mediaRef.current?.click()} aria-label="Attach photo" title="Attach photo">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 10.5 10 6a3 3 0 0 1 4.24 4.24l-5.66 5.67a4 4 0 1 1-5.66-5.66l6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              {voiceState !== "listening" && voiceState !== "unavailable" && (
+                <button className="composer-voice-button" type="button" onClick={() => void startVoice()} aria-label="Speak now">
+                  <span className="mic-dot" aria-hidden="true" />
+                  <span>Speak now</span>
+                </button>
+              )}
+              {voiceState === "listening" && (
+                <div className="listening-control">
+                  <span className="listening-label"><span className="record-dot" />Listening</span>
+                  <AudioVisualizer stream={audioStream} />
+                  <button className="stop-listening" type="button" onClick={stopVoice}>Stop</button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {mediaDataUrl && (
             <div className="media-preview">
@@ -432,19 +563,8 @@ function GuestScreen() {
 
           <input ref={mediaRef} className="sr-only" type="file" accept="image/*" onChange={(event) => attachPhoto(event.target.files?.[0])} />
 
-          <div className="capture-tools">
-            <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={() => mediaRef.current?.click()}>Attach photo</BaseButton>
-            {voiceState !== "listening" && voiceState !== "unavailable" && (
-              <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={startVoice}>Speak now</BaseButton>
-            )}
-            {voiceState === "listening" && (
-              <BaseButton hierarchy="negative" size="small" shape="rect" onClick={stopVoice}>Stop listening</BaseButton>
-            )}
-          </div>
-
           {voiceState === "unavailable" && <BaseBanner tone="neutral">Voice is unavailable in this browser. Typing and local Guestbook inference still work offline.</BaseBanner>}
           {voiceError && <BaseBanner tone="negative">{voiceError}</BaseBanner>}
-          {voiceState !== "unavailable" && <span className="paragraph-small">Voice uses the phone browser's speech service while connected. No Guestbook voice-model download is required.</span>}
         </section>
 
         <aside className="guest-context">
