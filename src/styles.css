@@ -2376,6 +2376,80 @@ summary:focus-visible {
   color: var(--positive);
 }
 
+
+/* Floating mobile product header */
+.brand-logo {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+}
+
+@media (max-width: 760px) {
+  .base-navigation {
+    position: sticky;
+    top: 0;
+    padding: calc(env(safe-area-inset-top) + 10px) 12px 0;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .base-navigation .nav-grid {
+    width: 100%;
+    min-height: 58px;
+    padding-inline: 10px;
+    margin-inline: 0;
+    border: 1px solid rgba(17,17,17,.06);
+    border-radius: 16px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    pointer-events: auto;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+  }
+
+  .mobile-status {
+    width: 34px;
+    height: 34px;
+    justify-self: end;
+    position: relative;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: #f4f4f2;
+    color: var(--content-secondary);
+  }
+
+  .mobile-status .status-dot {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--warning);
+    box-shadow: 0 0 0 2px #f4f4f2;
+  }
+
+  .mobile-status.ready .status-dot {
+    background: var(--positive);
+  }
+
+  .nav-system-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+}
+
 /* Mobile shell remains compact */
 @media (max-width: 760px) {
   .desktop-sidebar {
