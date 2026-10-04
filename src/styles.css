@@ -3826,3 +3826,33 @@ summary:focus-visible {
     padding-right: 16px;
   }
 }
+
+/* Remove outer app frame — keep Workprint composition inside the workspace */
+@media (min-width: 761px) {
+  html,
+  body {
+    background: #fffdf8;
+  }
+
+  body {
+    padding: 0;
+  }
+
+  .base-app {
+    width: 100%;
+    min-height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .desktop-sidebar {
+    height: 100dvh;
+  }
+
+  .app-stage {
+    min-height: 100dvh;
+  }
+}
