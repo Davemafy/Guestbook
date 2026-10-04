@@ -666,7 +666,7 @@ function GuestScreen() {
               <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
             </Field>
             <div className="composer-controls">
-              <button className="composer-icon-button" type="button" onClick={() => mediaRef.current?.click()}>
+              <button className="composer-tool-button" type="button" onClick={() => mediaRef.current?.click()}>
                 Add photo
               </button>
               {voiceState !== "listening" && voiceState !== "unavailable" && (
