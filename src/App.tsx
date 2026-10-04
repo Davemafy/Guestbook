@@ -313,7 +313,10 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
   return (
     <div className={"base-app " + layout + " route-" + route}>
       <aside className="desktop-sidebar" aria-label="Primary">
-        <button className="sidebar-brand" onClick={() => go("/")}>Guestbook</button>
+        <button className="sidebar-brand" onClick={() => go("/")} aria-label="Guestbook home">
+          <img src="/icon.svg" alt="" aria-hidden="true" />
+          <span className="sr-only">Guestbook</span>
+        </button>
         <nav className="sidebar-nav">
           {coreNav.map((item) => (
             <button
