@@ -330,15 +330,10 @@ button:disabled {
   font-weight: 500;
 }
 
-.base-banner.accent { background: var(--accent); color: #ffffff; }
 .base-banner.positive { background: var(--positive); color: #ffffff; }
 .base-banner.warning { background: var(--warning); color: #000000; }
 .base-banner.negative { background: var(--negative); color: #ffffff; }
-.base-banner.neutral { background: var(--background-tertiary); color: #000000; }
 
-.banner-action {
-  flex: 0 0 auto;
-}
 
 
 /* Shared page structure */
@@ -1290,7 +1285,6 @@ button:disabled {
     padding-top: 2px;
     border-top: 1px solid var(--border-opaque);
     background: var(--background-primary);
-    box-shadow: 0 -4px 16px rgba(0,0,0,.08);
     display: flex;
     align-items: stretch;
   }
@@ -1655,7 +1649,7 @@ button:disabled {
   height: 30px;
   padding: 0 10px;
   border-color: transparent;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
   line-height: 16px;
   font-weight: 500;
