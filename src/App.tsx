@@ -584,7 +584,6 @@ function GuestScreen() {
       <main className="normal-grid guest-layout">
         <section className="guest-primary">
           <PageTitle
-            kicker="Karibu Coffee Farm · Guest"
             title={copy.title}
             body="Leave the exact words first. Guestbook interprets them on this device, then a person decides what belongs in business memory."
           />
