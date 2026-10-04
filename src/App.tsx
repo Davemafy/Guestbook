@@ -332,7 +332,7 @@ function Memory() {
         <div className="memory-actions">
           <button className="secondary" onClick={() => go("/guest")}>Guest entry</button>
           <button className="secondary" onClick={() => go("/capture")}>Capture later</button>
-          <button className="secondary" onClick={() => exportMemory(observations)}>Export</button>
+          <button className="secondary" onClick={() => exportMemory(observations)}>Export JSON</button>
           <button className="primary" onClick={() => go("/decide")}>What should I act on?</button>
         </div>
       </section>
