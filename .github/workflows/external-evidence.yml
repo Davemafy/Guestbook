@@ -1,0 +1,30 @@
+name: external-evidence
+
+on:
+  push:
+    paths:
+      - ".github/workflows/external-evidence.yml"
+      - "scripts/external_evidence.py"
+      - "src/ai/pretrained.ts"
+      - "src/domain/labels.ts"
+  workflow_dispatch:
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install evaluation dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow requests
+      - name: Run external evidence probes
+        run: python scripts/external_evidence.py
+      - name: Upload external evidence report
+        uses: actions/upload-artifact@v4
+        with:
+          name: guestbook-external-evidence
+          path: external-evidence/
+          retention-days: 7
