@@ -56,6 +56,17 @@ Keep the inspected Base Gallery system:
 
 Do not substitute a generic shadcn/SaaS aesthetic.
 
+## Iconography
+
+Use Phosphor as the single product icon family.
+
+- Navigation uses icon + label.
+- Inactive navigation icons use regular weight; active navigation icons use fill.
+- Desktop navigation icons are 16px; mobile navigation icons are 20px.
+- Utility actions such as Add photo and Speak now use 18px regular icons with explicit text labels.
+- Icons do not replace provenance, evidence labels, warnings, or explanatory text.
+- Do not mix icon libraries, draw one-off SVGs, or use decorative icons to fill empty space.
+
 ## Anti-slop rules
 
 Do not add:
