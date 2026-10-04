@@ -973,7 +973,7 @@ function MemoryScreen() {
 
         {featured ? (
           <>
-            <section className="memory-feature">
+            <section className={"memory-feature " + (changed ? "changed" : "")}>
               <div className={"memory-evidence-line " + (changed ? "changed" : "")}>
                 <UsersThreeIcon size={20} weight="regular" aria-hidden="true" />
                 <strong>{featured.visitCount} visits</strong>
