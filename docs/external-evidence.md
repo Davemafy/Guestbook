@@ -55,7 +55,7 @@ Swahili test details:
 
 The test split is not used for training.
 
-## Nairobi held-out weak-label probe
+## Transparent non-ML baseline\n\nThe rubric asks whether a simpler tool could do the same job, so Guestbook also evaluates a small, readable lexical baseline with no learned weights. The rules look for obvious booking, product, access, price, and payment phrases in English and Kiswahili.\n\nOn the 35-case frozen synthetic set, a fuller browser lexical baseline is deliberately competitive: **93.0% micro-F1** and **82.9% exact match**, versus Guestbook Micro's **90.2% micro-F1** and **82.9% exact match**. That result is not hidden: synthetic examples alone do not justify machine learning.\n\nOn the untouched MASSIVE semantic-transfer probe, the same style of lexical approach fails to generalize:\n\n| Locale | Cases | Lexical baseline mapped-label hit | Guestbook Micro mapped-label hit |\n| --- | ---: | ---: | ---: |\n| English (en-US) | 305 | **16.7%** | **91.1%** |\n| Kiswahili (sw-KE) | 305 | **2.3%** | **92.8%** |\n\nThe comparison is intentionally bounded. It does not prove that every possible rules engine must fail, and MASSIVE is not tourism field data. It shows why Guestbook uses learned language interpretation only for the messy-language step, while keeping counting, thresholds, evidence grouping, and business decisions deterministic or human-controlled.\n\n## Nairobi held-out weak-label probe
 
 Source: Inside Airbnb Nairobi detailed reviews, 15 June 2026.
 
