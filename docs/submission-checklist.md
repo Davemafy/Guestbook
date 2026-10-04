@@ -19,6 +19,10 @@
 
 ## Demo golden path
 
+**Reset demo before each recorded take:** open `/lab` → **Reset demo**. This restores five marked product-request demo visits so the new guest becomes the visible sixth visit.
+
+If the Guest screen reports **VOICE READY**, speak the observation locally. If it reports unavailable, type it; do not troubleshoot voice during the recorded take.
+
 Use this exact tested observation:
 
 > My mother cannot walk very far and I want to buy some coffee beans.
