@@ -56,10 +56,10 @@ The intended proof is a cold reopen in airplane mode followed by a new local cla
 
 ## Product surfaces
 
-- `/` — entry and product thesis
-- `/guest` — shared-phone visitor capture
+- `/` — shared-phone **Guest entry** or provenance-preserving **Host note** capture
 - `/review` — human confirmation/correction
-- `/capture` — guide/operator capture when the guest never uses the phone
-- `/memory` — repeated signals with source evidence
+- `/memory` — repeated signals across distinct visits
+- `/evidence` — original source text and provenance
 - `/decide` — operator-controlled action prompts
-- `/lab` — model diagnostics, synthetic regression, and held-out external evidence
+- `/system` — offline/runtime/model evidence
+- `/lab` — alias into system diagnostics and regression evidence
