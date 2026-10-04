@@ -11,6 +11,8 @@ Guestbook is an offline-first Small AI prototype for small tourism operators. It
 - Guest mode with English and Kiswahili prompts
 - Local multi-label inference with zero network requests
 - Human review and correction before a signal enters memory
+- Guide/operator capture when a guest never uses the phone
+- Manual JSON export of confirmed local records
 - IndexedDB persistence
 - Evidence grouped across distinct visits
 - Decision prompts that never act automatically
@@ -73,6 +75,7 @@ Those numbers are regression evidence for this prototype. They are not claimed a
 - / — product entry
 - /guest — visitor capture
 - /review — operator confirmation
+- /capture — guide/operator capture after a visit
 - /memory — repeated signals + source evidence
 - /decide — human decision layer
 - /lab — model diagnostics and regression test
