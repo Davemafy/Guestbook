@@ -87,7 +87,7 @@ The operator can confirm, remove, or add signals before they enter business memo
 - MASSIVE evaluation measures semantic transfer from non-tourism intents.
 - A real deployment requires independently collected, consented, human-labeled field data and evaluation across target communities.
 
-## Why not an LLM?
+## Why learned ML rather than only lexical rules?\n\nA simpler deterministic baseline was tested rather than assumed to be inadequate.\n\n- On the 35-case frozen synthetic set, transparent lexical rules score **93.0% micro-F1** and **82.9% exact match**. Guestbook Micro scores **90.2% micro-F1** and **82.9% exact match**. On this small synthetic set, rules are competitive.\n- On untouched MASSIVE semantic-transfer slices, the lexical baseline reaches only **16.7%** mapped-label hit in English and **2.3%** in Kiswahili. Guestbook Micro reaches **91.1%** and **92.8%** respectively.\n\nThis is the architectural boundary: learned ML is used only to interpret messy language into a bounded signal set. Distinct-visit counting, thresholds, evidence grouping, persistence, and the final business decision are not delegated to the model.\n\nThe MASSIVE comparison is a semantic-transfer probe rather than tourism field accuracy, and it does not prove every possible rules engine must fail.\n\n## Why not an LLM?
 
 The critical task has a small answer space. A general-purpose LLM would increase model size, latency, battery/compute demand, failure modes, and offline packaging cost. Guestbook therefore tests the smallest useful intelligence for this specific workflow.
 
