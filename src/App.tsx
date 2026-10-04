@@ -1,31 +1,29 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import {
-  ArrowRightIcon,
-  ChatCenteredDotsIcon,
-  CheckCircleIcon,
-  CheckSquareOffsetIcon,
-  ClockIcon,
-  CompassIcon,
-  DatabaseIcon,
-  DownloadSimpleIcon,
-  FileTextIcon,
-  GearSixIcon,
-  HardDriveIcon,
-  ImageIcon,
-  InfoIcon,
-  LockSimpleIcon,
-  MicrophoneIcon,
-  QuotesIcon,
-  ShieldCheckIcon,
-  TrendUpIcon,
-  TranslateIcon,
-  TrashIcon,
-  UserCheckIcon,
-  UsersThreeIcon,
-  WarningCircleIcon,
-  WifiHighIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/icons/ArrowRight";
+import { ChatCenteredDotsIcon } from "@phosphor-icons/react/dist/icons/ChatCenteredDots";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/icons/CheckCircle";
+import { CheckSquareOffsetIcon } from "@phosphor-icons/react/dist/icons/CheckSquareOffset";
+import { ClockIcon } from "@phosphor-icons/react/dist/icons/Clock";
+import { CompassIcon } from "@phosphor-icons/react/dist/icons/Compass";
+import { DatabaseIcon } from "@phosphor-icons/react/dist/icons/Database";
+import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/icons/DownloadSimple";
+import { FileTextIcon } from "@phosphor-icons/react/dist/icons/FileText";
+import { GearSixIcon } from "@phosphor-icons/react/dist/icons/GearSix";
+import { HardDriveIcon } from "@phosphor-icons/react/dist/icons/HardDrive";
+import { ImageIcon } from "@phosphor-icons/react/dist/icons/Image";
+import { InfoIcon } from "@phosphor-icons/react/dist/icons/Info";
+import { LockSimpleIcon } from "@phosphor-icons/react/dist/icons/LockSimple";
+import { MicrophoneIcon } from "@phosphor-icons/react/dist/icons/Microphone";
+import { QuotesIcon } from "@phosphor-icons/react/dist/icons/Quotes";
+import { ShieldCheckIcon } from "@phosphor-icons/react/dist/icons/ShieldCheck";
+import { TrendUpIcon } from "@phosphor-icons/react/dist/icons/TrendUp";
+import { TranslateIcon } from "@phosphor-icons/react/dist/icons/Translate";
+import { TrashIcon } from "@phosphor-icons/react/dist/icons/Trash";
+import { UserCheckIcon } from "@phosphor-icons/react/dist/icons/UserCheck";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/icons/UsersThree";
+import { WarningCircleIcon } from "@phosphor-icons/react/dist/icons/WarningCircle";
+import { WifiHighIcon } from "@phosphor-icons/react/dist/icons/WifiHigh";
+import { XCircleIcon } from "@phosphor-icons/react/dist/icons/XCircle";
 import { activeClassifier } from "./ai/classifier";
 import { db } from "./storage/db";
 import { seedDemoData } from "./data/demoData";
