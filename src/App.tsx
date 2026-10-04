@@ -944,71 +944,62 @@ function Lab() {
   }
 
   return (
-    <Shell hideNav>
-      <AppHeader title="Model lab" subtitle="Local inference" back />
-      <section className="utility-stack">
-        <article className="guest-post utility-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>Observation</strong><span>On-device test</span></div>
-            <div className="message-composer writing lab-composer">
-              <textarea value={text} onChange={(event) => setText(event.target.value)} rows={5} />
-            </div>
-          </div>
-          <button className="post-submit" onClick={run} disabled={running}><span>{running ? "Running locally…" : "Run local inference"}</span><Icon name="send" size={16} /></button>
-        </article>
+    <AppFrame section="lab" back>
+      <section className="field-main lab-page">
+        <PageIntro
+          eyebrow="MODEL LAB"
+          title="Prove the hard part."
+          body="The product story is simple; this page keeps the implementation claims inspectable."
+        />
 
-        <article className="guest-post utility-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>Predictions</strong><span>{inferenceMs === null ? "—" : inferenceMs.toFixed(2) + " ms"}</span></div>
-            <div className="signal-chips">
-              {predictions.length === 0 ? <p className="small-copy">Run an observation.</p> : predictions.map((prediction) => (
-                <span className="ds-chip active signal-chip" key={prediction.label}>{LABEL_META[prediction.label].title} · {formatPercent(prediction.score)}</span>
-              ))}
-            </div>
+        <section className="lab-block">
+          <div className="section-heading"><span>LOCAL INFERENCE</span><span>{inferenceMs === null ? "—" : inferenceMs.toFixed(2) + " MS"}</span></div>
+          <textarea className="lab-input" value={text} onChange={(event) => setText(event.target.value)} rows={5} />
+          <button className="primary-action" onClick={run} disabled={running}>{running ? "Running locally…" : "Run local inference"}</button>
+          <div className="lab-predictions">
+            {predictions.map((prediction) => (
+              <div key={prediction.label}><strong>{LABEL_META[prediction.label].title}</strong><span>{formatPercent(prediction.score)}</span></div>
+            ))}
           </div>
-        </article>
+        </section>
 
-        <article className="guest-post utility-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>Frozen stress set</strong><span>Synthetic regression check</span></div>
-            <div className="metric-list">
-              <Metric label="Micro F1" value={report ? formatPercent(report.f1) : "—"} />
-              <Metric label="Precision" value={report ? formatPercent(report.precision) : "—"} />
-              <Metric label="Recall" value={report ? formatPercent(report.recall) : "—"} />
-              <Metric label="Exact match" value={report ? formatPercent(report.exactMatch) : "—"} />
-              <Metric label="Cases" value={report ? String(report.cases) : "35"} />
-              <Metric label="Weights" value={report ? Math.round(report.weightBytes / 1024) + " KB" : "~240 KB"} />
-              <Metric label="Network inference" value="0 requests" />
-            </div>
+        <section className="lab-block">
+          <div className="section-heading"><span>FROZEN STRESS SET</span><span>SYNTHETIC REGRESSION CHECK</span></div>
+          <div className="metric-list">
+            <Metric label="Micro F1" value={report ? formatPercent(report.f1) : "—"} />
+            <Metric label="Precision" value={report ? formatPercent(report.precision) : "—"} />
+            <Metric label="Recall" value={report ? formatPercent(report.recall) : "—"} />
+            <Metric label="Exact match" value={report ? formatPercent(report.exactMatch) : "—"} />
+            <Metric label="Cases" value={report ? String(report.cases) : "35"} />
+            <Metric label="Weights" value={report ? Math.round(report.weightBytes / 1024) + " KB" : "~240 KB"} />
+            <Metric label="Network inference" value="0 requests" />
           </div>
-          <button className="post-submit secondary-submit" onClick={runBenchmark} disabled={running}><span>Run benchmark</span><Icon name="send" size={16} /></button>
-        </article>
+          <button className="text-action" onClick={runBenchmark} disabled={running}>Run benchmark on this device</button>
+        </section>
 
-        <article className="guest-post utility-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>External evidence</strong><span>Held out</span></div>
-            <div className="metric-list">
-              <Metric label="MASSIVE English" value="91.1%" />
-              <Metric label="MASSIVE Swahili" value="92.8%" />
-              <Metric label="Nairobi weak-label holdout" value="98.0%" />
-              <Metric label="Training cases" value="2,687" />
-              <Metric label="Dimensions" value="4,096" />
-              <Metric label="Weights" value="240 KB" />
-            </div>
-            <p className="small-copy">Transfer probes, not field accuracy.</p>
+        <section className="lab-block">
+          <div className="section-heading"><span>EXTERNAL EVIDENCE</span><span>HELD OUT</span></div>
+          <div className="metric-list">
+            <Metric label="MASSIVE English" value="91.1%" />
+            <Metric label="MASSIVE Swahili" value="92.8%" />
+            <Metric label="Nairobi weak-label holdout" value="98.0%" />
+            <Metric label="Training cases" value="2,687" />
+            <Metric label="Dimensions" value="4,096" />
+            <Metric label="Weights" value="240 KB" />
           </div>
-        </article>
+          <p className="lab-note">Transfer probes and weak-label agreement, not field accuracy.</p>
+        </section>
 
-        <article className="guest-post utility-post">
-          <div className="user-post-copy">
-            <div className="section-label-row"><strong>Recording utility</strong><span>Demo state</span></div>
-            <p className="post-message">Clear local test entries and restore five marked product-request demo visits.</p>
-            {resetMessage && <p className="small-copy">{resetMessage}</p>}
+        <section className="lab-block demo-reset">
+          <div>
+            <div className="section-heading"><span>RECORDING UTILITY</span><span>DEMO STATE</span></div>
+            <p>Clear local test entries and restore five marked product-request demo visits.</p>
+            {resetMessage && <p className="reset-message">{resetMessage}</p>}
           </div>
-          <button className="post-submit secondary-submit" onClick={resetDemo}><span>Reset demo</span><Icon name="send" size={16} /></button>
-        </article>
+          <button className="text-action" onClick={resetDemo}>Reset demo</button>
+        </section>
       </section>
-    </Shell>
+    </AppFrame>
   );
 }
 
