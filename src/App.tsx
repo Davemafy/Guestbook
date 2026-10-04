@@ -1,13 +1,30 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  ArrowRightIcon,
   ChatCenteredDotsIcon,
+  CheckCircleIcon,
   CheckSquareOffsetIcon,
+  ClockIcon,
   CompassIcon,
   DatabaseIcon,
+  DownloadSimpleIcon,
   FileTextIcon,
   GearSixIcon,
+  HardDriveIcon,
   ImageIcon,
+  InfoIcon,
+  LockSimpleIcon,
   MicrophoneIcon,
+  QuotesIcon,
+  ShieldCheckIcon,
+  TrendUpIcon,
+  TranslateIcon,
+  TrashIcon,
+  UserCheckIcon,
+  UsersThreeIcon,
+  WarningCircleIcon,
+  WifiHighIcon,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 import { activeClassifier } from "./ai/classifier";
 import { db } from "./storage/db";
@@ -134,12 +151,16 @@ const guestCopy = {
   en: {
     language: "English",
     title: "What should the host know?",
-    placeholder: "Tell us what worked, what was difficult, or what you wish you could do next.",
+    body: "Tell them what stood out, what was difficult, or what you’d come back for.",
+    field: "Your note",
+    placeholder: "What worked? What was confusing? What would make the visit better?",
   },
   sw: {
     language: "Kiswahili",
     title: "Mwenyeji anapaswa kujua nini?",
-    placeholder: "Tuambie kilichofanya kazi, kilichokuwa kigumu, au unachotamani kufanya baadaye.",
+    body: "Mwambie kilichokuvutia, kilichokuwa kigumu, au kile ungependa kurudia.",
+    field: "Ujumbe wako",
+    placeholder: "Nini kilifanya kazi? Nini kilikuwa kigumu? Nini kingeboresha ziara?",
   },
 } as const;
 
@@ -293,7 +314,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
         <div className={"nav-grid " + layout + "-grid"}>
           <button className="brand-mark" onClick={() => go("/")}>Guestbook</button>
           <nav className="desktop-nav" aria-label="Primary">
-            {NAV.map((item) => (
+            {NAV.filter((item) => item.key !== "system").map((item) => (
               <button key={item.key} className={route === item.key ? "active" : ""} onClick={() => go(item.path)}>
                 <RouteIcon route={item.key} active={route === item.key} size={16} />
                 <span>{item.label}</span>
@@ -304,9 +325,8 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
             <span className={"status-pip " + (!online || offlineReady ? "positive" : "warning")} />
             <span>{status}</span>
           </div>
-          <button className={"mobile-system-link " + (route === "system" ? "active" : "")} onClick={() => go("/system")}>
+          <button className={"nav-system-link " + (route === "system" ? "active" : "")} onClick={() => go("/system")} aria-label="System" title="System">
             <RouteIcon route="system" active={route === "system"} size={18} />
-            <span>System</span>
           </button>
         </div>
       </header>
