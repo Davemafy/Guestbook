@@ -1,4 +1,4 @@
-const CACHE = "guestbook-shell-v5";
+const CACHE = "guestbook-shell-v6";
 const STATIC = [
   "/manifest.webmanifest",
   "/icon.svg",
@@ -72,6 +72,21 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => caches.match("/index.html")),
+    );
+    return;
+  }
+
+  if (sameOrigin && url.pathname.startsWith("/fonts/")) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
     );
     return;
   }
