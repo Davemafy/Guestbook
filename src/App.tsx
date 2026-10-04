@@ -5,45 +5,8 @@ import { seedDemoData } from "./data/demoData";
 import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
 import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./domain/labels";
 import type { Observation, Prediction } from "./domain/observation";
+import { createOfflineVoice, type OfflineVoiceController, type VoiceProgress } from "./voice/moonshine";
 
-
-type SpeechAvailability = "available" | "downloadable" | "downloading" | "unavailable";
-
-interface LocalSpeechRecognitionResult {
-  readonly isFinal: boolean;
-  readonly 0: { transcript: string };
-}
-
-interface LocalSpeechRecognitionEvent {
-  readonly resultIndex: number;
-  readonly results: ArrayLike<LocalSpeechRecognitionResult>;
-}
-
-interface LocalSpeechRecognitionInstance {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  processLocally?: boolean;
-  onresult: ((event: LocalSpeechRecognitionEvent) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-  start(): void;
-  stop(): void;
-}
-
-interface LocalSpeechRecognitionConstructor {
-  new (): LocalSpeechRecognitionInstance;
-  available?: (options: { langs: string[]; processLocally: true }) => Promise<SpeechAvailability>;
-  install?: (options: { langs: string[]; processLocally: true }) => Promise<boolean>;
-}
-
-function getLocalSpeechRecognition(): LocalSpeechRecognitionConstructor | null {
-  const candidate = window as typeof window & {
-    SpeechRecognition?: LocalSpeechRecognitionConstructor;
-    webkitSpeechRecognition?: LocalSpeechRecognitionConstructor;
-  };
-  return candidate.SpeechRecognition ?? candidate.webkitSpeechRecognition ?? null;
-}
 
 function useLocationKey() {
   const [key, setKey] = useState(() => window.location.pathname + window.location.search);
@@ -194,107 +157,90 @@ function Guest() {
   const [language, setLanguage] = useState<keyof typeof guestCopy>("en");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [voiceState, setVoiceState] = useState<"checking" | SpeechAvailability | "installing" | "listening" | "error">("checking");
-  const recognitionRef = useRef<LocalSpeechRecognitionInstance | null>(null);
+  const [voiceState, setVoiceState] = useState<"install" | "cached" | "loading" | "ready" | "listening" | "error">(
+    () => localStorage.getItem("guestbook-moonshine-voice-v1") ? "cached" : "install",
+  );
+  const [voiceProgress, setVoiceProgress] = useState<VoiceProgress | null>(null);
+  const [voiceError, setVoiceError] = useState("");
+  const voiceRef = useRef<OfflineVoiceController | null>(null);
+  const voiceBaseRef = useRef("");
   const copy = guestCopy[language];
 
   useEffect(() => {
-    let cancelled = false;
+    return () => {
+      void voiceRef.current?.stop();
+      voiceRef.current?.close();
+      voiceRef.current = null;
+    };
+  }, []);
 
-    async function checkVoice() {
-      if (language !== "en") {
-        setVoiceState("unavailable");
-        return;
-      }
-
-      const Recognition = getLocalSpeechRecognition();
-      if (!Recognition?.available) {
-        setVoiceState("unavailable");
-        return;
-      }
-
-      setVoiceState("checking");
-      try {
-        const availability = await Recognition.available({
-          langs: ["en-US"],
-          processLocally: true,
-        });
-        if (!cancelled) setVoiceState(availability);
-      } catch {
-        if (!cancelled) setVoiceState("unavailable");
-      }
+  async function prepareVoice() {
+    if (language !== "en" || voiceState === "loading" || voiceState === "listening") return;
+    if (!navigator.onLine && voiceState === "install") {
+      setVoiceError("Connect once to install the offline voice pack.");
+      setVoiceState("error");
+      return;
     }
 
-    void checkVoice();
-    return () => {
-      cancelled = true;
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-    };
-  }, [language]);
+    setVoiceError("");
+    setVoiceProgress(null);
+    setVoiceState("loading");
 
-  async function installVoice() {
-    const Recognition = getLocalSpeechRecognition();
-    if (!Recognition?.install || language !== "en") return;
-
-    setVoiceState("installing");
     try {
-      const installed = await Recognition.install({
-        langs: ["en-US"],
-        processLocally: true,
+      voiceRef.current?.close();
+      const controller = await createOfflineVoice({
+        onText: (live) => {
+          const next = [voiceBaseRef.current, live.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
+          setText(next);
+        },
+        onLine: (finalText) => {
+          const next = [voiceBaseRef.current, finalText.trim()].filter(Boolean).join(voiceBaseRef.current ? " " : "");
+          setText(next);
+        },
+        onProgress: (progress) => setVoiceProgress(progress),
+        onError: (error) => {
+          setVoiceError(error.message || "Voice transcription failed.");
+          setVoiceState("error");
+        },
       });
-      setVoiceState(installed ? "available" : "unavailable");
-    } catch {
-      setVoiceState("error");
+      voiceRef.current = controller;
+      await controller.load();
+      localStorage.setItem("guestbook-moonshine-voice-v1", "cached");
+      setVoiceProgress(null);
+      setVoiceState("ready");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setVoiceError(message || "Could not load offline voice.");
+      setVoiceState(localStorage.getItem("guestbook-moonshine-voice-v1") ? "cached" : "error");
     }
   }
 
-  function startVoice() {
-    const Recognition = getLocalSpeechRecognition();
-    if (!Recognition || language !== "en" || voiceState !== "available") return;
-
-    const recognition = new Recognition();
-    const base = text.trim();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.processLocally = true;
-
-    recognition.onresult = (event) => {
-      let transcript = "";
-      for (let index = 0; index < event.results.length; index++) {
-        transcript += event.results[index][0]?.transcript ?? "";
-      }
-      const next = [base, transcript.trim()].filter(Boolean).join(base ? " " : "");
-      setText(next);
-    };
-
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      setVoiceState("available");
-    };
-
-    recognition.onerror = () => {
-      recognitionRef.current = null;
-      setVoiceState("error");
-    };
-
-    recognitionRef.current = recognition;
+  async function startVoice() {
+    if (!voiceRef.current || voiceState !== "ready") return;
+    voiceBaseRef.current = text.trim();
+    setVoiceError("");
     setVoiceState("listening");
     try {
-      recognition.start();
-    } catch {
-      recognitionRef.current = null;
-      setVoiceState("error");
+      await voiceRef.current.start();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setVoiceError(message || "Microphone access failed.");
+      setVoiceState("ready");
     }
   }
 
-  function stopVoice() {
-    recognitionRef.current?.stop();
+  async function stopVoice() {
+    if (!voiceRef.current) return;
+    try {
+      await voiceRef.current.stop();
+    } finally {
+      setVoiceState("ready");
+    }
   }
 
   async function submit() {
     if (text.trim().length < 3 || busy) return;
+    if (voiceState === "listening") await stopVoice();
     setBusy(true);
     const result = await activeClassifier.classify(text.trim());
     const id = crypto.randomUUID();
@@ -313,19 +259,11 @@ function Guest() {
     go("/review?id=" + encodeURIComponent(id));
   }
 
-  const voiceLabel =
-    voiceState === "listening" ? "LISTENING — TAP TO STOP" :
-    voiceState === "available" ? "START OFFLINE VOICE" :
-    voiceState === "downloadable" ? "INSTALL OFFLINE VOICE" :
-    voiceState === "downloading" || voiceState === "installing" ? "INSTALLING VOICE…" :
-    voiceState === "checking" ? "CHECKING OFFLINE VOICE…" :
-    "OFFLINE VOICE UNAVAILABLE";
-
-  const voiceAction =
-    voiceState === "available" ? startVoice :
-    voiceState === "listening" ? stopVoice :
-    voiceState === "downloadable" ? installVoice :
-    undefined;
+  const canInstall = language === "en" && (voiceState === "install" || voiceState === "cached" || voiceState === "error");
+  const progressPercent = voiceProgress ? Math.round(voiceProgress.fraction * 100) : null;
+  const progressSize = voiceProgress?.total
+    ? `${((voiceProgress.loaded ?? 0) / 1024 / 1024).toFixed(1)} / ${(voiceProgress.total / 1024 / 1024).toFixed(1)} MB`
+    : null;
 
   return (
     <Shell>
@@ -344,27 +282,43 @@ function Guest() {
         {language === "en" && (
           <section className={"voice-panel " + (voiceState === "listening" ? "listening" : "")}>
             <div className="voice-copy">
-              <span>VOICE INPUT · BROWSER-LOCAL</span>
-              <strong>{voiceLabel}</strong>
+              <span>VOICE INPUT · ON-DEVICE WASM</span>
+              <strong>
+                {voiceState === "install" && "INSTALL OFFLINE VOICE"}
+                {voiceState === "cached" && "LOAD CACHED VOICE"}
+                {voiceState === "loading" && "PREPARING VOICE…"}
+                {voiceState === "ready" && "VOICE READY"}
+                {voiceState === "listening" && "LISTENING…"}
+                {voiceState === "error" && "VOICE NEEDS ATTENTION"}
+              </strong>
               <p>
-                {voiceState === "available" || voiceState === "listening"
-                  ? "English speech is processed on this device. Guestbook never falls back silently to cloud speech."
-                  : voiceState === "downloadable"
-                    ? "Your browser can install its English speech pack once. The Guestbook classifier stays ~240 KB."
-                    : "Typing remains the guaranteed offline path on this browser."}
+                {voiceState === "install" && "Download the small English speech pack once while connected. After that, transcription runs on this device."}
+                {voiceState === "cached" && "The speech pack was installed before. Load it from the browser cache to use voice offline."}
+                {voiceState === "loading" && `Downloading/loading locally${progressPercent === null ? "" : ` · ${progressPercent}%`}${progressSize ? ` · ${progressSize}` : ""}`}
+                {(voiceState === "ready" || voiceState === "listening") && "Moonshine transcribes locally. Audio never goes to Guestbook servers or a speech API."}
+                {voiceState === "error" && (voiceError || "Typing remains available while voice is unavailable.")}
               </p>
             </div>
-            <button
-              className="voice-action"
-              onClick={voiceAction}
-              disabled={!voiceAction || voiceState === "installing" || voiceState === "downloading" || voiceState === "checking"}
-            >
-              {voiceState === "listening" ? "STOP" : voiceState === "downloadable" ? "INSTALL" : "VOICE"}
-            </button>
+            {canInstall && (
+              <button className="voice-action" onClick={prepareVoice}>
+                {voiceState === "cached" ? "LOAD" : "INSTALL"}
+              </button>
+            )}
+            {voiceState === "loading" && (
+              <div className="voice-progress" aria-label="Voice pack loading progress">
+                <span style={{ width: `${progressPercent ?? 8}%` }} />
+              </div>
+            )}
+            {voiceState === "ready" && <button className="voice-action" onClick={startVoice}>SPEAK</button>}
+            {voiceState === "listening" && <button className="voice-action" onClick={stopVoice}>STOP</button>}
           </section>
         )}
 
-        <div className="type-divider"><span>OR TYPE</span></div>
+        {language === "sw" && (
+          <p className="voice-language-note">Kiswahili stays typed in this prototype; the local voice pack is English-only.</p>
+        )}
+
+        <div className="type-divider"><span>{language === "en" ? "OR TYPE" : "TYPE"}</span></div>
         <textarea className="guest-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={copy.placeholder} rows={7} />
         <div className="input-footer">
           <span>{text.length} characters</span>
