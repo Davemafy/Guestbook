@@ -225,10 +225,13 @@ function PageTitle({ kicker, title, body }: { kicker: string; title: string; bod
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+function Field({ label, hint, meta, children }: { label: string; hint?: string; meta?: string; children: ReactNode }) {
   return (
     <label className="base-field">
-      <span className="label-medium">{label}</span>
+      <span className="field-label-row">
+        <span className="label-medium">{label}</span>
+        {meta && <span className="field-meta">{meta}</span>}
+      </span>
       {children}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
@@ -362,8 +365,8 @@ function GuestScreen() {
             />
           </div>
 
-          <Field label="Your message" hint="No account required. You can edit this before it is saved.">
-            <Textarea rows={9} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
+          <Field label="Your message" meta={text.length + "/1000"} hint="No account required. You can edit this before it is saved.">
+            <Textarea rows={9} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} placeholder={copy.placeholder} />
           </Field>
 
           {mediaDataUrl && (
@@ -380,7 +383,6 @@ function GuestScreen() {
             {language === "en" && (voiceState === "idle" || voiceState === "error") && <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={prepareVoice}>Prepare offline voice</BaseButton>}
             {language === "en" && voiceState === "ready" && <BaseButton hierarchy="secondary" size="small" shape="rect" onClick={startVoice}>Speak offline</BaseButton>}
             {language === "en" && voiceState === "listening" && <BaseButton hierarchy="negative" size="small" shape="rect" onClick={stopVoice}>Stop recording</BaseButton>}
-            <span className="character-count">{text.length} characters</span>
           </div>
 
           {voiceState === "loading" && <div className="voice-progress"><BaseProgress value={progress || 8} /><span>Preparing offline voice{progress ? " · " + progress + "%" : ""}</span></div>}
