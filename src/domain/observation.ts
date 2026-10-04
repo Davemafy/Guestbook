@@ -21,4 +21,5 @@ export interface Observation {
   confirmedLabels: SignalLabel[];
   status: ObservationStatus;
   isDemo?: boolean;
+  mediaDataUrl?: string;
 }
