@@ -6,7 +6,7 @@ import { buildMemory, decisionCopy, type MemorySignal } from "./domain/memory";
 import { HUMAN_CONFIRM_REQUIRED, LABELS, LABEL_META, type SignalLabel } from "./domain/labels";
 import type { Observation, Prediction } from "./domain/observation";
 import { createOfflineVoice, type OfflineVoiceController, type VoiceProgress } from "./voice/moonshine";
-import { getScreenByPath, screenGroups, screenPath, screens, type ScreenSpec } from "./screens";
+import { getScreenByPath, screenPath, screens, type ScreenSpec } from "./screens";
 
 function useLocationKey() {
   const [key, setKey] = useState(() => window.location.pathname + window.location.search);
@@ -121,29 +121,57 @@ function AppShell({ screen, children }: { screen: ScreenSpec; children: ReactNod
     };
   }, []);
 
-  const previous = screens[screen.n - 2];
-  const next = screens[screen.n];
+  const navItems = [
+    ["Guest view", 1],
+    ["Capture", 4],
+    ["Review", 48],
+    ["Memory", 20],
+    ["Decide", 29],
+    ["Visits", 43],
+    ["Staff", 47],
+    ["Setup", 49],
+    ["Offline", 54],
+    ["Data", 59],
+    ["Trust", 64],
+    ["Lab", 68],
+  ] as const;
+
+  const currentSection =
+    screen.n <= 9 ? "Guest view" :
+    screen.n <= 19 ? (screen.n <= 13 ? "Capture" : "Review") :
+    screen.n <= 28 ? "Memory" :
+    screen.n <= 42 ? "Decide" :
+    screen.n <= 48 ? (screen.n <= 45 ? "Visits" : "Staff") :
+    screen.n <= 53 ? "Setup" :
+    screen.n <= 58 ? "Offline" :
+    screen.n <= 63 ? "Data" :
+    screen.n <= 67 ? "Trust" : "Lab";
 
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <button onClick={() => go("/")}>Guestbook</button>
-          <Badge variant="outline">72 screens</Badge>
+          <button onClick={() => go("/screens/20-memory-overview")}>Guestbook</button>
         </div>
-        <div className="sidebar-scroll">
-          {screenGroups.map((group) => (
-            <div className="nav-group" key={group}>
-              <div className="nav-label">{group}</div>
-              {screens.filter((item) => item.group === group).map((item) => (
-                <button key={item.n} className={item.n === screen.n ? "active" : ""} onClick={() => go(screenPath(item))}>
-                  <span>{String(item.n).padStart(2, "0")}</span>
-                  <em>{item.title}</em>
+
+        <div className="sidebar-scroll primary-sidebar-nav">
+          <div className="nav-group">
+            <div className="nav-label">Workspace</div>
+            {navItems.map(([label, number]) => {
+              const target = screens.find((item) => item.n === number)!;
+              return (
+                <button
+                  key={label}
+                  className={currentSection === label ? "active" : ""}
+                  onClick={() => go(screenPath(target))}
+                >
+                  <em>{label}</em>
                 </button>
-              ))}
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
+
         <div className="sidebar-footer">
           <span className={"status-dot " + (!online || ready ? "ready" : "")} />
           <span>{online ? (ready ? "Offline ready" : "Preparing offline") : "Offline"}</span>
@@ -153,16 +181,23 @@ function AppShell({ screen, children }: { screen: ScreenSpec; children: ReactNod
       <main className="workspace">
         <header className="topbar">
           <div className="mobile-screen-select">
-            <Select value={screen.n} onChange={(event) => {
-              const target = screens.find((item) => item.n === Number(event.target.value));
-              if (target) go(screenPath(target));
-            }}>
-              {screens.map((item) => <option key={item.n} value={item.n}>{item.n}. {item.title}</option>)}
+            <Select
+              value={currentSection}
+              onChange={(event) => {
+                const item = navItems.find(([label]) => label === event.target.value);
+                if (!item) return;
+                const target = screens.find((screenItem) => screenItem.n === item[1]);
+                if (target) go(screenPath(target));
+              }}
+            >
+              {navItems.map(([label]) => <option key={label} value={label}>{label}</option>)}
             </Select>
           </div>
+
           <div className="breadcrumb">
             <span>{screen.group}</span><b>/</b><strong>{screen.title}</strong>
           </div>
+
           <div className="topbar-actions">
             <Button variant="ghost" onClick={() => go("/screens/64-how-it-works")}>How it works</Button>
             <Button variant="outline" onClick={() => go("/screens/68-model-lab")}>Model Lab</Button>
@@ -172,20 +207,13 @@ function AppShell({ screen, children }: { screen: ScreenSpec; children: ReactNod
         <div className="content">
           <div className="page-heading">
             <div>
-              <div className="screen-kicker">SCREEN {String(screen.n).padStart(2, "0")} OF 72</div>
+              <div className="screen-kicker">{screen.group}</div>
               <h1>{screen.headline}</h1>
               <p>{screen.description}</p>
             </div>
-            <Badge>{screen.group}</Badge>
           </div>
           {children}
         </div>
-
-        <footer className="screen-pager">
-          <div>{previous ? <Button variant="outline" onClick={() => go(screenPath(previous))}>← {previous.title}</Button> : <span />}</div>
-          <span>{screen.n} / 72</span>
-          <div>{next ? <Button variant="outline" onClick={() => go(screenPath(next))}>{next.title} →</Button> : <span />}</div>
-        </footer>
       </main>
     </div>
   );
