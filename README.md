@@ -30,7 +30,7 @@ Guestbook treats speech recognition as an **input adapter**, not as the business
 
 Voice is optional: the core Guestbook classifier and typed workflow do not depend on it. Kiswahili remains a typed path in this prototype.
 
-## Small AI architecture
+## Why Kenya for the prototype\n\nGuestbook's prototype evidence is localized around **Kenya** rather than treating "local" as a generic label.\n\n- The interface includes a typed **Kiswahili** path.\n- The multilingual transfer probe uses Amazon MASSIVE **sw-KE**.\n- The human-written hospitality-language probe uses **Inside Airbnb Nairobi** reviews.\n- World Bank data reports **35% of Kenya's population using the internet in 2024**, which makes an offline-first critical path materially relevant.\n- Kenya's National Bureau of Statistics reports **2,550,641 international visitor arrivals in 2025**, up 6.2% from 2024.\n\nThese facts do not make the prototype field-validated. They explain why Kenya is a coherent next validation setting: the language, tourism context, external text evidence, and connectivity constraint point to the same place.\n\nSources:\n- World Bank, Individuals using the Internet (% of population), Kenya: https://data.worldbank.org/country/kenya?locations=ke&name_desc=false\n- Kenya National Bureau of Statistics, Economic Survey 2026: https://www.knbs.or.ke/wp-content/uploads/2026/04/2026-Economic-Survey.pdf\n- Dataset and licensing details for MASSIVE and Inside Airbnb are documented in [external evidence](docs/external-evidence.md).\n\n## Small AI architecture
 
 Guestbook deliberately does not use a general-purpose LLM in its critical path.
 
