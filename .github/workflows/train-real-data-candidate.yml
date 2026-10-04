@@ -1,5 +1,8 @@
 name: train-real-data-candidate
 
+permissions:
+  contents: write
+
 on:
   push:
     paths:
@@ -27,6 +30,29 @@ jobs:
         run: pip install --disable-pip-version-check numpy pandas pyarrow requests
       - name: Train candidate with external train partitions
         run: python scripts/train_candidate.py
+      - name: Promote candidate when evidence gates pass
+        run: |
+          python - <<'PY'
+          import json, shutil, sys
+          report=json.load(open("candidate-model/candidate-report.json"))
+          gates=[
+            report["synthetic_frozen"]["precision"] >= 0.90,
+            report["synthetic_frozen"]["f1"] >= 0.88,
+            report["massive_test"]["en-US"]["mapped_label_hit_rate"] >= 0.85,
+            report["massive_test"]["sw-KE"]["mapped_label_hit_rate"] >= 0.85,
+            report["nairobi_weak_heldout"]["overall"]["hit_rate"] >= 0.90,
+          ]
+          if not all(gates):
+              print("Candidate failed promotion gates", gates)
+              sys.exit(1)
+          shutil.copyfile("candidate-model/pretrained-candidate.ts","src/ai/pretrained.ts")
+          print("Candidate passed all promotion gates")
+          PY
+          git config user.name "guestbook-evidence-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/ai/pretrained.ts
+          git commit -m "model: promote real-data multilingual candidate"
+          git push
       - name: Upload candidate
         uses: actions/upload-artifact@v4
         with:
