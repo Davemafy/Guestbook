@@ -21,19 +21,18 @@
 
 Use this exact tested observation:
 
-> We loved the roasting, the road was terrible, and we want to buy beans.
+> My mother cannot walk very far and I want to buy some coffee beans.
 
 Expected accepted signals:
 
-- Experience praised
-- Access friction
+- Accessibility need
 - Wants a product
 
 Flow:
 
 1. Home → I’m visiting
 2. Guest → paste/type tested observation
-3. Review → show original quote + three local-model signals
+3. Review → show original quote + two local-model signals, including the human-confirmation marker on accessibility
 4. Confirm into memory
 5. Memory → expand source evidence
 6. Decide → show human-controlled action prompt
