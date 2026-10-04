@@ -484,8 +484,8 @@ function Review() {
     <Shell operator>
       <section className="review-layout">
         <div>
-          <p className="eyebrow">HUMAN REVIEW · {observation.source.toUpperCase()} SOURCE</p>
-          <h1 className="screen-title">What Guestbook heard.</h1>
+          <div className="review-step"><span>01</span><p className="eyebrow">SOURCE · {observation.source.toUpperCase()}</p></div>
+          <h1 className="screen-title">What the guest actually said.</h1>
           <blockquote className="source-quote">“{observation.rawText}”</blockquote>
           <p className="microcopy">Nothing below replaces the original words. Tap any signal to correct the model before it enters memory.</p>
         </div>
@@ -495,10 +495,11 @@ function Review() {
             <div><strong>0</strong><span>network inference</span></div>
             <div><strong>LOCAL</strong><span>on this device</span></div>
           </div>
-          <div className="panel-head"><span>INTERPRETED LOCALLY</span><span>{observation.predictions[0]?.engine ?? "guestbook-micro-v1"}</span></div>
+          <div className="panel-head"><span><b>02</b> INTERPRETED LOCALLY</span><span>{observation.predictions[0]?.engine ?? "guestbook-micro-v1"}</span></div>
           <div className="prediction-list">
-            {observation.predictions.map((prediction) => (
+            {observation.predictions.map((prediction, index) => (
               <button key={prediction.label} className={selected.has(prediction.label) ? "prediction selected signal-reveal" : "prediction signal-reveal"} onClick={() => toggle(prediction.label)}>
+                <span className="prediction-index">{String(index + 1).padStart(2, "0")}</span>
                 <div>
                   <strong>{LABEL_META[prediction.label].title}</strong>
                   <small>{LABEL_META[prediction.label].description}</small>
@@ -568,6 +569,8 @@ function Memory() {
   }, []);
 
   const memory = useMemo(() => buildMemory(observations), [observations]);
+  const featured = memory.find((signal) => signal.label === "WANT_PRODUCT" && signal.visitCount >= 5) ?? memory[0] ?? null;
+  const archive = featured ? memory.filter((signal) => signal.label !== featured.label) : memory;
 
   return (
     <Shell operator>
@@ -583,30 +586,75 @@ function Memory() {
           <button className="primary" onClick={() => go("/decide")}>What should I act on?</button>
         </div>
       </section>
-      <section className="memory-grid">
-        {memory.map((signal, index) => (
-          <article key={signal.label} className={"memory-card " + (signal.label === "WANT_PRODUCT" && signal.visitCount >= 5 ? "memory-card-signature" : "")}>
-            <div className="memory-rank">{String(index + 1).padStart(2, "0")}</div>
-            <div className="memory-main">
-              <div className="memory-title-row">
-                <h2>{signal.title}</h2>
-                {previousCounts[signal.label] !== undefined && signal.visitCount > previousCounts[signal.label] ? (
-                  <strong className="count-change">
-                    <i>{previousCounts[signal.label]}</i>
-                    <b>→</b>
-                    {signal.visitCount}
-                    <span>visits · just now</span>
-                  </strong>
-                ) : (
-                  <strong>{signal.visitCount} <span>visits</span></strong>
-                )}
+
+      {featured && (
+        <section className="memory-feature">
+          <div className="memory-feature-meta">
+            <span>REPEATING SIGNAL</span>
+            <span>{featured.observations.length} SOURCE RECORDS</span>
+          </div>
+          <div className="memory-feature-grid">
+            <div className="memory-feature-count">
+              {previousCounts[featured.label] !== undefined && featured.visitCount > previousCounts[featured.label] ? (
+                <strong className="feature-count-change">
+                  <i>{previousCounts[featured.label]}</i>
+                  <b>→</b>
+                  {featured.visitCount}
+                </strong>
+              ) : (
+                <strong>{featured.visitCount}</strong>
+              )}
+              <span>independent visits</span>
+            </div>
+            <div className="memory-feature-copy">
+              <h2>{featured.title}</h2>
+              <p>{featured.description}</p>
+            </div>
+          </div>
+
+          <div className="feature-evidence">
+            <div className="feature-evidence-head">
+              <span>SOURCE EVIDENCE</span>
+              <span>ORIGINAL WORDS · NOT GENERATED</span>
+            </div>
+            {featured.observations.slice(0, expanded === featured.label ? featured.observations.length : 3).map((obs, index) => (
+              <article key={obs.id} className="feature-evidence-row">
+                <div className="evidence-meta">
+                  <strong>{String(index + 1).padStart(2, "0")}</strong>
+                  <span>{obs.language.toUpperCase()}</span>
+                  <span>{obs.isDemo ? "DEMO VISIT" : obs.source.toUpperCase()}</span>
+                </div>
+                <blockquote>“{obs.rawText}”</blockquote>
+              </article>
+            ))}
+            {featured.observations.length > 3 && (
+              <button className="ledger-link feature-more" onClick={() => setExpanded(expanded === featured.label ? null : featured.label)}>
+                {expanded === featured.label ? "Show less evidence ↑" : "Show " + (featured.observations.length - 3) + " more sources ↓"}
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
+      {archive.length > 0 && (
+        <section className="memory-archive">
+          <div className="archive-head">
+            <span>OTHER SIGNALS</span>
+            <span>{archive.length} IN MEMORY</span>
+          </div>
+          {archive.map((signal, index) => (
+            <article key={signal.label} className="archive-row">
+              <div className="archive-index">{String(index + 1).padStart(2, "0")}</div>
+              <div className="archive-copy">
+                <h3>{signal.title}</h3>
+                <p>{signal.description}</p>
               </div>
-              <p>{signal.description}</p>
-              <button className="evidence-toggle" onClick={() => setExpanded(expanded === signal.label ? null : signal.label)}>
-                {expanded === signal.label ? "Hide source evidence" : "View source evidence"}
+              <div className="archive-count"><strong>{signal.visitCount}</strong><span>visits</span></div>
+              <button className="archive-open" onClick={() => setExpanded(expanded === signal.label ? null : signal.label)}>
+                {expanded === signal.label ? "Close" : "Sources"}
               </button>
               {expanded === signal.label && (
-                <div className="evidence-list">
+                <div className="archive-evidence">
                   {signal.observations.map((obs) => (
                     <div key={obs.id} className="evidence-item">
                       <span>{obs.language.toUpperCase()} · {obs.isDemo ? "DEMO VISIT" : obs.source.toUpperCase()}</span>
@@ -615,10 +663,11 @@ function Memory() {
                   ))}
                 </div>
               )}
-            </div>
-          </article>
-        ))}
-      </section>
+            </article>
+          ))}
+        </section>
+      )}
+
       <p className="dataset-note">Demo visits are visibly marked. New confirmed visits are stored only in this browser via IndexedDB.</p>
     </Shell>
   );
@@ -638,34 +687,68 @@ function Decide() {
     localStorage.setItem("guestbook-decisions", JSON.stringify(next));
   }
 
+  const featured = signals.find((signal) => signal.label === "WANT_PRODUCT") ?? signals[0] ?? null;
+  const rest = featured ? signals.filter((signal) => signal.label !== featured.label) : signals;
+
   return (
     <Shell operator>
-      <section className="narrow decision-page">
+      <section className="decision-intro">
         <p className="eyebrow">DECISION LAYER · HUMAN CONTROL</p>
-        <h1 className="screen-title">Evidence, not autopilot.</h1>
-        <p className="lede">Guestbook never changes the business for you. It surfaces repeated evidence and leaves the decision here.</p>
-        <div className="decision-list">
-          {signals.map((signal) => {
-            const copy = decisionCopy(signal);
-            return (
-              <article className={"decision-card " + (signal.label === "WANT_PRODUCT" ? "decision-card-signature" : "")} key={signal.label}>
-                <span className="decision-count">{signal.visitCount} independent visits</span>
+        <h1>Evidence, not autopilot.</h1>
+        <p>Guestbook does not decide what the business should become. It shows what keeps happening, links it to the source, and stops there.</p>
+      </section>
+
+      {featured && (() => {
+        const copy = decisionCopy(featured);
+        return (
+          <section className="decision-conclusion">
+            <div className="conclusion-topline">
+              <span>STRONGEST REPEATING SIGNAL</span>
+              <span>{featured.visitCount} INDEPENDENT VISITS</span>
+            </div>
+            <div className="conclusion-grid">
+              <div className="conclusion-count"><strong>{featured.visitCount}</strong><span>pieces of confirmed evidence</span></div>
+              <div className="conclusion-copy">
+                <p className="conclusion-kicker">PEOPLE KEEP ASKING.</p>
                 <h2>{copy.headline}</h2>
-                {signal.label === "WANT_PRODUCT" && (
-                  <p className="decision-proof">Not a prediction. Not a generated recommendation. {signal.visitCount} pieces of confirmed evidence.</p>
-                )}
+                <p className="decision-proof">Not a prediction. Not a generated recommendation. {featured.visitCount} source-backed observations.</p>
                 <p>{copy.body}</p>
                 <div className="decision-buttons">
                   {["Explore","Not now","Wrong signal"].map((option) => (
-                    <button key={option} className={decisions[signal.label] === option ? "decision active" : "decision"} onClick={() => decide(signal.label, option)}>{option}</button>
+                    <button key={option} className={decisions[featured.label] === option ? "decision active" : "decision"} onClick={() => decide(featured.label, option)}>{option}</button>
                   ))}
                 </div>
+              </div>
+            </div>
+            <div className="conclusion-sources">
+              {featured.observations.slice(0, 3).map((obs) => (
+                <blockquote key={obs.id}>“{obs.rawText}”</blockquote>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
+      {rest.length > 0 && (
+        <section className="decision-secondary">
+          <div className="archive-head"><span>OTHER DECISIONS</span><span>{rest.length} READY FOR REVIEW</span></div>
+          {rest.map((signal) => {
+            const copy = decisionCopy(signal);
+            return (
+              <article className="decision-row" key={signal.label}>
+                <div><span className="decision-count">{signal.visitCount} visits</span><h3>{copy.headline}</h3></div>
+                <div><p>{copy.body}</p><div className="decision-buttons">
+                  {["Explore","Not now","Wrong signal"].map((option) => (
+                    <button key={option} className={decisions[signal.label] === option ? "decision active" : "decision"} onClick={() => decide(signal.label, option)}>{option}</button>
+                  ))}
+                </div></div>
               </article>
             );
           })}
-        </div>
-        <button className="quiet-link back-link" onClick={() => go("/memory")}>← Back to evidence</button>
-      </section>
+        </section>
+      )}
+
+      <button className="quiet-link back-link" onClick={() => go("/memory")}>← Back to evidence</button>
     </Shell>
   );
 }
