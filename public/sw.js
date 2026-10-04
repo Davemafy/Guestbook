@@ -1,9 +1,15 @@
-const CACHE = "guestbook-shell-v6";
+const CACHE = "guestbook-shell-v7";
 const STATIC = [
   "/manifest.webmanifest",
   "/icon.svg",
-  "/fonts/UberMoveMedium.woff2",
-  "/fonts/UberMoveBold.woff2",
+  "/favicon.svg",
+  "/favicon.ico",
+  "/apple-touch-icon.png",
+  "/pwa-192.png",
+  "/pwa-512.png",
+  "/maskable-512.png",
+  "/fonts/uber-move-medium.woff2",
+  "/fonts/uber-move-bold.woff2",
 ];
 
 async function precacheCurrentBuild() {
