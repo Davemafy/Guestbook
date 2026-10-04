@@ -94,6 +94,18 @@ function contradicts(label: SignalLabel, text: string): boolean {
   return CONTRADICTION_GUARDS[label]?.some((pattern) => pattern.test(text)) ?? false;
 }
 
+const CONTRADICTION_GUARD_CASES: Array<{ text: string; blocked: SignalLabel }> = [
+  { text: "I don't want to buy coffee beans.", blocked: "WANT_PRODUCT" },
+  { text: "We are not booking a visit this weekend.", blocked: "WANT_BOOKING" },
+  { text: "It wasn't expensive at all.", blocked: "FRICTION_VALUE" },
+  { text: "We did not get lost and the farm was easy to find.", blocked: "FRICTION_ACCESS" },
+  { text: "It was exactly as advertised.", blocked: "FRICTION_EXPECTATION" },
+  { text: "I have no food allergies or dietary restrictions.", blocked: "REQUIREMENT_DIETARY_SAFETY" },
+  { text: "I can walk fine and have no mobility issues.", blocked: "REQUIREMENT_ACCESSIBILITY" },
+  { text: "I understood everything clearly.", blocked: "COMMUNICATION_GAP" },
+  { text: "I wouldn't recommend this to my friends.", blocked: "RETURN_REFERRAL" },
+];
+
 function sigmoid(value: number): number {
   const clipped = Math.max(-30, Math.min(30, value));
   return 1 / (1 + Math.exp(-clipped));
@@ -171,10 +183,13 @@ export async function benchmark() {
   const recall = tp / Math.max(1, tp + fn);
   const f1 = (2 * precision * recall) / Math.max(1e-9, precision + recall);
   latencies.sort((a, b) => a - b);
+  const contradictionGuardPassed = CONTRADICTION_GUARD_CASES.filter(({ text, blocked }) => contradicts(blocked, text)).length;
   return {
     cases: FROZEN_TEST_CASES.length,
     precision, recall, f1,
     exactMatch: exact / FROZEN_TEST_CASES.length,
+    contradictionGuardCases: CONTRADICTION_GUARD_CASES.length,
+    contradictionGuardPassed,
     medianInferenceMs: latencies[Math.floor(latencies.length / 2)] ?? 0,
     loadMs: model.loadMs,
     weightBytes: MODEL_WEIGHT_BYTES,
