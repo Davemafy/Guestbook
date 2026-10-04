@@ -483,7 +483,9 @@ function GuestScreen() {
         setVoiceError(
           error === "audio-capture"
             ? "Microphone is unavailable. Close other apps using the mic and try again."
-            : "Allow microphone access and try again.",
+            : error === "service-not-allowed"
+              ? "Chrome's speech-recognition service is unavailable for this session. Reload the page or type instead."
+              : "Chrome denied microphone access. Check this site's microphone permission and your computer privacy settings.",
         );
         return;
       }
@@ -577,9 +579,9 @@ function GuestScreen() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  function startVoice() {
+  async function startVoice() {
     if (!navigator.onLine) {
-      setVoiceError("Voice transcription needs a connection on this phone. Typing and Guestbook AI still work offline.");
+      setVoiceError("Voice transcription needs a connection on this device. Typing and Guestbook AI still work offline.");
       setVoiceState("error");
       return;
     }
@@ -588,6 +590,32 @@ function GuestScreen() {
       setVoiceState("unavailable");
       setVoiceError("This browser does not expose speech recognition. Type instead.");
       return;
+    }
+
+    const isLikelyMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+    // Desktop Chrome can expose SpeechRecognition before it has completed a
+    // normal microphone permission handshake. Ask for the mic briefly, release
+    // it immediately, then let SpeechRecognition own the microphone. Keep this
+    // off mobile because a concurrent getUserMedia stream interferes with
+    // Android Chrome speech recognition.
+    if (!isLikelyMobile && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (error) {
+        const name = error instanceof DOMException ? error.name : "";
+        wantsListeningRef.current = false;
+        setVoiceState("error");
+        setVoiceError(
+          name === "NotAllowedError" || name === "SecurityError"
+            ? "Microphone access is blocked by Chrome or your computer privacy settings."
+            : name === "NotFoundError"
+              ? "No microphone is available on this computer."
+              : "The microphone could not be opened. Check your computer audio settings and try again.",
+        );
+        return;
+      }
     }
 
     if (restartTimerRef.current !== null) {
