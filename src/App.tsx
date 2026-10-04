@@ -305,7 +305,7 @@ function Shell({ route, children, layout = "compact" }: { route: Route; children
     };
   }, []);
 
-  const status = online ? (offlineReady ? "Offline ready" : "Preparing offline") : "Offline";
+  const status = online ? (offlineReady ? "Works offline" : "Online") : "Offline";
   const mobileNav = NAV.filter((item): item is { key: Exclude<Route, "system">; label: string; path: string } => item.key !== "system");
 
   return (
@@ -808,9 +808,11 @@ function ReviewScreen() {
   return (
     <Shell route="review" layout="compact">
       <main className="compact-grid compact-page">
-        <section className="review-source">
+        <section className="review-title">
           <PageTitle title="Review this visit" body="Check what Guestbook picked up before it joins your memory." />
+        </section>
 
+        <section className="review-source">
           {observation ? (
             <div className="source-block">
               <div className="source-meta">
