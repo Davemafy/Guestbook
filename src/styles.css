@@ -5,7 +5,7 @@
   font-synthesis: none;
   --content-primary: #000000;
   --content-secondary: #545454;
-  --content-tertiary: #757575;
+  --content-tertiary: #5e5e5e;
   --background-primary: #ffffff;
   --background-secondary: #f6f6f6;
   --background-tertiary: #e8e8e8;
@@ -184,7 +184,7 @@ button:disabled {
 .voice-system-row h2,
 .empty-state h2 {
   font-family: "Uber Move", Arial, Helvetica, sans-serif;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -235,6 +235,7 @@ button:disabled {
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .base-button.small {
@@ -252,7 +253,7 @@ button:disabled {
 }
 
 .base-button.rect {
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .base-button.pill {
@@ -401,30 +402,46 @@ button:disabled {
 /* Fields */
 .base-field {
   display: grid;
-  gap: 12px;
+  gap: 8px;
+  padding-inline: 16px;
+}
+
+.base-field > .label-medium {
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
 }
 
 .base-textarea {
   width: 100%;
   min-height: 216px;
   padding: 16px;
-  border: 1px solid #757575;
-  border-radius: 0;
+  border: 0;
+  border-radius: 8px;
   resize: vertical;
   outline: 0;
-  background: var(--background-primary);
+  background: var(--background-tertiary);
   color: var(--content-primary);
-  font-size: 18px;
-  line-height: 28px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.base-textarea:hover {
+  background: #dedede;
+}
+
+.base-textarea:focus-visible {
+  outline: 2px solid var(--content-primary);
+  outline-offset: 0;
 }
 
 .base-textarea::placeholder {
-  color: #757575;
+  color: var(--content-tertiary);
 }
 
 .field-hint {
-  color: var(--content-secondary);
-  font-size: 12px;
+  color: var(--content-tertiary);
+  font-size: 14px;
   line-height: 20px;
 }
 
@@ -448,9 +465,10 @@ button:disabled {
 
 .character-count {
   margin-left: auto;
-  color: var(--content-secondary);
-  font-size: 12px;
-  line-height: 20px;
+  color: var(--content-tertiary);
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
 }
 
 .voice-progress {
