@@ -12,7 +12,8 @@
   "dependencies": {
     "dexie": "^4.0.11",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@moonshine-ai/moonshine-wasm": "0.1.5"
   },
   "devDependencies": {
     "@types/react": "^19.1.10",
