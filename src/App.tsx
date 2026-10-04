@@ -106,7 +106,7 @@ function AppHeader({ title, subtitle, dark = false, back = false }: { title: str
       </button>
       <div className="ds-title-block">
         <h1>{title}</h1>
-        <p>{subtitle ? subtitle + " · " : ""}{status}</p>
+        <p className="sr-only">{subtitle ? subtitle + " · " : ""}{status}</p>
       </div>
     </header>
   );
